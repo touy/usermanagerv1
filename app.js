@@ -639,6 +639,6 @@ function errorLogging(log) {
         }
     });
 }
-app.listen(6698, "0.0.0.0", function () {
-    console.log('Example app listening on port 6698!')
+app.listen(6688, "0.0.0.0", function () {
+    console.log('Example app listening on port 6688!')
 });
