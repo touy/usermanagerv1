@@ -209,6 +209,12 @@ function checkUserRoles(username){
     });
 }
 var _arrUsers=[];
+app.all('/', function (req, res) {
+    let js={};
+    js.client = req.body; //client.data.device
+    js.resp = res;
+    res.send('TEST OK');
+});
 app.all('/get_client', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
