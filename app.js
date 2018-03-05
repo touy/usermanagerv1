@@ -1,7 +1,6 @@
 const express = require('express');
 const app = express();
 app.set('trust proxy', true);
-
 const async = require('async');
 const uuidV4 = require('uuid/v4');
 const nano = require('nano')('http://admin:admin@localhost:5984');
