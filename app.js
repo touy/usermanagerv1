@@ -219,10 +219,21 @@ app.all('/get_client', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
     js.resp = res;
-    getCliet(js);
+    getClient(js).then(function(res){
+        js.client=res;
+        js.client.loginip=req.ip;
+        js.client.data.message='OK';
+        js.resp.send(js.client);
+    }).catch(function(err){
+        js.client.data.message=err;
+        js.resp.send(js.client);
+    });
 });
 function getClient(js){
+    var deferred=Q.defer();
 
+    js.client.logintoken=uuidV4();
+    return deferred.promise;
 }
 
 app.all('/login', function (req, res) {
