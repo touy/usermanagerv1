@@ -49,21 +49,6 @@ function convertTZ(fromTZ) {
 
 
 
-
-
-
-
-/****** INIT DB */
-initDB();
-
-
-
-
-
-
-
-
-
 var _client={
     username:'',
     logintoken:'',
@@ -144,7 +129,7 @@ function copyObject(o1,o2){
     }
 }
 function init_default_user(js){
-    let db=create_db('users');
+    let db=create_db('gijusers');
     findUserByUsername(defaultUser.username).then(function (res){
         if(res.length)
         if(res.username!=defaultUser.username)
@@ -180,43 +165,43 @@ function init_default_user(js){
     });
 }
 var __design_users={
-    "_id": "_design/objectList",
-    "views": {
-      "authentication": {
-        "map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],doc);\r\n    }\r\n}"
-      },
-      "findByUsernameAndPhone": {
-        "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit([doc.username.toLowerCase(),doc.phone],doc);\r\n    }\r\n}"
-      },
-      "findByUsername": {
-        "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit(doc.username.toLowerCase(),doc);\r\n    }\r\n}"
-      },
-      "findByUserGui": {
-        "map": "function(doc) {\r\n    if(doc.gui) {\r\n        emit(doc.gui,doc);\r\n    }\r\n}"
-      },
-      "findExist": {
-        "map": "function (doc) {\n if(doc.username.toLowerCase()) \n emit(doc.username.toLowerCase(), doc);\n}"
-      },
-      "changePassword": {
-        "map": "function (doc) {\n    emit([doc.username.toLowerCase(),doc.password,doc.phone], doc);\n}"
-      },
-      "findByRole": {
-        "map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], doc);\n}"
-      },
-      "countByRole": {
-        "reduce": "_count",
-        "map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], doc);\n}"
-      },
-      "findByParent": {
-        "map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.parents[i]], doc);\n}"
-      },
-      "countByParent": {
-        "reduce": "_count",
-        "map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.parents[i]], doc);\n}"
-      }
-    },
-    "language": "javascript"
-  };
+	"_id": "_design/objectList",
+	"views": {
+		"authentication": {
+			"map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],doc);\r\n    }\r\n}"
+		},
+		"findByUsernameAndPhone": {
+			"map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit([doc.username.toLowerCase(),doc.phone],doc);\r\n    }\r\n}"
+		},
+		"findByUsername": {
+			"map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit(doc.username.toLowerCase(),doc);\r\n    }\r\n}"
+		},
+		"findByUserGui": {
+			"map": "function(doc) {\r\n    if(doc.gui) {\r\n        emit(doc.gui,doc);\r\n    }\r\n}"
+		},
+		"findExist": {
+			"map": "function (doc) {\n if(doc.username.toLowerCase()) \n emit(doc.username.toLowerCase(), doc);\n}"
+		},
+		"changePassword": {
+			"map": "function (doc) {\n    emit([doc.username.toLowerCase(),doc.password,doc.phone], doc);\n}"
+		},
+		"findByRole": {
+			"map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], doc);\n}"
+		},
+		"countByRole": {
+			"reduce": "_count",
+			"map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], doc);\n}"
+		},
+		"findByParent": {
+			"map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.parents[i]], doc);\n}"
+		},
+		"countByParent": {
+			"reduce": "_count",
+			"map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.parents[i]], doc);\n}"
+		}
+	},
+	"language": "javascript"
+};
 
   var _authen_arr=["/profile","/change_password"]// could get from redis;
   var _author_path=[{
@@ -304,7 +289,7 @@ function checkRolePath(urlpath,roles){
 //app.use(checkAuthor);
 function findUserRoles(username){
     let deferred=Q.defer();
-    let db=create_db('users');
+    let db=create_db('gijusers');
     db.view(__design_view,'findUserRolesByUsername',{keys:[username]},function(err,res){
         if(err)deferred.reject(err);
         else{
@@ -427,7 +412,7 @@ function login(js) {
 }
 function authentication(userinfo){
     let deferred=Q.defer();
-    let db=create_db('users');
+    let db=create_db('gijusers');
     db.view(__design_view,'authentication',{keys:[username,password],function(err,res){
         if(err)deferred.reject(err);
         else{
@@ -459,7 +444,7 @@ function register(js) {
 }
 function addNewUser(userinfo){
     let deferred=Q.defer();
-    let db=create_db('users');
+    let db=create_db('gijusers');
     if(r=validateUserInfo(userinfo.username).length)
         deferred.reject(r);
     if(r=validatePhoneInfo(userinfo.phone).length)
@@ -581,7 +566,7 @@ function submit_forgot_keys(phone) {
 
 function findUsernameByPhone(phone) {
     let deferred = Q.defer();
-    let db = create_db('users');
+    let db = create_db('gijusers');
     db.view(__design_view, 'findByUsernameAndPhone', {
         key: [phone]
     }, function (err, res) {
@@ -645,7 +630,7 @@ function forgot_password(username, forgotkeys) {
 
 function findUserByUsername(username) {
     let deferred = Q.defer();
-    let db = create_db('users');
+    let db = create_db('gijusers');
     db.view(__design_view,'findByUsername', {
         key: [username]
     }, function (err, res) {
@@ -696,7 +681,7 @@ function validatePassword(pass) {
 
 function updateUser(userinfo) {
     let deferred = Q.defer();
-    let db = create_db('users');
+    let db = create_db('gijusers');
     db.insert(userinfo, userInfo.gui, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -708,7 +693,7 @@ function updateUser(userinfo) {
 
 function change_password(username, phone, oldpass, newpass) {
     let deferred = Q.defer();
-    let db = create_db('users');
+    let db = create_db('gijusers');
     findUserByUsernameAndPhone(username, oldpass, phone).then(function (res) {
         if (res) {
             let passValidate = validatePassword(newpass);
@@ -726,7 +711,7 @@ function change_password(username, phone, oldpass, newpass) {
 
 function findUserByUsernameAndPhone(username, oldpass, phone) {
     let deferred = Q.defer();
-    let db = create_db('users');
+    let db = create_db('gijusers');
     db.view(__design_view, 'findByUsernameAndPhone', {
         key: [username, password, phone]
     }, function (err, res) {
@@ -748,9 +733,10 @@ function findUserByUsernameAndPhone(username, oldpass, phone) {
 
 // terminal(app);
 
-__design_view = "objectList";
+__design_view = "_design/objectList";
 function initDB() {
-    init_db('users', __design_users);
+
+    init_db('gijusers', __design_users);
 }
 function create_db(dbname) {
     let db;
@@ -772,8 +758,10 @@ function init_db(dbname, design) {
         db = nano.use(dbname),
         db.insert(design, function (err, res) {
             if (err) {
+               // console.log(design);
+                //console.log(err);
                 db.get('_design/objectList', function (err, res) {
-                    if (err) console.log('could not find design ' + err.message);
+                    if (err) console.log('could not find design ' + err);
                     else {
                         if (res) {
                             var d = res;
@@ -783,7 +771,7 @@ function init_db(dbname, design) {
                                 else {
                                     //console.log(res);
                                     db.insert(design, "_design/objectList", function (err, res) {
-                                        if (err) console.log('err insert new design ' + dbname);
+                                        if (err) console.log('err insert new design ' + dbname +err);
                                         else {
                                             //console.log('insert design completed ' + dbname);
                                         }
@@ -796,7 +784,7 @@ function init_db(dbname, design) {
                     }
                 });
             } else{
-                //console.log('created design ' + dbname);
+                console.log('created design ' + dbname);
             }
                 
         })
@@ -840,6 +828,15 @@ function errorLogging(log) {
         }
     });
 }
+
+/****** INIT DB */
+initDB();
+
+
+
+
+
+
 app.listen(6688, "0.0.0.0", function () {
     console.log('Example app listening on port 6688!')
 });
