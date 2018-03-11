@@ -131,25 +131,28 @@ function copyObject(o1,o2){
 function init_default_user(js){
     let db=create_db('gijusers');
     findUserByUsername(defaultUser.username).then(function (res){
+        console.log('res');
+        console.log(res);
         if(res)
-        if(res.username!=defaultUser.username)
-            db.insert(defaultUser,defaultUser.gui,function(err,res){
-                if(err)js.resp.send(js.client);
-                else{
-                    js.client.data.message='OK';
-                    js.resp.send(js.client);
-                }
-            });
-        else{
-            copyObject(defaultUser,res);
-            db.insert(res,res.gui,function(err,res){
-                if(err)js.resp.send(js.client);
-                else{
-                    js.client.data.message='OK';
-                    js.resp.send(js.client);
-                }
-            });
-        }
+            if(res.username!=defaultUser.username)
+                db.insert(defaultUser,defaultUser.gui,function(err,res){
+                    if(err)js.resp.send(js.client);
+                    else{
+                        js.client.data.message='OK';
+                        js.resp.send(js.client);
+                    }
+                });
+            else{
+                copyObject(defaultUser,res);
+                console.log(res);
+                db.insert(res,res.gui ,function(err,res){
+                    if(err)js.resp.send(js.client);
+                    else{
+                        js.client.data.message='OK';
+                        js.resp.send(js.client);
+                    }
+                });
+            }
         else{
             db.insert(defaultUser,defaultUser.gui,function(err,res){
                 if(err){
@@ -403,6 +406,8 @@ app.all('/login', function (req, res) {
 
 function login(js) {
     authentication(js.client.data.user).then(function(res){
+        js.client.username=js.client.data.user.username;
+        js.client.data.user={};
         js.client.data.message='OK';
         js.client.logintoken=uuidV4();
         js.client.logintime=convertTZ(new Date());
@@ -416,9 +421,12 @@ function login(js) {
 function authentication(userinfo){
     let deferred=Q.defer();
     let db=create_db('gijusers');
-    db.view(__design_view,'authentication',{keys:[userinfo.username,userinfo.password],function(err,res){
+    console.log('check authen')
+    db.view(__design_view,'authentication',{key:[userinfo.username,userinfo.password]},function(err,res){
+        console.log('checking login')
         if(err)deferred.reject(err);
         else{
+            console.log('login ok')
             if(res.rows.length){
                 deferred.resolve('OK');
             }
@@ -426,7 +434,7 @@ function authentication(userinfo){
                 deferred.reject('ERROR authentication');
             }
         }
-    }})
+    })
     return deferred.promise;
 }
 app.all('/register', function (req, res) {
@@ -639,7 +647,10 @@ function findUserByUsername(username) {
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
-                deferred.resolve(res.rows[0]);
+            if(res.rows.length)
+                deferred.resolve(res.rows[0].value);
+            else
+            deferred.resolve('');
         }
     })
     return deferred.promise;
