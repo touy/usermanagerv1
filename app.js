@@ -188,7 +188,7 @@ var __design_users={
       "findByUsernameAndPhone": {
         "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit([doc.username.toLowerCase(),doc.phone],doc);\r\n    }\r\n}"
       },
-      "findByUserName": {
+      "findByUsername": {
         "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit(doc.username.toLowerCase(),doc);\r\n    }\r\n}"
       },
       "findByUserGui": {
