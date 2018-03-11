@@ -733,7 +733,7 @@ function findUserByUsernameAndPhone(username, oldpass, phone) {
 
 // terminal(app);
 
-__design_view = "_design/objectList";
+__design_view = "objectList";
 function initDB() {
 
     init_db('gijusers', __design_users);
