@@ -145,10 +145,10 @@ const checkPrefix =function(req,res,next){
     console.log('using path'+req.path);
     if(req.path=='/get_client')
         next();
-    if(client_prefix.indexOf(js.client.prefix)>-1){
+    else if(client_prefix.indexOf(js.client.prefix)>-1){
         next();
     }
-    next();
+    else next();
     //TESTING
     //else res.send(new Error('ERROR NOT ALLOW'));
 }
@@ -243,13 +243,22 @@ function init_client(client){
     if(client==undefined||null)client=_client;
     if(client.data==undefined||null)client=_client;
 }
-app.all('/get_client', function (req, res) {
+app.post('/test',function(req,res){
+    res.send('TEST OK');
+});
+function checkTest(){
+    let deferred=Q.defer();
+    deferred.resolve('OK');
+    return deferred.promise;
+}
+app.post('/get_client', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
     js.resp = res;
-    console.log('get_client');
+    //console.log('get_client');
+    // res.send(js.client);
     init_client(js.client);
-    getClient(js).then(function(res){
+    getClient(js.client).then(function(res){
         js.client=res;
         js.client.loginip=req.ip;        
         js.client.accessedtime=convertTZ(new Date());
@@ -259,8 +268,11 @@ app.all('/get_client', function (req, res) {
         js.client.data.message='OK';
         js.client.prefix='GUEST-'+uuidV4();
         client_prefix.push(js.client.prefix);
+        //console.log('before send '+JSON.stringify(js.client));
         js.resp.send(js.client);
-    }).catch(function(err){        
+        
+    }).catch(function(err){    
+        //console.log(err);    
         js.client.data.message=err;
         js.resp.send(js.client);
     });
@@ -274,15 +286,15 @@ app.all('/hearbeat',function(req,res){
     client_prefix.push(js.client.prefix);
     js.resp.send(js.client);
 });
-function getClient(js){
-    var deferred=Q.defer();
+function getClient(client){
+    let deferred=Q.defer();
     try {
-        js.client.logintoken=uuidV4();
-        deferred.resolve(js.client);
-    } catch (error) {
-        deferred.reject(error);
+        client.logintoken=uuidV4();
+        deferred.resolve(client);
+    } catch (err) {
+        client.data.message=err;
+        deferred.reject(client);
     }
-    
     return deferred.promise;
 }
 
