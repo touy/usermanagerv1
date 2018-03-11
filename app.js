@@ -45,7 +45,17 @@ app.use(errorHandler);
 function convertTZ(fromTZ) {
     return moment.tz(fromTZ, "Asia/Vientiane").format();
 }
-
+var _client={
+    username:'',
+    logintoken:'',
+    logintime:'',
+    loginip:'',
+    prefix:'',
+    data:{
+        users:{},
+        message:{},
+    }
+}
 var _user={
     username:'',
     password:'',
@@ -111,42 +121,45 @@ var __design_users={
       {urlpath:'/profile',roles:['user','admin']},
       {urlpath:'/home',roles:['guest','user','admin']},
   ];
-var checkAuthen = function (req, res, next) {
+// var checkAuthen = function (req, res, next) {
+//     let js={};
+//     js.client=req.body;
+//     isAuthen=false;
+//     if(checkAuthenPath(req.path,_authen_arr)){
+//         for (let index = 0; index < _arrUsers.length; index++) {
+//             const element = _arrUsers[index];
+//             if(element.username==js.client.username&&element.logintoken==js.client.logintoken)
+//                 isAuthen=true;
+//         }
+//         if(isAuthen)
+//             next();
+//         else
+//             res.redirect('/login');
+//     }else
+//         next();
+//   }
+const checkPrefix =function(req,res,next){
     let js={};
+    //js.client.ip=req.ip;
     js.client=req.body;
-    isAuthen=false;
-    if(checkAuthenPath(req.path,_authen_arr)){
-        for (let index = 0; index < _arrUsers.length; index++) {
-            const element = _arrUsers[index];
-            if(element.username==js.client.username&&element.logintoken==js.client.logintoken)
-                isAuthen=true;
-        }
-        if(isAuthen)
-            next();
-        else
-            res.redirect('/login');
-    }else
+    if(req.path=='/get_client')
         next();
-  }
-  
- // app.use(checkAuthen);
+    if(client_prefix.indexOf(js.client.prefix)>-1){
+        next();
+    }
+    next();
+    //TESTING
+    //else res.send(new Error('ERROR NOT ALLOW'));
+}
+app.use(checkPrefix); 
+ //app.use(checkAuthen);
 
   function checkAuthenPath(urlpath){
     if(_authen_arr.indexOf(urlpath)>-1)
         return true;
     return false;
   }
- var _client={
-     username:'',
-     logintoken:'',
-     logintime:'',
-     loginip:'',
-     prefix:'',
-     data:{
-         users:{},
-         message:{},
-     }
- }
+
   var checkAuthor = function (req, res, next) {
     let js={};
     js.client=req.body;
@@ -209,11 +222,21 @@ function checkUserRoles(username){
     });
 }
 var _arrUsers=[];
+var client_prefix=['ice-maker','gij','web-post'];
+function clearPrefix(){
+    for (let index = 0; index < client_prefix.length; index++) {
+        const element = client_prefix[index];
+        if(element.indexOf('GUEST')>-1){
+            delete element;
+        }
+    }
+}
+setInterval(clearPrefix,1000*60*5); // clear prefix every 5 minutes , so client need to send hearbeat regularly to gain new a new prefix;
 app.all('/', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
     js.resp = res;
-    res.send('TEST OK');
+    res.sendFile(path.join(__dirname+'/index.html'));
 });
 app.all('/get_client', function (req, res) {
     let js={};
@@ -221,18 +244,38 @@ app.all('/get_client', function (req, res) {
     js.resp = res;
     getClient(js).then(function(res){
         js.client=res;
-        js.client.loginip=req.ip;
+        js.client.loginip=req.ip;        
+        js.client.accessedtime=convertTZ(new Date());
+        js.client.timeout=60*60*24;
+        js.client.gui=uuidV4();
+        r_client.set('_client_'+js.client.gui,JSON.stringify(js.client));
         js.client.data.message='OK';
+        js.client.prefix='GUEST-'+uuidV4();
+        client_prefix.push(js.client.prefix);
         js.resp.send(js.client);
     }).catch(function(err){
         js.client.data.message=err;
         js.resp.send(js.client);
     });
 });
+app.all('/hearbeat',function(req,res){
+    let js={};
+    js.client = req.body; //client.data.device
+    js.resp = res;
+    js.client.loginip=req.ip;  // if need to do when ip changed
+    js.client.prefix='GUEST-'+uuidV4();
+    client_prefix.push(js.client.prefix);
+    js.resp.send(js.client);
+});
 function getClient(js){
     var deferred=Q.defer();
-
-    js.client.logintoken=uuidV4();
+    try {
+        js.client.logintoken=uuidV4();
+        deferred.resolve(js.client);
+    } catch (error) {
+        deferred.reject(error);
+    }
+    
     return deferred.promise;
 }
 
@@ -240,12 +283,16 @@ app.all('/login', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
     js.resp = res;
+    if(req.ip!==js.client.loginip){
+        js.client.data.message=new Error('ERROR IP CHANGED');
+        res.send(js.client);
+    }
     login(js);
 });
 
 function login(js) {
     authentication(js.client.data.user).then(function(res){
-        js.client.data.message='OK login';
+        js.client.data.message='OK';
         js.client.logintoken=uuidV4();
         js.client.logintime=convertTZ(new Date());
         js.resp.send(js.client);
@@ -355,8 +402,10 @@ function cleanLoginUsers(){
 function logout(client) {
     for (let index = 0; index < _arrUsers.length; index++) {
         const element = _arrUsers[index];       
-        if(element.username==client.data.username&&element.logintoken==client.data.logintoken)
-            delete _arrUsers[index];
+        if(element.username==client.data.username&&element.logintoken==client.data.logintoken){
+                delete _arrUsers[index];
+        }
+
     }
 }
 

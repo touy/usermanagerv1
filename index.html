@@ -1,0 +1,126 @@
+<html>
+    <!--FOR ADMIN ONLY -->
+    <head>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+            <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+            <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+        <script>
+            var _arrUsers=[];
+            var _client={
+                username:'',
+                logintoken:'',
+                logintime:'',
+                loginip:'',
+                prefix:'',//later delete this , this using between server only
+                data:{
+                    // users:{},
+                    // message:{},
+                }
+            }
+            $(function(){
+                function getClient(){
+                    $.ajax({
+                        type: "POST",
+                        url: "/get_client",
+                        // The key needs to match your method's input parameter (case-sensitive).
+                        data: client,
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function(data){
+                            if(data.data.message.indexOf('ERROR')>-1){
+                                showError(data.data.message);
+                            }
+                            _client=data;
+                            console.log(_client);
+                        },
+                        failure: function(err) {
+                            showError(err);
+                        }
+                    });
+                }
+                function showError(err){
+
+                }
+                function loadAllUser(){
+                    $.post()
+                }
+                function addUser(){
+
+                }
+                function updateUser(){
+
+                }
+                function deleteUser(){
+
+                }
+                function selectUser(){
+
+                }
+                function showUserDetails(){
+
+                }
+                function showUserList(){
+
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <div id='registerform'>
+                <form class="form-horizontal">
+                        <fieldset>
+                        
+                        <!-- Form Name -->
+                        <legend>Register</legend>
+                        
+                        <!-- Text input-->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="Username">Username</label>  
+                          <div class="col-md-4">
+                          <input id="Username" name="Username" type="text" placeholder="Username" class="form-control input-md" required="">
+                          <span class="help-block">username</span>  
+                          </div>
+                        </div>
+                        
+                        <!-- Text input-->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="phonenumber">phonenumber</label>  
+                          <div class="col-md-4">
+                          <input id="phonenumber" name="phonenumber" type="text" placeholder="phonenumber" class="form-control input-md" required="">
+                          <span class="help-block">phonenumber</span>  
+                          </div>
+                        </div>
+                        
+                        <!-- Text input-->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="secret">secret</label>  
+                          <div class="col-md-2">
+                          <input id="secret" name="secret" type="text" placeholder="secret" class="form-control input-md" required="">
+                          <span class="help-block">secret</span>  
+                          </div>
+                        </div>
+                        
+                        <!-- Button -->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="getsecret"></label>
+                          <div class="col-md-4">
+                            <button id="getsecret" onclick="return false;"  name="getsecret" class="btn btn-info">get secret</button>
+                          </div>
+                        </div>
+                        
+                        <!-- Button -->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="submit"></label>
+                          <div class="col-md-4">
+                            <button id="submit" name="submit" class="btn btn-primary">submit</button>
+                          </div>
+                        </div>
+                        
+                        </fieldset>
+                        </form>
+                        
+        </div>
+    </body>
+</html>
