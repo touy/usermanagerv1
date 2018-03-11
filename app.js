@@ -142,6 +142,7 @@ const checkPrefix =function(req,res,next){
     let js={};
     //js.client.ip=req.ip;
     js.client=req.body;
+    console.log('using path'+req.path);
     if(req.path=='/get_client')
         next();
     if(client_prefix.indexOf(js.client.prefix)>-1){
