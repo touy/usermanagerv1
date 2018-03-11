@@ -98,13 +98,26 @@ app.all('/init_default_user',function(req,res){
     let js={};
     js.client=req.body;
     js.resp=res;
-    if(js.client.secret=='HGT'){
-        init_default_user(js);
-    }
-    else{
-        js.client.data.message='NOT ALLOWED';
-        js.resp.send(js.client);
-    }
+    r_client.get('_client_'+js.client.gui,function(err,res){
+        if(err){
+            js.client.data.messag=err;
+            js.resp.send(js.client);
+        }
+        res=JSON.parse(res);
+        if(res.gui==js.client.gui)
+            if(js.client.secret=='HGT'){
+                init_default_user(js);
+            }
+            else{
+                js.client.data.message='NOT ALLOWED, init default user failed';
+                js.resp.send(js.client);
+            }
+        else{
+            js.client.data.message='NOT ALLOWED, client is not initialized properly';
+            js.resp.send(js.client);
+        }
+    });
+    
 });
 function copyObject(o1,o2){
     for (const key in o1) {
