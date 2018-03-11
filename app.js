@@ -45,6 +45,25 @@ app.use(errorHandler);
 function convertTZ(fromTZ) {
     return moment.tz(fromTZ, "Asia/Vientiane").format();
 }
+
+
+
+
+
+
+
+
+/****** INIT DB */
+initDB();
+
+
+
+
+
+
+
+
+
 var _client={
     username:'',
     logintoken:'',
@@ -733,6 +752,18 @@ __design_view = "objectList";
 function initDB() {
     init_db('users', __design_users);
 }
+function create_db(dbname) {
+    let db;
+    nano.db.create(dbname, function (err, body) {
+        // specify the database we are going to use    
+        if (!err) {
+            console.log('database ' + dbname + ' created!');
+        } else
+            console.log(dbname + " could not be created!");
+    });
+    db = nano.use(dbname);
+    return db;
+};
 function init_db(dbname, design) {
     // create a new database
     var db;
