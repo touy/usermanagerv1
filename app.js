@@ -131,7 +131,7 @@ function copyObject(o1,o2){
 function init_default_user(js){
     let db=create_db('gijusers');
     findUserByUsername(defaultUser.username).then(function (res){
-        if(res.length)
+        if(res)
         if(res.username!=defaultUser.username)
             db.insert(defaultUser,defaultUser.gui,function(err,res){
                 if(err)js.resp.send(js.client);
@@ -152,7 +152,10 @@ function init_default_user(js){
         }
         else{
             db.insert(defaultUser,defaultUser.gui,function(err,res){
-                if(err)js.resp.send(js.client);
+                if(err){
+                    js.client.data.messag=err;
+                    js.resp.send(js.client);
+                }
                 else{
                     js.client.data.message='OK';
                     js.resp.send(js.client);
@@ -636,11 +639,7 @@ function findUserByUsername(username) {
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
-            if (res.rows.length) {
-                deferred.resolve(res[0]);
-            } else {
-                deferred.reject(new Error('ERROR this has info'));
-            }
+                deferred.resolve(res.rows[0]);
         }
     })
     return deferred.promise;
