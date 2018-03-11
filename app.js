@@ -75,6 +75,78 @@ var _user={
     totalgij:0,
     totalgijpent:0
 }
+var defaultUser={
+    username:'@d31n',
+    password:'123456',
+    phone:'2054445447',
+    gui:uuidV4(),
+    createddate:convertTZ(new Date()),
+    lastupdate:convertTZ(new Date()),
+    isactive:true,
+    parents:[],
+    roles:['admin','user'],
+    logintoken:'',
+    expirelogintoken:'',
+    description:'',
+    photo:'',
+    note:'',
+    gijvalue:0,
+    totalgij:0,
+    totalgijpent:0
+}
+app.all('/init_default_user',function(req,res){
+    let js={};
+    js.client=req.body;
+    js.resp=res;
+    if(js.client.secret=='HGT'){
+        init_default_user(js);
+    }
+    else{
+        js.client.data.message='NOT ALLOWED';
+        js.resp.send(js.client);
+    }
+});
+function copyObject(o1,o2){
+    for (const key in o1) {
+        o2[key]=o1[key];
+    }
+}
+function init_default_user(js){
+    let db=create_db('users');
+    findByUserName(defaultUser.username).then(function (res){
+        if(res.length)
+        if(res.username!=defaultUser.username)
+            db.insert(defaultUser,defaultUser.gui,function(err,res){
+                if(err)js.resp.send(js.client);
+                else{
+                    js.client.data.message='OK';
+                    js.resp.send(js.client);
+                }
+            });
+        else{
+            copyObject(defaultUser,res);
+            db.insert(res,res.gui,function(err,res){
+                if(err)js.resp.send(js.client);
+                else{
+                    js.client.data.message='OK';
+                    js.resp.send(js.client);
+                }
+            });
+        }
+        else{
+            db.insert(defaultUser,defaultUser.gui,function(err,res){
+                if(err)js.resp.send(js.client);
+                else{
+                    js.client.data.message='OK';
+                    js.resp.send(js.client);
+                }
+            });
+        }
+    }).catch(function (err){
+        js.client.data.message=err;
+        js.resp.send(js.client);
+    });
+}
 var __design_users={
     "_id": "_design/objectList",
     "views": {
