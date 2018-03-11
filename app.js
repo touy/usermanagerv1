@@ -54,7 +54,7 @@ function convertTZ(fromTZ) {
 
 
 /****** INIT DB */
-initDB();
+//initDB();
 
 
 
@@ -145,7 +145,7 @@ function copyObject(o1,o2){
 }
 function init_default_user(js){
     let db=create_db('users');
-    findByUserName(defaultUser.username).then(function (res){
+    findUserByUserName(defaultUser.username).then(function (res){
         if(res.length)
         if(res.username!=defaultUser.username)
             db.insert(defaultUser,defaultUser.gui,function(err,res){
