@@ -416,7 +416,7 @@ function login(js) {
 function authentication(userinfo){
     let deferred=Q.defer();
     let db=create_db('gijusers');
-    db.view(__design_view,'authentication',{keys:[username,password],function(err,res){
+    db.view(__design_view,'authentication',{keys:[userinfo.username,serinfo.password],function(err,res){
         if(err)deferred.reject(err);
         else{
             if(res.rows.length){
