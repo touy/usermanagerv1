@@ -54,7 +54,7 @@ function convertTZ(fromTZ) {
 
 
 /****** INIT DB */
-//initDB();
+initDB();
 
 
 
