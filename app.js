@@ -246,6 +246,7 @@ app.all('/get_client', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
     js.resp = res;
+    console.log('get_client');
     init_client(js.client);
     getClient(js).then(function(res){
         js.client=res;
