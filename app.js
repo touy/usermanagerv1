@@ -12,6 +12,7 @@ var r_client = redis.createClient();
 var moment = require('moment-timezone');
 var multer = require('multer');
 var path = require('path');
+var crypto = require('crypto');
 var passwordValidator = require('password-validator');
 var passValidator = new passwordValidator();
 passValidator.is().min(6) // Minimum length 8 
@@ -46,7 +47,28 @@ function convertTZ(fromTZ) {
     return moment.tz(fromTZ, "Asia/Vientiane").format();
 }
 
+var WebSocket = require('ws');
+var ws = new WebSocket("ws://localhost:8081");
 
+// process.stdin.resume();
+// process.stdin.setEncoding('utf8');
+
+// process.stdin.on('data', function(message) {
+//   message = message.trim();
+//   ws.send(message, console.log.bind(null, 'Sent : ', message));
+// });
+ws.on('message', function(message) {
+  console.log('Received: ' + message);
+  ws.send({data:{command:'',message:'OK'}});
+});
+
+ws.on('close', function(code) {
+  console.log('Disconnected: ' + code);
+});
+
+ws.on('error', function(error) {
+  console.log('Error: ' + error.code);
+});
 
 
 var _client={
@@ -75,6 +97,7 @@ var _user={
     description:'',
     photo:'',
     note:'',
+    system:'',//system, gij, ice-maker,gps,lom
     gijvalue:0,
     totalgij:0,
     totalgijpent:0
@@ -361,7 +384,8 @@ app.post('/get_client', function (req, res) {
         js.client.gui=uuidV4();
         r_client.set('_client_'+js.client.gui,JSON.stringify(js.client));
         js.client.data.message='OK';
-        js.client.prefix='GUEST-'+uuidV4();
+        if(!js.client.prefix)
+            js.client.prefix='GUEST-'+uuidV4();
         client_prefix.push(js.client.prefix);
         //console.log('before send '+JSON.stringify(js.client));
         js.resp.send(js.client);
@@ -377,7 +401,8 @@ app.all('/hearbeat',function(req,res){
     js.client = req.body; //client.data.device
     js.resp = res;
     js.client.loginip=req.ip;  // if need to do when ip changed
-    js.client.prefix='GUEST-'+uuidV4();
+    if(js.client.prefix.indexOf('GUEST')>-1)
+        js.client.prefix='GUEST-'+uuidV4();
     client_prefix.push(js.client.prefix);
     js.resp.send(js.client);
 });
@@ -445,30 +470,54 @@ app.all('/register', function (req, res) {
 });
 
 function register(js) {
+    js.client.data.user.system=js.client.prefix;
     addNewUser(js.client.data.user).then(function(res){
         js.client.data.message='OK added a new user';
-        js.client.resp.send(client)
+        js.client.resp.send(client);
     }).catch(function(err){
         js.client.data.message=err;
         js.resp.send(client);
     });
 }
+app.all('/manual_add_user', function (req, res) {
+    let js={};
+    js.client = req.body; //client.data.device
+    js.resp = res;
+    js.client.data.user.system='system';
+    addNewUser(js.client.data.user).then(function(res){
+        s.client.data.message='OK added a new user';
+        js.client.resp.send(client);
+    }).catch(function(err){
+        js.client.data.message=err;
+        js.resp.send(client);
+    });
+});
 function addNewUser(userinfo){
     let deferred=Q.defer();
     let db=create_db('gijusers');
-    if(r=validateUserInfo(userinfo.username).length)
-        deferred.reject(r);
-    if(r=validatePhoneInfo(userinfo.phone).length)
-        deferred.reject(r);
-    if(r=validatePassword(userinfo.password).length)
-        deferred.reject(r);
 
-    db.insert(userinfo,userinfo.gui,function(err,res){
-        if(err) deferred.reject(err);
-        else{
-            deferred.resolve(res);
+    findUserByUsername(username).then(function(res){
+        if(!res){
+            userinfo.parents.push(defaultUser.username);            
         }
+
+        if((r=validateUserInfo(userinfo.username)).length)
+            deferred.reject(r);
+            if((r=validatePhoneInfo(userinfo.phone)).length)
+                deferred.reject(r);
+            if((r=validatePassword(userinfo.password)).length)
+                deferred.reject(r);
+            db.insert(userinfo,userinfo.gui,function(err,res){
+                if(err) deferred.reject(err);
+                else{
+                    deferred.resolve(res);
+                }
+            });
+        
+    }).then(function(err){
+        deferred.reject(err);
     });
+    
     return deferred.promise;
 }
 function validateUserInfo(userinfo){
@@ -485,21 +534,196 @@ app.all('/update_user', function (req, res) {
     js.resp = res;
     findUserByUsername(client.data.user.username).then(function(res){
         if(res){
-            client.data.user.password=res.password;
-            cient.data.user.phone=res.phone;
+            js.client.data.user.password=res.password;
+            js.cient.data.user.phone=res.phone;
+            js.client.data.user._rev=res._rev;
+            js.client.data.user._id=res._id;
             updateUser(client.data.user).then(function(res){
                 js.client.data.message='OK updated';
+                if (fs.existsSync(__dirname+"/temp/"+client.data.user.photo)) {
+                        fs.rename(__dirname+"/temp/"+client.data.user.photo, __dirname + '/photo/'+client.data.user.photo); 
+                }
                 js.resp.send(js.client);
             });
         }
         else{
-            throw new Error('ERROR could not update');
+            throw new Error('ERROR user not found');
         }
     }).catch(function(err){
         console.log(err);
         js.client.data.message=err;
         js.resp.send(js.client);
     });
+});
+app.all('/confirm_phone_sms',function(req,res){
+    let js={};
+    js.client = req.body; //client.data.device
+    js.resp = res;
+    let p={};
+    let phone=js.client.data.user.phone;
+    findUserByUsernameAndPhone(js.client.username,phone).then(function(res){
+        if(res){
+            p.secret=randomSecret(6,'1234567890');
+            p.phone=phone;
+            phoneSecret.push(p);
+            SMSToPhone('your secret is :'+p.secret,phone);
+            js.resp.send('secret sms sent to this phone'+p.phone);
+        }
+    }).catch(function(err){
+        js.client.data.message=err;
+        js.resp.send(js.client);
+    });
+    
+});
+function checkPhoneSecret(secret,phone){
+    for (let index = 0; index < phoneSecret.length; index++) {
+        const element = phoneSecret[index];
+        if(element.secret==secret&&element.phone==phone)
+            return true;
+    }
+    return false;
+}
+app.all('/update_phone', function (req, res) {
+    let js={};
+    js.client = req.body; //client.data.device
+    js.resp = res;
+    if(checkPhoneSecret(js.client.data.secret,js.client.data.user.phone))
+        findUserByUsername(client.data.user.username).then(function(res){
+            if(res){
+                //client.data.user.password=res.password;
+                res.phone=cient.data.user.phone;
+                updateUser(res).then(function(res){
+                    js.client.data.message='OK updated';
+                    js.resp.send(js.client);
+                });
+            }
+            else{
+                throw new Error('ERROR user not found');
+            }
+        }).catch(function(err){
+            console.log(err);
+            js.client.data.message=err;
+            js.resp.send(js.client);
+        });
+    else{
+        js.client.data.message=new Error('wrong secret and phone');
+        js.resp.send(js.client);
+    }
+        
+});
+app.all('/show_user_list', function (req, res) {
+    let js={};
+    js.client = req.body; //client.data.device
+    js.resp = res;
+    showUserList(js.client.data.user.username).then(function(res){    
+        js.client.data.user=res;
+        js.client.data.messag='OK';
+        js.resp.send(js.client);
+    }).catch(function(err){
+        js.client.data.messag=err;
+        js.resp.send(js.client);
+    });
+});
+function showUserList(username){
+    let deferred=Q.defer();
+    findUserListByParentName(username).then(function(res){
+        deferred.resolve(res);
+    }).catch(function(err){
+        deferred.reject(err);
+    });
+    return deferred.promise;
+}
+function findUserListByParentName(username){
+    let deferred=Q.defer();
+    let db=create_db('gijusers');
+    db.view(__design_view,'findByParent',{key:[username]},function(err,res){
+        if(err)deferred.reject(err);
+        else{
+            if(res.rows.length){
+                let arr=[];
+                for (let index = 0; index < res.rows.length; index++) {
+                    const element = res.rows[index].value;
+                    let e={};
+                    e.gui=element.gui;
+                    e.username=element.username;
+                    e._id=element._id;
+                    arr.push(e);                    
+                }
+                deferred.resolve(arr);
+            }
+            else{
+                deferred.reject('ERROR NO SUB USERS');
+            }
+        }
+    });
+    return deferred.promise;
+}
+app.all('/display_user_details', function (req, res) {
+    let js={};
+    js.client = req.body; //client.data.device
+    js.resp = res;
+    displayUserDetails(js.client.data.user.gui).then(function(res){
+       js.client.data.user=res;
+        js.client.data.messag='OK';
+        js.resp.send(js.client);
+    }).catch(function(err){
+        js.client.data.messag=err;
+        js.resp.send(js.client);
+    });
+
+});
+function displayUserDetails(gui){
+    let deferred=Q.defer();
+    findUserByGUI(gui).then(function(res){
+        deferred.resolve(res);
+     }).catch(function(err){
+         deferred.reject(err);
+     });
+    return deferred.promise;
+}
+function findUserByGUI(gui){
+    let deferred=Q.defer();
+    let db=create_db('gijusers');
+    db.view(__design_view,'findByUserGUI',{key:gui},function(err,res){
+        if(err)deferred.reject(err);
+        else{
+            let arr=[];
+            for (let index = 0; index < res.rows.length; index++) {
+                const element = res.rows[index].value;
+                arr.push(element);
+            }
+            deferred.resolve(arr);
+        }
+    });
+    return deferred.promise;
+}
+
+var storage = multer.diskStorage({
+	destination: function(req, file, callback) {
+		callback(null, __dirname+'/temp');
+	},
+	filename: function(req, file, callback) {
+		console.log(file)
+		callback(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+	}
+});
+app.all('/upload_photo_profile',function(req,res){
+    let js={};
+    js.client=req.body;
+    var upload = multer({
+		storage: storage,
+		fileFilter: function(req, file, callback) {
+			var ext = path.extname(file.originalname)
+			if (ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
+				return callback(res.end('Only images are allowed'), null)
+			}
+			callback(null, true);
+		}
+    }).single('photoProfile');
+	upload(req, res, function(err) {
+        js.client.data.file.filename=req.file.filename;
+		res.end(js.client);
+	});
 });
 
 app.all('/logout', function (req, res) {
@@ -546,11 +770,35 @@ app.all('/submit_forgot_keys', function (req, res) {
     });
 });
 
-function SMSToPhone(content, phone) {
 
+function randomSecret (howMany, chars) {
+    chars = chars 
+        || "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789";
+    var rnd = crypto.randomBytes(howMany)
+        , value = new Array(howMany)
+        , len = chars.length;
+
+    for (var i = 0; i < howMany; i++) {
+        value[i] = chars[rnd[i] % len]
+    };
+
+    return value.join('');
 }
+var phoneSecret=[];
+SMSToPhone('TEST','2055516321');
+function SMSToPhone(content, phone) {
+    let client={};
+    client.phone=phone;
+    client.content=content;
+    client.command='send-sms';
+    ws.send(client,function(err){
+        console.log('sms-send respond');
+        console.log(err);
+    });
+}
+
 var _arrForgotKeys = [];
-const crypto = require("crypto");
+//const crypto = require("crypto");
 
 //const id = crypto.randomBytes(16).toString("hex");
 function generateFogotKeys(username) {
@@ -596,7 +844,7 @@ app.all('/forgot_password', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
     js.resp = res;
-    forgot_password(client.data.user.username, client.forgotkeys).then(function (res) {
+    forgot_password(js.client.data.user.username, js.client.forgotkeys).then(function (res) {
         js.client.data.message=res;
         js.client.resp.send(js.client);
     }).catch(function (err) {
@@ -636,7 +884,7 @@ function forgot_password(username, forgotkeys) {
         });
     else
         deferred.reject(new Error('Wrong fogot keys'));
-    return client.promise;
+    return deferred.promise;
 }
 
 function findUserByUsername(username) {
@@ -659,8 +907,8 @@ app.all('/change_password', function (req, res) {
     let js={};
     js.client = req.body; //client.data.device
     js.resp = res;
-    if (checkUserPermission(client.data.user.username))
-        change_password(client.data.user.username, client.data.phone, client.data.oldpass, client.data.newpass).then(function (res) {
+    if (checkUserPermission(js.client.data.user.username))
+        change_password(js.client.data.user.username, js.client.data.phone, js.client.data.oldpass, js.client.data.newpass).then(function (res) {
             js.client.data.message='OK changed password';
             js.resp.send(js.client);
         }).catch(function (err) {
@@ -668,7 +916,7 @@ app.all('/change_password', function (req, res) {
             js.resp.send(js.client);
         });
     else
-        client.resp.send('Error this username has no permission');
+        js.resp.send('Error this username has no permission');
 });
 
 function checkUserPermission(username) {
@@ -719,11 +967,11 @@ function change_password(username, phone, oldpass, newpass) {
     return deferred.promise;
 }
 
-function findUserByUsernameAndPhone(username, oldpass, phone) {
+function findUserByUsernameAndPhone(username, phone) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByUsernameAndPhone', {
-        key: [username, password, phone]
+        key: [username, phone]
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
