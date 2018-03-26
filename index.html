@@ -20,6 +20,26 @@
                 }
             }
             $(function(){
+                ws = new WebSocket("ws://localhost:8081/");
+                if( !("WebSocket" in window) ) {
+                    throw("Sorry, no WebSockets support");
+                };
+                
+                // ws.on('ping',function(){
+                //     ws.send('ping')
+                // })
+                
+                ws.onmessage = function(evt) {
+                    console.log(evt.data);
+                    //if (evt.data != '.') $('#output').append('<p>'+evt.data+'</p>');
+                };
+                ws.onclose = function() {
+                    console.log("socket closed");
+                };
+                ws.onopen = function() {
+                    console.log("connected...");
+                };
+
                 function getClient(){
                     $.ajax({
                         type: "POST",
