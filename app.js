@@ -558,7 +558,7 @@ var defaultUser={
     description:'',
     photo:'',
     note:'',
-    system:['gij','web-post','user-management','ice-maker'],
+    system:['gij','web-post','user-management','ice-maker','gps'],
     gijvalue:0,
     totalgij:0,
     totalgijpent:0
@@ -573,19 +573,24 @@ app.all('/init_default_user',function(req,res){
             js.client.data.message=err;
             js.resp.send(js.client);
         }
-        res=JSON.parse(res);
-        if(res.gui==js.client.gui)
-            if(js.client.secret=='HGT'){
-                init_default_user(js);
-            }
+        console.log(res);
+        if(res){
+            res=JSON.parse(res);
+            if(res.gui==js.client.gui)
+                if(js.client.secret=='HGT'){
+                    init_default_user(js);
+                }
+                else{
+                    js.client.data.message='ERRO NOT ALLOWED, init default user failed';
+                    js.resp.send(js.client);
+                }
             else{
-                js.client.data.message='NOT ALLOWED, init default user failed';
+                js.client.data.message='ERROR NOT ALLOWED, client is not initialized properly';
                 js.resp.send(js.client);
             }
-        else{
-            js.client.data.message='NOT ALLOWED, client is not initialized properly';
-            js.resp.send(js.client);
         }
+        init_default_user(js);
+        
     });
     
 });
@@ -623,6 +628,7 @@ function init_default_user(js){
             //     });
             // }
         else{
+            js.client.data={};
             db.insert(defaultUser,defaultUser.gui,function(err,res){
                 if(err){
                     js.client.data.message=err;
@@ -1108,12 +1114,14 @@ app.all('/update_user', function (req, res) {
     js.resp = res;
     findUserByUsername(client.data.user.username).then(function(res){
         if(res){
+
             js.client.data.user.password=res.password;
             js.cient.data.user.phone=res.phone;
             js.client.data.user._rev=res._rev;
             js.client.data.user._id=res._id;
             updateUser(client.data.user).then(function(res){
                 js.client.data.message='OK updated';
+                console.log('updating');
                 if (fs.existsSync(__dirname+"/temp/"+client.data.user.photo)) {
                         fs.rename(__dirname+"/temp/"+client.data.user.photo, __dirname + '/photo/'+client.data.user.photo); 
                 }
@@ -1135,21 +1143,39 @@ function update_user_ws(js){
         let c=JSON.parse(gui);
         gui=c.gui;
         findUserByGUI(gui).then(function(res){
-            if(res.rows.length){
-                js.client.data.user.password=res.password;
-                js.cient.data.user.phone=res.phone;
-                js.client.data.user._rev=res._rev;
-                js.client.data.user._id=res._id;
-                updateUser(js.client.data.user).then(function(res){
+            console.log("res");
+            console.log(res);
+            if(res){
+                //js.client.data={};
+                //js.client.data.user={};     
+
+                res.lastupdate=convertTZ(new Date());
+                res.photo=js.client.data.user.photo;
+                res.note=js.client.data.user.note;
+                res.description=js.client.data.user.description;
+
+                updateUser(res).then(function(res){
                     js.client.data.message='OK updated';
-                    if (fs.existsSync(__dirname+"/temp/"+js.client.data.user.photo)) {
-                            fs.rename(__dirname+"/temp/"+js.client.data.user.photo, __dirname + '/photo/'+js.client.data.user.photo); 
+                    try {
+                        if(js.client.data.user.photo)
+                            if (fs.existsSync(__dirname+"/temp/"+js.client.data.user.photo)) {
+                                fs.rename(__dirname+"/temp/"+js.client.data.user.photo, __dirname + '/photo/'+js.client.data.user.photo); 
                     }
+                    } catch (error) {
+                        console.log(error);
+                    }                                        
                     deferred.resolve(js);
+                }).catch(function(err){
+                    js.client.data.message=err;
+                    console.log(err);
+                    deferred.reject(js);
                 });
             }
             else{
-                throw new Error('ERROR user not found');
+                //throw new Error('ERROR user not found');
+                js.client.data.message=new Error('ERROR user not found');
+                deferred.reject(js);
+
             }
         }).catch(function(err){
             js.client.data.message=err;
@@ -1399,6 +1425,7 @@ function get_user_details_ws(js){
 function displayUserDetails(gui){
     let deferred=Q.defer();
     findUserByGUI(gui).then(function(res){
+        cleanUserInfo(res);
         deferred.resolve(res);
      }).catch(function(err){
          deferred.reject(err);
@@ -1425,10 +1452,10 @@ function findUserByGUI(gui){
             let arr=[];
             for (let index = 0; index < res.rows.length; index++) {
                 const element = res.rows[index].value;
-                cleanUserInfo(element);
+                //cleanUserInfo(element);
                 arr.push(element);
             }
-            deferred.resolve(arr);
+            deferred.resolve(arr[0]);
         }
     });
     return deferred.promise;
@@ -1691,7 +1718,7 @@ function forgot_password(js) {
             res=JSON.parse(res);
             if(res.forgot==js.client.data.forgot){                
                 findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
-                    res.password = 123456;
+                    res.password = "123456";
                     updateUser(res).then(function (res) {
                         deferred.resolve('OK 123456');
                     })
@@ -1747,7 +1774,7 @@ function change_password_ws(js){
     r_client.get('_usergui_'+js.client.logintoken,function(err,gui){
         let c=JSON.parse(gui);
         gui=c.gui;
-        findUserByGUI(gui).then(function(){
+        findUserByGUI(gui).then(function(res){
             change_password(js.client.data.user.username, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
                 js.client.data.message='OK changed password';
                 deferred.resolve(js);
@@ -1782,10 +1809,11 @@ function validatePassword(pass) {
 function updateUser(userinfo) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
+    console.log(userinfo);
     db.insert(userinfo, userinfo.gui, function (err, res) {
         if (err) deferred.reject(err);
         else {
-            deferred.resolve('OK');
+            deferred.resolve('OK '+JSON.stringify(res));
         }
     });
     return deferred.promise;

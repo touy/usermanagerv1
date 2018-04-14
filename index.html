@@ -178,16 +178,13 @@
                 }
                 function getUserDetails(){
                     _client.data.command='get-profile';  
-                    if(_client.logintoken)                  
-                        ws.send(JSON.stringify(_client));  
-                    else
-                        alert('login first');
+                    ws.send(JSON.stringify(_client));  
+                    
                 }
                 function showUserDetails(data){                    
-                    data.forEach(element => {
-                        console.log(element);
-                        $('#userDetails').append(JSON.stringify(element));
-                    });
+
+                        $('#userDetails').append(JSON.stringify(data));
+                        $('#eUserInfo').val(JSON.stringify(data));                   
                     
                 }
                 function updateUserDetails(){
@@ -223,6 +220,14 @@
                 }
                 function checkPhoneNumber(){
 
+                }
+                function updateUserInfo(){
+                    let txt=$("#eUserInfo").val();
+                    txt=JSON.parse(txt);
+                    _client.data.command='edit-profile';
+                    _client.data.user=txt;        
+                    console.log(_client.data.user);            
+                    ws.send(JSON.stringify(_client));
                 }
                 function send_confirm_phone_sms(phone){
                     phonesize=phone.length;
@@ -344,10 +349,14 @@
                     $('#loginForm').siblings('div').hide();
                     $('#loginForm').show();
                 });
-                $('#btnShowUserInfo').click(function(event){
-                    $('#userInfoForm').siblings('div').hide();
-                    $('#userInfoForm').show();
-                    getUserDetails();
+                $('#btnShowUserInfo').click(function(event){                    
+                    if(_client.logintoken)    {
+                        $('#userInfoForm').siblings('div').hide();
+                        $('#userInfoForm').show();
+                        getUserDetails();
+                    }                                      
+                    else
+                        alert('login first');
                 });
                 $('#btnShowChangePassword').click(function(event){                                   
                     if(_client.logintoken){
@@ -372,8 +381,16 @@
                         alert('login first');
                     }                                                                
                 });
-                $('#btnGetUserGui').click(function (){
+                $('#submitUserInfo').click(function (event){
+                    event.preventDefault();
+                    updateUserInfo();
+                });
+                $('#uploadPhoto').click(function (){
                     //event.defaultPrevented();
+                    uploadPhoto();
+                });
+                $('#btnGetUserGui').click(function (){
+                    //event.preventDefault();
                     get_user_gui();
                 });
                 $('#submit').click(function (event){
@@ -396,8 +413,8 @@
         <button id='btnLogout'>Logout</button>  --
         <button id='btnShowRegisterForm'>show register</button>
         <button id='btnShowLoginForm'>show login</button>
-        <button id='btnShowUserInfo'>show Userinfo</button>  
-        <button id='btnShowChangePassword'>show change password</button>  
+        <button id='btnShowUserInfo'>show Userinfo</button>       
+        <button id='btnShowChangePassword'>show change password</button>     
         <button id='btnShowForgot'>show forgot and reset password</button>  
         <button id='btnShowChangePhoneNumber'>show Change Phone number</button>  
         <!-- change phone number-->
@@ -518,6 +535,8 @@
                         <div id='userDetails'>
 
                         </div>
+                        <textarea id="eUserInfo"></textarea>
+                        <input type="submit" id="submitUserInfo" value="update"></input>
                     </fieldset>
                 </form>
         </div> 
