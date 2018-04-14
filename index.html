@@ -15,80 +15,548 @@
                 loginip:'',
                 prefix:'',//later delete this , this using between server only
                 data:{
-                    // users:{},
-                    // message:{},
                 }
             }
             $(function(){
-                ws = new WebSocket("ws://localhost:8081/");
+                var ws = new WebSocket("ws://localhost:6688/");
                 if( !("WebSocket" in window) ) {
                     throw("Sorry, no WebSockets support");
-                };
-                
-                // ws.on('ping',function(){
-                //     ws.send('ping')
-                // })
-                
+                }
+                else
+                    console.log('WS OK');
                 ws.onmessage = function(evt) {
-                    console.log(evt.data);
-                    //if (evt.data != '.') $('#output').append('<p>'+evt.data+'</p>');
+                    console.log(evt); 
+                     d=JSON.parse(evt.data);                                   
+                    if(d){
+                        if(d.command!=undefined){
+                            //change command changed first
+                            // client-changed
+                            // error-changed
+                            // login-changed
+                            // gui-changed
+                            switch (d.command) {
+                                case 'client-changed':
+                                        _client=d.client;
+                                        console.log(_client.data.message);  
+                                        
+                                        if(_client.data.sms!=undefined){     
+                                                console.log('SMS');                                       
+                                                console.log(_client.data.res.resultDesc);
+                                                console.log(_client.data.res.msisdn);                                                                                     
+                                        }
+                                        if(_client.data.topup!=undefined){                                            
+                                                console.log('topup');
+                                                console.log(_client.data.res.resultDesc);
+                                                console.log(_client.data.res.msisdn);                                        
+                                        }
+                                        if(_client.data.checkbalance!=undefined){                                            
+                                                console.log('check balance');
+                                                console.log(_client.data.res.resultDesc);
+                                                console.log(_client.data.res.msisdn);
+                                            
+                                        }
+                                    break;
+                                    case 'error-changed':
+                                        console.log(d.err);
+                                    break;
+                                    case 'login-changed':
+                                        console.log(d.logintoken+"   -   "+d.logintime );
+                                    break;
+                                    case 'usergui-changed':
+                                        console.log(d.gui);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        else{
+                            _client=JSON.parse(evt.data);                
+                            switch (_client.data.command) {
+                            case 'login':
+                                if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    console.log('LOGIN OK');
+                                }
+                                break;
+                            case 'get-client':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    console.log('get-client OK');
+                                }          
+                                break;
+                            case 'logout':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    console.log('LOGOUT OK');
+                                }           
+                                break;
+                            case 'get-profile':                                
+                                if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    showUserDetails(_client.data.user) ;  
+                                }      
+                            break;
+                            case 'change-password':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    alert('change password OK');  
+                                }
+                                break;
+                            case 'check-forgot':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    alert(_client.data.message);  
+                                }
+                                break;
+                                case 'submit-forgot':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    alert(_client.data.message);  
+                                }
+                                break;
+                            case 'get-user-gui':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    alert(_client.data.user.gui);  
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+
+                        //if (evt.data != '.') $('#output').append('<p>'+evt.data+'</p>');
+                        }
+
+                    }                        
+                    else{
+                        alert('data empty');
+                    }
                 };
                 ws.onclose = function() {
                     console.log("socket closed");
                 };
                 ws.onopen = function() {
                     console.log("connected...");
+                    getClient();
                 };
 
-                function getClient(){
-                    $.ajax({
-                        type: "POST",
-                        url: "/get_client",
-                        // The key needs to match your method's input parameter (case-sensitive).
-                        data: client,
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        success: function(data){
-                            if(data.data.message.indexOf('ERROR')>-1){
-                                showError(data.data.message);
-                            }
-                            _client=data;
-                            console.log(_client);
-                        },
-                        failure: function(err) {
-                            showError(err);
-                        }
+                function get_user_gui(){
+                    _client.data.command='get-user-gui';
+                    _client.prefix='user-management';
+                    ws.send(JSON.stringify(_client));
+                }
+                function getClient(){                    
+                    _client.data.command='get-client';
+                    ws.send(JSON.stringify(_client));
+                }
+
+                var heartbeat_interval=setInterval(heartbeat,1000*30);
+                function heartbeat(){                    
+                    console.log('heartbeat');
+                    _client.data.command='heart-beat';
+                    ws.send(JSON.stringify(_client));                    
+                }
+                function login(username,password){
+                    _client.data.command='login';
+                    _client.data.user={};
+                    _client.data.user.username=username;
+                    _client.data.user.password=password;
+                    ws.send(JSON.stringify(_client));  
+                }
+                function logout(){
+                    _client.data.command='logout';
+                    _client.data.user={};
+                    ws.send(JSON.stringify(_client));  
+                }
+                function getUserDetails(){
+                    _client.data.command='get-profile';  
+                    if(_client.logintoken)                  
+                        ws.send(JSON.stringify(_client));  
+                    else
+                        alert('login first');
+                }
+                function showUserDetails(data){                    
+                    data.forEach(element => {
+                        console.log(element);
+                        $('#userDetails').append(JSON.stringify(element));
                     });
+                    
                 }
-                function showError(err){
+                function updateUserDetails(){
+                    _client.data.command='edit-profile';  
+                    ws.send(JSON.stringify(_client));  
+                }
+                function changePassword(){
+                    _client.data.command='change-password';  
+                    _client.data.user={};
+                    _client.data.user.username=_client.username;
+                    _client.data.user.oldpassword=$("#oldPassword").val();
+                    _client.data.user.newpassword=$("#newPassword").val();
+                    _client.data.user.confirmpassword=$("#confirmPassword").val();
+                    _client.data.user.phonenumber=$("#phone").val();
+                    alert(JSON.stringify(_client));
+                    ws.send(JSON.stringify(_client));  
+                }
+                function register(){
+                    _client.data.user.username=$("#username").val();
+                    _client.data.user.phonenumber=$("#phonenumber").val();
+                    _client.data.secret=$("#secret").val();
+                    _client.data.user.password=$("#rpassword").val();
+                    _client.data.user.confirmpassword=$("#rconfirmpassword").val();
+                }
+                function checkUsername(){
+                    
+                }
+                function checkPassword(){
 
                 }
-                function loadAllUser(){
-                    $.post()
-                }
-                function addUser(){
+                function confirmPassword(){
 
                 }
-                function updateUser(){
+                function checkPhoneNumber(){
 
                 }
-                function deleteUser(){
-
+                function send_confirm_phone_sms(phone){
+                    phonesize=phone.length;
+                     console.log(phone.indexOf('205'));
+                     LTC=phone.indexOf('205');
+                     UNI=phone.indexOf('209');
+                     if(phonesize<10||phonesize>10)
+                        return alert('phone must start with 205 or 209 and 10 digit in total');
+                    if(LTC<0&&UNI<0)
+                        return alert('we support only LAOTEL and UNITEL number only');
+                    _client.data.command='send-confirm-phone-sms';
+                    _client.data.user={};
+                    _client.data.user.phonenumber=phone;
+                    ws.send(JSON.stringify(_client));
                 }
-                function selectUser(){
-
+                function check_confirm_phone_sms(){
+                    _client.data.command='check-confirm-phone-sms';
+                    _client.data.user={};
+                    _client.data.user.phonenumber=$('#cPhoneNumber').val();
+                    _client.data.secret=$('#csecret').val();
+                    //_client.data.user.phonenumber=phone;
+                    ws.send(JSON.stringify(_client));
                 }
-                function showUserDetails(){
-
+                function checkForgot(){
+                    _client.data.command='check-forgot';
+                    _client.data.user={};
+                    _client.data.user.phonenumber=$('#fPhoneNumber').val();
+                    _client.data.forgot=$('#forgotKey').val();
+                    //_client.data.user.phonenumber=phone;
+                    ws.send(JSON.stringify(_client));
                 }
-                function showUserList(){
-
+                function getSecret(phone){
+                     phonesize=phone.length;
+                     console.log(phone.indexOf('205'));
+                     LTC=phone.indexOf('205');
+                     UNI=phone.indexOf('209');
+                     if(phonesize<10||phonesize>10)
+                        return alert('phone must start with 205 or 209 and 10 digit in total');
+                    if(LTC<0&&UNI<0)
+                        return alert('we support only LAOTEL and UNITEL number only');
+                    _client.data.command='get-secret';
+                    _client.data.user={};
+                    _client.data.user.phonenumber=phone;
+                    ws.send(JSON.stringify(_client));
                 }
+                function  getForgotKeys(phone){
+                    phonesize=phone.length;
+                     console.log(phone.indexOf('205'));
+                     LTC=phone.indexOf('205');
+                     UNI=phone.indexOf('209');
+                     if(phonesize<10||phonesize>10)
+                        return alert('phone must start with 205 or 209 and 10 digit in total');
+                    if(LTC<0&&UNI<0)
+                        return alert('we support only LAOTEL and UNITEL number only');
+                    _client.data.command='submit-forgot';
+                    _client.data.user={};
+                    _client.data.user.phonenumber=phone;
+                    ws.send(JSON.stringify(_client));
+                }
+                function checkSecret(){
+                    _client.data.command='check-secret';
+                    _client.data.secret=$('#secret').val();
+                    ws.send(JSON.stringify(_client));
+                }
+                $('#secret').keyup(function(event){
+                    //$(this).attr('maxlength','6');
+                    console.log($(this).val());
+                    let str=$(this).val();
+                    if(str.length==6){
+                        console.log('checking secret');
+                        checkSecret();
+                    }
+                });
+                $('#btnGetSecret').click(function(event){
+                    event.preventDefault();
+                    phone= $("#phonenumber").val();
+                    getSecret(phone);
+                });
+                $('#forgotKey').keyup(function(event){
+                    console.log($(this).val());
+                    let str=$(this).val();
+                    if(str.length==6){
+                        console.log('checking forgot key');
+                        checkForgot();
+                    }
+                });
+                
+                $('#csecret').keyup(function(event){
+                    console.log($(this).val());
+                    let str=$(this).val();
+                    if(str.length==6){
+                        console.log('checking secret');
+                        check_confirm_phone_sms();
+                    }
+                });
+                $('#btnLogin').click(function(event){
+                    event.preventDefault();
+                    //alert(event);
+                     username=$('#loginUsername').val();
+                     password=$('#loginPassword').val();
+                    login(username,password);
+                });
+                $('#btnLogout').click(function(event){
+                    //event.preventDefault();
+                    //alert(event);
+                    logout();
+                });
+                $("#btnChangePassword").click(function(event){
+                    //event.preventDefault();
+                    changePassword();
+                    
+                });
+                $('#btnShowRegisterForm').click(function(event){
+                    //event.defaultPrevented();
+                    $('#registerForm').siblings('div').hide();
+                    $('#registerForm').show();
+                });
+                $('#btnShowLoginForm').click(function(event){
+                    $('#loginForm').siblings('div').hide();
+                    $('#loginForm').show();
+                });
+                $('#btnShowUserInfo').click(function(event){
+                    $('#userInfoForm').siblings('div').hide();
+                    $('#userInfoForm').show();
+                    getUserDetails();
+                });
+                $('#btnShowChangePassword').click(function(event){                                   
+                    if(_client.logintoken){
+                        $('#changePasswordForm').siblings('div').hide();
+                        $('#changePasswordForm').show();  
+                    }                        
+                    else{
+                        alert('login first');
+                    }                         
+                });
+                $('#btnShowForgot').click(function(event){
+                    $('#forgotPassword').siblings('div').hide();
+                    $('#forgotPassword').show();                    
+                });
+                
+                $('#btnShowChangePhoneNumber').click(function(event){
+                    if(_client.logintoken){
+                        $('#changePhoneNumber').siblings('div').hide();
+                        $('#changePhoneNumber').show();
+                    }                        
+                    else{
+                        alert('login first');
+                    }                                                                
+                });
+                $('#btnGetUserGui').click(function (){
+                    //event.defaultPrevented();
+                    get_user_gui();
+                });
+                $('#submit').click(function (event){
+                    event.defaultPrevented();
+                    register();
+                });
+                $('#btnGetForgotKeys').click(function (event){
+                    //event.defaultPrevented();
+                    getForgotKeys($('#fPhoneNumber').val());
+                });
+                $('#btnChangePhoneNumber').click(function (event){
+                    //event.defaultPrevented();
+                    send_confirm_phone_sms($('#cPhoneNumber').val());
+                });
             });
         </script>
     </head>
     <body>
-        <div id='registerform'>
+        <button id="btnGetUserGui">get User GUI</button>--
+        <button id='btnLogout'>Logout</button>  --
+        <button id='btnShowRegisterForm'>show register</button>
+        <button id='btnShowLoginForm'>show login</button>
+        <button id='btnShowUserInfo'>show Userinfo</button>  
+        <button id='btnShowChangePassword'>show change password</button>  
+        <button id='btnShowForgot'>show forgot and reset password</button>  
+        <button id='btnShowChangePhoneNumber'>show Change Phone number</button>  
+        <!-- change phone number-->
+        <div id='changePhoneNumber' style="display: none"> 
+            <form class="form-horizontal">               
+                    <fieldset>                        
+                    <!-- Form Name -->
+                    <legend>forgot Password</legend>
+                    
+                    <!-- Text input-->
+                    <div class="form-group">
+                      <label class="col-md-4 control-label" for="cPhoneNumber">phone number(+856)</label>  
+                      <div class="col-md-4">
+                      <input id="cPhoneNumber" name="cPhoneNumber" maxlength="10" type="number" placeholder="phone number 205 or 209" class="form-control input-md" required>                          
+                      </div>
+                    </div>
+                    <!-- Text input-->
+                    <div class="form-group">
+                      <label class="col-md-4 control-label" for="csecret">Secret</label>  
+                      <div class="col-md-4">
+                        <input id="csecret" name="csecret" maxlength="6" type="number" placeholder="secret" class="form-control input-md" required>                             
+                      </div>
+                    </div>
+                    <!-- Button -->
+                    <div class="form-group">
+                        <label class="col-md-4 control-label" for="btnChangePhoneNumber"></label>
+                        <div class="col-md-4">
+                          <button id="btnChangePhoneNumber" name="btnChangePhoneNumber" class="btn">send secret</button>
+                        </div>
+                      </div>                  
+            
+                </fieldset>
+            </form>
+    </div>
+        <!-- change passowr-->
+        <div id='forgotPassword' style="display: none"> 
+            <form class="form-horizontal">               
+                    <fieldset>                        
+                    <!-- Form Name -->
+                    <legend>forgot Password</legend>
+                    
+                    <!-- Text input-->
+                    <div class="form-group">
+                      <label class="col-md-4 control-label" for="fPhoneNumber">phone number</label>  
+                      <div class="col-md-4">
+                      <input id="fPhoneNumber" name="fPhoneNumber" maxlength="10" type="number" placeholder="phone number 205 or 209" class="form-control input-md" required>                          
+                      </div>
+                    </div>
+                    <!-- Text input-->
+                    <div class="form-group">
+                      <label class="col-md-4 control-label" for="forgotKey">forgot key</label>  
+                      <div class="col-md-4">
+                        <input id="forgotKey" name="forgotKey" maxlength="6" type="number" placeholder="forgot key" class="form-control input-md" required>                             
+                      </div>
+                    </div>
+                    <!-- Button -->
+                    <div class="form-group">
+                        <label class="col-md-4 control-label" for="btnGetForgotKeys"></label>
+                        <div class="col-md-4">
+                          <button id="btnGetForgotKeys" name="btnGetForgotKeys" class="btn">get Forgot keys</button>
+                        </div>
+                      </div>                  
+            
+                </fieldset>
+            </form>
+    </div> 
+        <!-- change passowr-->
+        <div id='changePasswordForm' style="display: none"> 
+                <form class="form-horizontal">               
+                        <fieldset>                        
+                        <!-- Form Name -->
+                        <legend>Change Password</legend>
+                        
+                        <!-- Text input-->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="oldPassword">old password</label>  
+                          <div class="col-md-4">
+                          <input id="oldPassword" name="oldPassword" type="password" placeholder="password" class="form-control input-md" required>                          
+                          </div>
+                        </div>
+                        <!-- Text input-->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="newPassword">new password</label>  
+                          <div class="col-md-4">
+                            <input id="newPassword" name="newPassword" type="password" placeholder="new password" class="form-control input-md" required>                             
+                          </div>
+                        </div>
+                        <div class="form-group">
+                                <label class="col-md-4 control-label" for="confirmPassword"> confirm password</label>  
+                                <div class="col-md-4">
+                                  <input id="confirmPassword" name="confirmPassword" type="password" placeholder="confirm password" class="form-control input-md" required>                                  
+                                </div>
+                              </div>
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="phone"> phone number</label>  
+                            <div class="col-md-4">
+                                <input id="phone" name="phone" type="number" placeholder="phonenumber" class="form-control input-md" required>                                  
+                            </div>
+                            </div>
+
+                        <!-- Button -->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="btnChangePassword"></label>
+                          <div class="col-md-4">
+                            <button id="btnChangePassword" name="btnChangePassword" class="btn btn-primary">change password</button>
+                          </div>
+                        </div>
+                
+                    </fieldset>
+                </form>
+        </div>  
+        <!-- Login-->
+        <div id='userInfoForm' style="display: none"> 
+                <form class="form-horizontal">               
+                        <fieldset>                        
+                        <!-- Form Name -->
+                        <legend>User Info</legend>
+                        <div id='userDetails'>
+
+                        </div>
+                    </fieldset>
+                </form>
+        </div> 
+        <!-- Login-->
+        <div id='loginForm' style="display: none"> 
+                <form class="form-horizontal">               
+                        <fieldset>                        
+                        <!-- Form Name -->
+                        <legend>Login</legend>
+                        
+                        <!-- Text input-->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="loginUsername">Username</label>  
+                          <div class="col-md-4">
+                          <input id="loginUsername" name="loginUsername" type="text" placeholder="Username" class="form-control input-md" required>                           
+                          </div>
+                        </div>
+                        <!-- Text input-->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="password">password</label>  
+                          <div class="col-md-4">
+                            <input id="loginPassword" name="loginPassword" type="password" placeholder="password" class="form-control input-md" required>                        
+                          </div>
+                        </div>
+                        
+
+                        <!-- Button -->
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="btnLogin"></label>
+                          <div class="col-md-4">
+                            <button id="btnLogin" name="login" class="btn btn-primary">Login</button>
+                          </div>
+                        </div>
+                
+                    </fieldset>
+                </form>
+        </div>         
+        <!-- Register-->
+        <div id='registerForm' style="display: none">
                 <form class="form-horizontal">
                         <fieldset>
                         
@@ -97,36 +565,44 @@
                         
                         <!-- Text input-->
                         <div class="form-group">
-                          <label class="col-md-4 control-label" for="Username">Username</label>  
+                          <label class="col-md-4 control-label" for="username">Username</label>  
                           <div class="col-md-4">
-                          <input id="Username" name="Username" type="text" placeholder="Username" class="form-control input-md" required="">
-                          <span class="help-block">username</span>  
+                          <input id="username" name="username" type="text" placeholder="Username" class="form-control input-md" required>                          
                           </div>
                         </div>
                         
                         <!-- Text input-->
                         <div class="form-group">
-                          <label class="col-md-4 control-label" for="phonenumber">phonenumber</label>  
+                          <label class="col-md-4 control-label" for="phonenumber">phonenumber (+856)</label>  
                           <div class="col-md-4">
-                          <input id="phonenumber" name="phonenumber" type="text" placeholder="phonenumber" class="form-control input-md" required="">
-                          <span class="help-block">phonenumber</span>  
+                          <input id="phonenumber" name="phonenumber" type="number" maxlength="10" placeholder="phonenumber: 205 or 209" class="form-control input-md" required>                          
                           </div>
                         </div>
-                        
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="rpassword">password</label>  
+                            <div class="col-md-4">
+                            <input id="rpassword" name="rpassword" type="password" placeholder="password" class="form-control input-md" required>                          
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label class="col-md-4 control-label" for="rconfirmPassword">confirm password</label>  
+                            <div class="col-md-4">
+                            <input id="rconfirmPassword" name="rconfirmPassword" type="password" placeholder="confirm password" class="form-control input-md" required>                          
+                            </div>
+                          </div>
                         <!-- Text input-->
                         <div class="form-group">
                           <label class="col-md-4 control-label" for="secret">secret</label>  
                           <div class="col-md-2">
-                          <input id="secret" name="secret" type="text" placeholder="secret" class="form-control input-md" required="">
-                          <span class="help-block">secret</span>  
+                          <input id="secret" name="secret" maxlength="6" type="number" placeholder="secret" class="form-control input-md" required>                           
                           </div>
                         </div>
                         
                         <!-- Button -->
                         <div class="form-group">
-                          <label class="col-md-4 control-label" for="getsecret"></label>
+                          <label class="col-md-4 control-label" for="btnGetSecret"></label>
                           <div class="col-md-4">
-                            <button id="getsecret" onclick="return false;"  name="getsecret" class="btn btn-info">get secret</button>
+                            <button id="btnGetSecret" onclick="return false;"  name="btnGetSecret" class="btn btn-info">get secret</button>
                           </div>
                         </div>
                         
@@ -140,6 +616,8 @@
                         
                         </fieldset>
                         </form>
+
+                    
                         
         </div>
     </body>
