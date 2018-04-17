@@ -1325,6 +1325,8 @@ function update_phone_ws(js) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         if (res) {
                             //client.data.user.password=res.password;
+                            if(res.oldphone==undefined)
+                                res.oldphone=[];
                             res.oldphone.push(res.phone);
                             res.phone = js.client.data.user.phonenumber;
                             updateUser(res).then(function (res) {
