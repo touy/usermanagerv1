@@ -1,11 +1,31 @@
+<!DOCTYPE html>
 <html>
     <!--FOR ADMIN ONLY -->
     <head>
             <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
             <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.1/mootools-yui-compressed.js"></script>
             <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
             <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
             <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+            <script src="/public/js/WebSocketFileTransfer.js" type="application/javascript"></script>
+            <style>
+                .progressBar {
+                    border: 1px solid #000;
+                    width: 400px;
+                    height: 15px;
+                    margin: 5px;
+                }
+
+                .progressBar .progress {
+                    background-color: #000088;
+                    height: 100%;
+                }
+
+                .progressBar .progress.finished {
+                    background-color: #008800;
+                }
+            </style>
         <script>
             var _arrUsers=[];
             var _client={
@@ -292,6 +312,49 @@
                     _client.data.secret=$('#secret').val();
                     ws.send(JSON.stringify(_client));
                 }
+                function uploadPhoto(){
+                    var socketServerUrl = 'ws://localhost:6688/';
+                    var files=[];
+                    $('input[type=file]').change(function(event) {
+                        files = event.target.files;
+                        if( files.length == 0 ) {
+                            alert('select files first !');
+                            return false;
+                        }                    
+                    for(var i=0; i < files.length; i++) {
+                        
+                        var $transfer = $('<div />').addClass('transfer');
+                        var $progress = $('<div />').addClass('progress')
+                        var $progressBar = $('<div />').addClass('progressBar');
+                        $progressBar.append($progress);
+                        
+                        $transfer.append($progressBar);
+                        
+                        $('#progresses').append($transfer);
+                        
+                        // Creates the transfer
+                        var transfer = new WebSocketFileTransfer({
+                            url: socketServerUrl,
+                            file: files[i],
+                            blockSize: 1024,
+                            type:WebSocketFileTransfer.binarySupported() ? 'binary' : 'base64',
+                            $progress: $progress,
+                            progress: function(event) {
+                                this.$progress.css('width', event.percentage+'%');
+                            },
+                            success: function(event) {
+                                this.$progress.addClass('finished');					
+                            }
+                        });
+                    
+                        // Starts the transfer
+                        transfer.start();
+                        
+                    }
+                    
+                    return false;
+                    });
+                }
                 $('#secret').keyup(function(event){
                     //$(this).attr('maxlength','6');
                     console.log($(this).val());
@@ -299,12 +362,14 @@
                     if(str.length==6){
                         console.log('checking secret');
                         checkSecret();
+                        $('#code').val(checkSecret+"");
                     }
                 });
                 $('#btnGetSecret').click(function(event){
                     event.preventDefault();
                     phone= $("#phonenumber").val();
                     getSecret(phone);
+                    $('#code').val(getSecret+"");
                 });
                 $('#forgotKey').keyup(function(event){
                     console.log($(this).val());
@@ -312,6 +377,7 @@
                     if(str.length==6){
                         console.log('checking forgot key');
                         checkForgot();
+                        $('#code').val(checkForgot+"");
                     }
                 });
                 
@@ -321,6 +387,7 @@
                     if(str.length==6){
                         console.log('checking secret');
                         check_confirm_phone_sms();
+                        $('#code').val(check_confirm_phone_sms+"");
                     }
                 });
                 $('#btnLogin').click(function(event){
@@ -329,16 +396,18 @@
                      username=$('#loginUsername').val();
                      password=$('#loginPassword').val();
                     login(username,password);
+                    $('#code').val(login+"");
                 });
                 $('#btnLogout').click(function(event){
                     //event.preventDefault();
                     //alert(event);
                     logout();
+                    $('#code').val(logout+"");
                 });
                 $("#btnChangePassword").click(function(event){
                     //event.preventDefault();
                     changePassword();
-                    
+                    $('#code').val(changePassword+"");
                 });
                 $('#btnShowRegisterForm').click(function(event){
                     //event.defaultPrevented();
@@ -354,6 +423,7 @@
                         $('#userInfoForm').siblings('div').hide();
                         $('#userInfoForm').show();
                         getUserDetails();
+                        $('code').val(getUserDetails);
                     }                                      
                     else
                         alert('login first');
@@ -369,13 +439,15 @@
                 });
                 $('#btnShowForgot').click(function(event){
                     $('#forgotPassword').siblings('div').hide();
-                    $('#forgotPassword').show();                    
+                    $('#forgotPassword').show();      
+                    //show source code done              
                 });
                 
                 $('#btnShowChangePhoneNumber').click(function(event){
                     if(_client.logintoken){
                         $('#changePhoneNumber').siblings('div').hide();
-                        $('#changePhoneNumber').show();
+                        $('#changePhoneNumber').show();                        
+                        //show source code done                                                
                     }                        
                     else{
                         alert('login first');
@@ -383,32 +455,52 @@
                 });
                 $('#submitUserInfo').click(function (event){
                     event.preventDefault();
+                    $('#code').val(updateUserInfo+"");
                     updateUserInfo();
                 });
                 $('#uploadPhoto').click(function (){
                     //event.defaultPrevented();
                     uploadPhoto();
+                    $('#code').val(uploadPhoto+"");
                 });
                 $('#btnGetUserGui').click(function (){
-                    //event.preventDefault();
-                    get_user_gui();
+                    event.preventDefault();
+                    if(_client.logintoken){
+                        //event.preventDefault();
+                        get_user_gui();                        
+                    }                        
+                    else{
+                        alert('login first');
+                    } 
+                    
+                    $('#code').val(get_user_gui+"");                    
                 });
                 $('#submit').click(function (event){
                     event.defaultPrevented();
                     register();
+                    $('#code').val(register+"");
+                    
                 });
                 $('#btnGetForgotKeys').click(function (event){
                     //event.defaultPrevented();
-                    getForgotKeys($('#fPhoneNumber').val());
+                    getForgotKeys($('#fPhoneNumber').val());                    
+                    $('#code').val(getForgotKeys+"");
+                    //show source code done
                 });
                 $('#btnChangePhoneNumber').click(function (event){
                     //event.defaultPrevented();
                     send_confirm_phone_sms($('#cPhoneNumber').val());
+                    $('#code').val(send_confirm_phone_sms+"");
                 });
             });
         </script>
     </head>
     <body>
+        code
+        <textarea rows="6" cols="40" id="code"/>
+
+        </textarea>
+        <br/>
         <button id="btnGetUserGui">get User GUI</button>--
         <button id='btnLogout'>Logout</button>  --
         <button id='btnShowRegisterForm'>show register</button>
@@ -528,7 +620,7 @@
         </div>  
         <!-- Login-->
         <div id='userInfoForm' style="display: none"> 
-                <form class="form-horizontal">               
+                <form class="form-horizontal" type="multipart/form-data">               
                         <fieldset>                        
                         <!-- Form Name -->
                         <legend>User Info</legend>
@@ -536,9 +628,16 @@
 
                         </div>
                         <textarea id="eUserInfo"></textarea>
+                        <img id='uploadPhoto' name='uploadPhoto' width="120px" height="120px"/>
+                        <input type="file" multiple="multiple" />
                         <input type="submit" id="submitUserInfo" value="update"></input>
+                        
                     </fieldset>
                 </form>
+                <div id="progresses">
+                
+                    </div>
+                
         </div> 
         <!-- Login-->
         <div id='loginForm' style="display: none"> 
