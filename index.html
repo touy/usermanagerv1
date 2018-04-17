@@ -37,8 +37,10 @@
                 data:{
                 }
             }
+            var fullhost = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
             $(function(){
-                var ws = new WebSocket("ws://localhost:6688/");
+                var ws = new WebSocket("ws://"+location.hostname+(location.port ? ':'+location.port: ''));
+                console.log('connecting to ws: '+"ws://"+location.hostname+(location.port ? ':'+location.port: ''));
                 if( !("WebSocket" in window) ) {
                     throw("Sorry, no WebSockets support");
                 }
