@@ -1250,7 +1250,7 @@ function send_confirm_phone_sms_ws(js) {
                 p.secret = randomSecret(6, '1234567890');
                 //p.phone=phone;
                 r_client.set(_current_system+'_phone_' + js.client.gui, JSON.stringify({
-                    secret: secret
+                    secret: p.secret
                 }), 'EX', 60 * 30);
                 SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
                 js.client.data.message = 'OK';
