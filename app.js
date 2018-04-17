@@ -2240,7 +2240,7 @@ function errorLogging(log) {
 }
 
 /****** INIT DB */
-initDB();
+//initDB();
 
 
 
