@@ -618,9 +618,11 @@ function copyObject(o1, o2) {
 
 function init_default_user(js) {
     let db = create_db('gijusers');
+    console.log('default user:'+defaultUser.username);
     findUserByUsername(defaultUser.username).then(function (res) {
-        //console.log('res');
-        //console.log(res);
+        console.log('res');
+        console.log(res);
+        console.log('res');
         if (res) {
                 // currentGUI=res.gui+"";
                 // copyObject(defaultUser,res);
@@ -628,29 +630,13 @@ function init_default_user(js) {
                 // console.log('new default user');
                 // console.log(res);
                 nano.db.destroy('gijusers', function (err, body) {
-                    js.client.data.message='OK';
+                    js.client.data={};
+                    js.client.data.message='destroy OK';
+                    //initDB();
                     js.resp.send(js.client);
-                });               
+                });  
+
         }
-        // if(res.username!=defaultUser.username)
-        //     db.insert(defaultUser,defaultUser.gui,function(err,res){
-        //         if(err)js.resp.send(js.client);
-        //         else{
-        //             js.client.data.message='OK';
-        //             js.resp.send(js.client);
-        //         }
-        //     });
-        // else{
-        //     copyObject(defaultUser,res);
-        //     //console.log(res);
-        //     db.insert(res,res.gui ,function(err,res){
-        //         if(err)js.resp.send(js.client);
-        //         else{
-        //             js.client.data.message='OK';
-        //             js.resp.send(js.client);
-        //         }
-        //     });
-        // }
         else {
             js.client.data = {};
             db.insert(defaultUser, defaultUser.gui, function (err, res) {
@@ -1849,14 +1835,20 @@ function findUserByUsername(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByUsername', {
-        key: [username]
+        key: username
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
-            if (res.rows.length)
+            console.log(res);
+            if (res.rows.length){
+                console.log('here '+res.rows[0].value);
                 deferred.resolve(res.rows[0].value);
-            else
+            }
+            else{
+                // console.log('here err');
+                // deferred.reject(new Error('ERROR user not found'));
                 deferred.resolve('');
+            }
         }
     })
     return deferred.promise;
@@ -1990,6 +1982,7 @@ __design_view = "objectList";
 function initDB() {
 
     init_db('gijusers', __design_users);
+
 }
 
 function create_db(dbname) {
