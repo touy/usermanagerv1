@@ -650,6 +650,7 @@ function init_default_user(js) {
             });
         }
     }).catch(function (err) {
+        js.client.data={};
         js.client.data.message = err;
         js.resp.send(js.client);
     });
@@ -1328,29 +1329,34 @@ function update_phone_ws(js) {
             js.client.data.message = err;
             deferred.reject(js);
         } else {
-            res = JSON.parse(res);
-            if (res.secret == js.client.data.secret) {
-                findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
-                    if (res) {
-                        //client.data.user.password=res.password;
-                        res.oldphone.push(res.phone);
-                        res.phone = js.client.data.user.phonenumber;
-                        updateUser(res).then(function (res) {
-                            js.client.data.message = 'OK updated';
-                            deferred.resolve(js);
-                        });
-                    } else {
-                        js.client.data.message = new Error('ERROR user not found');
+            if(res){
+                res = JSON.parse(res);
+                if (res.secret == js.client.data.secret) {
+                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+                        if (res) {
+                            //client.data.user.password=res.password;
+                            res.oldphone.push(res.phone);
+                            res.phone = js.client.data.user.phonenumber;
+                            updateUser(res).then(function (res) {
+                                js.client.data.message = 'OK updated';
+                                deferred.resolve(js);
+                            });
+                        } else {
+                            js.client.data.message = new Error('ERROR user not found');
+                            deferred.reject(js);
+                        }
+                    }).catch(function (err) {
+                        //console.log(err);
+                        js.client.data.message = err;
                         deferred.reject(js);
-                    }
-                }).catch(function (err) {
-                    //console.log(err);
-                    js.client.data.message = err;
+                    });
+                } else {
+                    js.client.data.message = new Error('ERROR wrong secret and phone');
                     deferred.reject(js);
-                });
-            } else {
-                js.client.data.message = new Error('ERROR wrong secret and phone');
-                deferred.reject(js);
+                }
+            }
+            else{
+                deferred.reject(new Error('ERROR empty secret')); 
             }
         }
     });
