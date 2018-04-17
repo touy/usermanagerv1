@@ -970,6 +970,8 @@ function login_ws(js) {
     //     }
     // });
     authentication(js.client.data.user).then(function (res) {
+        console.log('authen res');
+        console.log(res);        
         if (!_client_prefix.match(res.system).length) {
             js.client.username = '';
             js.client.data.user = {};
@@ -1049,12 +1051,12 @@ function authentication(userinfo) {
         if (err) deferred.reject(err);
         else {
             //console.log('login ok')
-            if (res.rows.length) {
-                deferred.resolve(res.rows[0].value);
-            } else {
-                //console.log(new Error('ERROR wrong username or password'));
-                deferred.reject(new Error('ERROR wrong username or password'));
-            }
+            if(res){
+                if (res.rows.length) {
+                    deferred.resolve(res.rows[0].value);
+                } 
+            }     
+            deferred.reject(new Error('ERROR wrong username or password'));       
         }
     })
     return deferred.promise;
