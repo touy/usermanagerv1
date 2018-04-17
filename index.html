@@ -150,6 +150,20 @@
                                     alert(_client.data.user.gui);  
                                 }
                                 break;
+                            case 'check-phonenumber':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    alert(_client.data.user.gui);  
+                                }
+                            break;
+                            case 'check-username':
+                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                    console.log(_client.data.message);
+                                }else{
+                                    alert(_client.data.user.gui);  
+                                }
+                            break;
                             default:
                                 break;
                         }
@@ -171,11 +185,15 @@
                 };
 
                 function get_user_gui(){
+                    _client.data={};
+                    _client.data.user={};
                     _client.data.command='get-user-gui';
                     _client.prefix='user-management';
                     ws.send(JSON.stringify(_client));
                 }
-                function getClient(){                    
+                function getClient(){                 
+                    _client.data={};
+                    _client.data.user={};   
                     _client.data.command='get-client';
                     ws.send(JSON.stringify(_client));
                 }
@@ -183,39 +201,50 @@
                 var heartbeat_interval=setInterval(heartbeat,1000*30);
                 function heartbeat(){                    
                     console.log('heartbeat');
+                    _client.data={};
+                    _client.data.user={};
                     _client.data.command='heart-beat';
                     ws.send(JSON.stringify(_client));                    
                 }
                 function login(username,password){
-                    _client.data.command='login';
+                    _client.data={};
                     _client.data.user={};
+                    _client.data.command='login';                    
                     _client.data.user.username=username;
                     _client.data.user.password=password;
                     ws.send(JSON.stringify(_client));  
                 }
                 function logout(){
+                    _client.data={};
+                    _client.data.user={};
                     _client.data.command='logout';
                     _client.data.user={};
                     ws.send(JSON.stringify(_client));  
                 }
                 function getUserDetails(){
+                    _client.data={};
+                    _client.data.user={};
                     _client.data.command='get-profile';  
                     ws.send(JSON.stringify(_client));  
                     
                 }
                 function showUserDetails(data){                    
-
+                    _client.data={};
+                    _client.data.user={};
                         $('#userDetails').append(JSON.stringify(data));
                         $('#eUserInfo').val(JSON.stringify(data));                   
                     
                 }
                 function updateUserDetails(){
+                    _client.data={};
+                    _client.data.user={};
                     _client.data.command='edit-profile';  
                     ws.send(JSON.stringify(_client));  
                 }
                 function changePassword(){
-                    _client.data.command='change-password';  
+                    _client.data={};
                     _client.data.user={};
+                    _client.data.command='change-password';                      
                     _client.data.user.username=_client.username;
                     _client.data.user.oldpassword=$("#oldPassword").val();
                     _client.data.user.newpassword=$("#newPassword").val();
@@ -225,14 +254,27 @@
                     ws.send(JSON.stringify(_client));  
                 }
                 function register(){
+                    _client.data={};
+                    _client.data.user={};
+                    _client.data.command='register'; 
                     _client.data.user.username=$("#username").val();
                     _client.data.user.phonenumber=$("#phonenumber").val();
                     _client.data.secret=$("#secret").val();
                     _client.data.user.password=$("#rpassword").val();
                     _client.data.user.confirmpassword=$("#rconfirmpassword").val();
+                    
+                    console.log('before sending register');
+                    alert(JSON.stringify(_client));                    
+                    ws.send(JSON.stringify(_client)); 
                 }
                 function checkUsername(){
-                    
+                    _client.data={};
+                    _client.data.user={};
+                    _client.data.command='check-username'; 
+                    _client.data.user.username=$("#username").val();                    
+                                        
+                    //alert(JSON.stringify(_client));                    
+                    ws.send(JSON.stringify(_client)); 
                 }
                 function checkPassword(){
 
@@ -241,11 +283,19 @@
 
                 }
                 function checkPhoneNumber(){
-
+                    _client.data={};
+                    _client.data.user={};
+                    _client.data.command='check-phonenumber'; 
+                    _client.data.user.phonenumber=$("#phonenumber").val();                    
+                                        
+                    //alert(JSON.stringify(_client));                    
+                    ws.send(JSON.stringify(_client)); 
                 }
                 function updateUserInfo(){
                     let txt=$("#eUserInfo").val();
                     txt=JSON.parse(txt);
+                    _client.data={};
+                    _client.data.user={};
                     _client.data.command='edit-profile';
                     _client.data.user=txt;        
                     console.log(_client.data.user);            
@@ -253,6 +303,8 @@
                 }
                 function send_confirm_phone_sms(phone){
                     phonesize=phone.length;
+                    _client.data={};
+                    _client.data.user={};
                      console.log(phone.indexOf('205'));
                      LTC=phone.indexOf('205');
                      UNI=phone.indexOf('209');
@@ -260,28 +312,31 @@
                         return alert('phone must start with 205 or 209 and 10 digit in total');
                     if(LTC<0&&UNI<0)
                         return alert('we support only LAOTEL and UNITEL number only');
-                    _client.data.command='send-confirm-phone-sms';
-                    _client.data.user={};
+                    _client.data.command='send-confirm-phone-sms';                    
                     _client.data.user.phonenumber=phone;
                     ws.send(JSON.stringify(_client));
                 }
                 function check_confirm_phone_sms(){
-                    _client.data.command='check-confirm-phone-sms';
+                    _client.data={};
                     _client.data.user={};
+                    _client.data.command='check-confirm-phone-sms';                    
                     _client.data.user.phonenumber=$('#cPhoneNumber').val();
                     _client.data.secret=$('#csecret').val();
                     //_client.data.user.phonenumber=phone;
                     ws.send(JSON.stringify(_client));
                 }
                 function checkForgot(){
-                    _client.data.command='check-forgot';
+                    _client.data={};
                     _client.data.user={};
+                    _client.data.command='check-forgot';                    
                     _client.data.user.phonenumber=$('#fPhoneNumber').val();
                     _client.data.forgot=$('#forgotKey').val();
                     //_client.data.user.phonenumber=phone;
                     ws.send(JSON.stringify(_client));
                 }
                 function getSecret(phone){
+                    _client.data={};
+                    _client.data.user={};
                      phonesize=phone.length;
                      console.log(phone.indexOf('205'));
                      LTC=phone.indexOf('205');
@@ -290,12 +345,13 @@
                         return alert('phone must start with 205 or 209 and 10 digit in total');
                     if(LTC<0&&UNI<0)
                         return alert('we support only LAOTEL and UNITEL number only');
-                    _client.data.command='get-secret';
-                    _client.data.user={};
+                    _client.data.command='get-secret';                    
                     _client.data.user.phonenumber=phone;
                     ws.send(JSON.stringify(_client));
                 }
                 function  getForgotKeys(phone){
+                    _client.data={};
+                    _client.data.user={};
                     phonesize=phone.length;
                      console.log(phone.indexOf('205'));
                      LTC=phone.indexOf('205');
@@ -304,17 +360,20 @@
                         return alert('phone must start with 205 or 209 and 10 digit in total');
                     if(LTC<0&&UNI<0)
                         return alert('we support only LAOTEL and UNITEL number only');
-                    _client.data.command='submit-forgot';
-                    _client.data.user={};
+                    _client.data.command='submit-forgot';                    
                     _client.data.user.phonenumber=phone;
                     ws.send(JSON.stringify(_client));
                 }
                 function checkSecret(){
+                    _client.data={};
+                    _client.data.user={};
                     _client.data.command='check-secret';
                     _client.data.secret=$('#secret').val();
                     ws.send(JSON.stringify(_client));
                 }
                 function uploadPhoto(){
+                    _client.data={};
+                    _client.data.user={};
                     var socketServerUrl = 'ws://localhost:6688/';
                     var files=[];
                     $('input[type=file]').change(function(event) {
@@ -357,6 +416,28 @@
                     return false;
                     });
                 }
+                
+                // $('#phonenumber').keyup(function(event){
+                //     //$(this).attr('maxlength','6');
+                //     console.log($(this).val());
+                //     let str=$(this).val();
+                //     if(str.length==6){
+                //         console.log('checking secret');
+                //         checkSecret();
+                //         $('#code').val(checkSecret+"");
+                //     }
+                // });
+                // $('#username').keyup(function(event){
+                //     //$(this).attr('maxlength','6');
+                //     console.log($(this).val());
+                //     let str=$(this).val();
+                //     if(str.length==6){
+                //         console.log('checking secret');
+                //         checkSecret();
+                //         $('#code').val(checkSecret+"");
+                //     }
+                // });
+
                 $('#secret').keyup(function(event){
                     //$(this).attr('maxlength','6');
                     console.log($(this).val());
@@ -367,6 +448,7 @@
                         $('#code').val(checkSecret+"");
                     }
                 });
+                
                 $('#btnGetSecret').click(function(event){
                     event.preventDefault();
                     phone= $("#phonenumber").val();
@@ -413,8 +495,7 @@
                     changePassword();
                     $('#code').val(changePassword+"");
                 });
-                $('#btnShowRegisterForm').click(function(event){
-                    //event.defaultPrevented();
+                $('#btnShowRegisterForm').click(function(event){                    
                     event.preventDefault();
                     $('#registerForm').siblings('div').hide();
                     $('#registerForm').show();
@@ -468,8 +549,7 @@
                     $('#code').val(updateUserInfo+"");
                     updateUserInfo();
                 });
-                $('#uploadPhoto').click(function (){
-                    //event.defaultPrevented();
+                $('#uploadPhoto').click(function (){                    
                     uploadPhoto();
                     $('#code').val(uploadPhoto+"");
                 });
@@ -486,7 +566,7 @@
                     $('#code').val(get_user_gui+"");                    
                 });
                 $('#submit').click(function (event){
-                    event.defaultPrevented();
+                    event.preventDefault();
                     register();
                     $('#code').val(register+"");
                     
@@ -713,9 +793,9 @@
                             </div>
                           </div>
                           <div class="form-group">
-                            <label class="col-md-4 control-label" for="rconfirmPassword">confirm password</label>  
+                            <label class="col-md-4 control-label" for="rconfirmpassword">confirm password</label>  
                             <div class="col-md-4">
-                            <input id="rconfirmPassword" name="rconfirmPassword" type="password" placeholder="confirm password" class="form-control input-md" required>                          
+                            <input id="rconfirmpassword" name="rconfirmpassword" type="password" placeholder="confirm password" class="form-control input-md" required>                          
                             </div>
                           </div>
                         <!-- Text input-->
