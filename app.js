@@ -1257,7 +1257,10 @@ function send_confirm_phone_sms_ws(js) {
                 js.client.data.message = new Error('ERROR phone or username not found');;
                 deferred.reject(js);
             }
-        })
+        }).catch(function (err) {
+            js.client.data.message = err;
+            deferred.reject(js);
+        });
     }).catch(function (err) {
         js.client.data.message = err;
         deferred.reject(js);
@@ -1332,6 +1335,9 @@ function update_phone_ws(js) {
                         }
                     }).catch(function (err) {
                         //console.log(err);
+                        js.client.data.message = err;
+                        deferred.reject(js);
+                    }).catch(function (err) {
                         js.client.data.message = err;
                         deferred.reject(js);
                     });
@@ -1761,7 +1767,8 @@ function submit_forgot_keys(js) {
         }))
         deferred.resolve(js);
     }).catch(function (err) {
-        deferred.reject(err);
+        js.client.data.message=err;
+        deferred.reject(js);
     });
     return deferred.promise;
 }
