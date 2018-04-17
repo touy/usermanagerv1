@@ -392,15 +392,19 @@ function check_secret_ws(js) {
                 js.client.data.message = new Error('ERROR no secret found');
                 deferred.reject(js);
             }
-            let secret = JSON.parse(res).secret;
-            if (secret != js.client.data.secret) {
-                console.log('wrong secret');
-                js.client.data.message = new Error('ERROR wrong secret');
-                deferred.reject(js);
-            }
-            console.log('secret OK');
-            js.client.data.message = 'OK';
-            deferred.resolve(js);
+            else{
+                let secret = JSON.parse(res).secret;
+                if (secret != js.client.data.secret) {
+                    console.log('wrong secret');
+                    js.client.data.message = new Error('ERROR wrong secret');
+                    deferred.reject(js);
+                }else{
+                    console.log('secret OK');
+                    js.client.data.message = 'OK';
+                    deferred.resolve(js);
+                }
+            }            
+            
         }
     });
     return deferred.promise;
@@ -475,6 +479,7 @@ function get_user_gui_ws(js) {
                     js.client.data.user.gui = gui.gui;
                     deferred.resolve(js);
                 } else {
+                    js.client.data.message=new Error('ERROR gui not found')
                     deferred.reject(js);
                 }
             }
@@ -588,8 +593,7 @@ app.all('/init_default_user', function (req, res) {
         if (err) {
             js.client.data.message = err;
             js.resp.send(js.client);
-        }
-        console.log(res);
+        }        
         if (res) {
             res = JSON.parse(res);
             if (res.gui == js.client.gui)
@@ -605,7 +609,6 @@ app.all('/init_default_user', function (req, res) {
             }
         }
         init_default_user(js);
-
     });
 
 });
@@ -948,21 +951,6 @@ app.all('/login', function (req, res) {
 
 function login_ws(js) {
     let deferred = Q.defer();
-    // r_client.get(_current_system+'_login_',function(err,res){
-    //     if(err){
-
-    //     }
-    //     else{
-    //         if(res){
-    //             let c=JSON.parse(res);
-    //             if(c.username==js.client.data.user.username){
-
-    //             }
-    //         }else{
-
-    //         }
-    //     }
-    // });
     authentication(js.client.data.user).then(function (res) {
         console.log('authen res');
         console.log(res);        
@@ -1193,9 +1181,7 @@ function update_user_ws(js) {
     r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
         let c = JSON.parse(gui);
         gui = c.gui;
-        findUserByGUI(gui).then(function (res) {
-            console.log("res");
-            console.log(res);
+        findUserByGUI(gui).then(function (res) {            
             if (res) {
                 //js.client.data={};
                 //js.client.data.user={};     
@@ -1225,7 +1211,6 @@ function update_user_ws(js) {
                 //throw new Error('ERROR user not found');
                 js.client.data.message = new Error('ERROR user not found');
                 deferred.reject(js);
-
             }
         }).catch(function (err) {
             js.client.data.message = err;
@@ -1356,7 +1341,8 @@ function update_phone_ws(js) {
                 }
             }
             else{
-                deferred.reject(new Error('ERROR empty secret')); 
+                js.client.data.message=new Error('ERROR empty secret');
+                deferred.reject(js); 
             }
         }
     });
@@ -1487,16 +1473,28 @@ app.all('/display_user_details', function (req, res) {
 function get_user_details_ws(js) {
     let deferred = Q.defer();
     r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
-        let c = JSON.parse(gui);
-        gui = c.gui;
-        displayUserDetails(gui).then(function (res) {
-            js.client.data.user = res;
-            js.client.data.message = 'OK';
-            deferred.resolve(js);
-        }).catch(function (err) {
+        if(err){
             js.client.data.message = err;
             deferred.reject(js);
-        });
+        }
+        else{
+            if(gui){
+                let c = JSON.parse(gui);
+                gui = c.gui;
+                displayUserDetails(gui).then(function (res) {
+                    js.client.data.user = res;
+                    js.client.data.message = 'OK';
+                    deferred.resolve(js);
+                }).catch(function (err) {
+                    js.client.data.message = err;
+                    deferred.reject(js);
+                });
+            }else{
+                js.client.data.message = new Error('gui not found');
+                deferred.reject(js);
+            }
+        }
+        
     });
     return deferred.promise;
 }
@@ -1882,17 +1880,27 @@ function change_password_ws(js) {
         deferred.reject(js);
     } else
         r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
-            let c = JSON.parse(gui);
-            gui = c.gui;
-            findUserByGUI(gui).then(function (res) {
-                change_password(js.client.data.user.username, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
-                    js.client.data.message = 'OK changed password';
-                    deferred.resolve(js);
-                }).catch(function (err) {
-                    js.client.data.message = err;
+            if(err){
+                js.client.data.message = err;
+                deferred.reject(js);
+            }else{
+                if(gui){
+                    let c = JSON.parse(gui);
+                    gui = c.gui;
+                    findUserByGUI(gui).then(function (res) {
+                        change_password(js.client.data.user.username, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
+                            js.client.data.message = 'OK changed password';
+                            deferred.resolve(js);
+                        }).catch(function (err) {
+                            js.client.data.message = err;
+                            deferred.reject(js);
+                        });
+                    });
+                }else{
+                    js.client.data.message = new Error('gui not found');
                     deferred.reject(js);
-                });
-            });
+                }                            
+            }
         });
     return deferred.promise;
 }
