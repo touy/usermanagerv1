@@ -622,8 +622,18 @@ function init_default_user(js) {
         //console.log('res');
         //console.log(res);
         if (res) {
-            js.client.data.message = 'OK';
-            js.resp.send(js.client);
+                copyObject(defaultUser,res);
+                //console.log(res);
+                db.insert(res,res.gui ,function(err,res){
+                    if(err){
+                        js.client.data.message=err;
+                        js.resp.send(js.client);
+                    }
+                    else{
+                        js.client.data.message='OK';
+                        js.resp.send(js.client);
+                    }
+                });
         }
         // if(res.username!=defaultUser.username)
         //     db.insert(defaultUser,defaultUser.gui,function(err,res){
