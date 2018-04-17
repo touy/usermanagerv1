@@ -1816,6 +1816,7 @@ function forgot_password(js) {
     r_client.get('_forgot_' + js.client.gui, function (err, res) {
         if (err) deferred.reject(err);
         else {
+            if(res){
             res = JSON.parse(res);
             if (res.forgot == js.client.data.forgot) {
                 findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
@@ -1828,6 +1829,7 @@ function forgot_password(js) {
                 });
             } else
                 deferred.reject(new Error('ERROR wrong keys'));
+            }
         }
     });
 
