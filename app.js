@@ -1249,7 +1249,7 @@ function send_confirm_phone_sms_ws(js) {
             if (res) {
                 p.secret = randomSecret(6, '1234567890');
                 //p.phone=phone;
-                r_client.set(_current_system+'_phone_' + js.client.gui, secret, 'EX', 60 * 30);
+                r_client.set(_current_system+'_phone_' + js.client.gui, p.secret, 'EX', 60 * 30);
                 SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
                 js.client.data.message = 'OK';
                 deferred.resolve(js);
