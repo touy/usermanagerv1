@@ -403,25 +403,30 @@
                 $('#btnLogout').click(function(event){
                     //event.preventDefault();
                     //alert(event);
+                    event.preventDefault();
                     logout();
                     $('#code').val(logout+"");
                 });
                 $("#btnChangePassword").click(function(event){
                     //event.preventDefault();
+                    event.preventDefault();
                     changePassword();
                     $('#code').val(changePassword+"");
                 });
                 $('#btnShowRegisterForm').click(function(event){
                     //event.defaultPrevented();
+                    event.preventDefault();
                     $('#registerForm').siblings('div').hide();
                     $('#registerForm').show();
                 });
                 $('#btnShowLoginForm').click(function(event){
+                    event.preventDefault();
                     $('#loginForm').siblings('div').hide();
                     $('#loginForm').show();
                 });
                 $('#btnShowUserInfo').click(function(event){                    
-                    if(_client.logintoken)    {
+                    event.preventDefault();
+                    if(_client.logintoken){
                         $('#userInfoForm').siblings('div').hide();
                         $('#userInfoForm').show();
                         getUserDetails();
@@ -430,7 +435,8 @@
                     else
                         alert('login first');
                 });
-                $('#btnShowChangePassword').click(function(event){                                   
+                $('#btnShowChangePassword').click(function(event){   
+                    event.preventDefault();                                
                     if(_client.logintoken){
                         $('#changePasswordForm').siblings('div').hide();
                         $('#changePasswordForm').show();  
@@ -440,12 +446,14 @@
                     }                         
                 });
                 $('#btnShowForgot').click(function(event){
+                    event.preventDefault();
                     $('#forgotPassword').siblings('div').hide();
                     $('#forgotPassword').show();      
                     //show source code done              
                 });
                 
                 $('#btnShowChangePhoneNumber').click(function(event){
+                    event.preventDefault();
                     if(_client.logintoken){
                         $('#changePhoneNumber').siblings('div').hide();
                         $('#changePhoneNumber').show();                        
@@ -484,13 +492,13 @@
                     
                 });
                 $('#btnGetForgotKeys').click(function (event){
-                    //event.defaultPrevented();
+                    event.preventDefault();
                     getForgotKeys($('#fPhoneNumber').val());                    
                     $('#code').val(getForgotKeys+"");
                     //show source code done
                 });
                 $('#btnChangePhoneNumber').click(function (event){
-                    //event.defaultPrevented();
+                    event.preventDefault();
                     send_confirm_phone_sms($('#cPhoneNumber').val());
                     $('#code').val(send_confirm_phone_sms+"");
                 });
