@@ -81,7 +81,7 @@ r_client.monitor(function (err, res) {
 });
 
 r_client.on("monitor", function (time, args, raw_reply) {
-    console.log(time + ": " + args); // 1458910076.446514:['set', 'foo', 'bar']
+    //console.log(time + ": " + args); // 1458910076.446514:['set', 'foo', 'bar']
     args = args.toString();
     if (args.indexOf('set') != 0) //capture the set command only
         return;
@@ -102,12 +102,12 @@ r_client.on("monitor", function (time, args, raw_reply) {
         wss.clients.forEach(function each(ws) {
             const element = ws;
             //console.log(element);
-            if ("_client_" + element.gui == key) {
-                console.log('client-changed');
+            if (_current_system+"_client_" + element.gui == key) {
+                //console.log('client-changed');
                 element.send(JSON.stringify(js));
             }
-            if ("_error_" + element.gui == key) {
-                console.log('error-changed');
+            if (_current_system+"_error_" + element.gui == key) {
+                //console.log('error-changed');
                 element.send(JSON.stringify(js));
                 var l = {
                     log: JSON.stringify(js),
@@ -117,11 +117,11 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 };
                 errorLogging(l);
             }
-            if ("_login_" + element.client.logintoken == key) {
-                console.log('login-changed');
+            if (_current_system+"_login_" + element.client.logintoken == key) {
+                //console.log('login-changed');
                 element.send(JSON.stringify(js));
             }
-            if ("_usergui_" + element.client.logintoken == key) {
+            if (_current_system+"_usergui_" + element.client.logintoken == key) {
 
                 console.log('gui-changed');
                 if (_system_prefix.indexOf(element.client.prefix) > -1)
@@ -382,7 +382,7 @@ function noop() {
 //   41435
 function check_secret_ws(js) {
     let deferred = Q.defer();
-    r_client.get('_secret_' + js.client.gui, function (err, res) {
+    r_client.get(_current_system+'_secret_' + js.client.gui, function (err, res) {
         if (err) {
             js.client.data.message = err;
             deferred.reject(js);
@@ -410,12 +410,12 @@ function get_secret_ws(js) {
     let deferred = Q.defer();
     let secret = randomSecret(6, '1234567890');
     let content = "secret is: " + secret;
-    r_client.set('_secret_' + js.client.gui, JSON.stringify({
+    r_client.set(_current_system+'_secret_' + js.client.gui, JSON.stringify({
         secret: secret
     }), 'EX', 60 * 30, function (err, res) {
         if (err) {
             js.client.data.message = err;
-            r_client.set('_error_' + js.client.gui, JSON.stringify(js), 'EX', 60 * 5);
+            r_client.set(_current_system+'_error_' + js.client.gui, JSON.stringify(js), 'EX', 60 * 5);
             deferred.reject(js);
         } else {
             js.client.data.message = 'OK';
@@ -464,7 +464,7 @@ function get_user_gui_ws(js) {
     console.log(_system_prefix.indexOf(js.client.prefix));
     if (_system_prefix.indexOf(js.client.prefix) > -1) {
         console.log('exist');
-        r_client.get('_usergui_' + js.client.logintoken, function (err, res) {
+        r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, res) {
             if (err) {
                 js.client.data.message = err;
                 deferred.reject(js);
@@ -584,7 +584,7 @@ app.all('/init_default_user', function (req, res) {
     let js = {};
     js.client = req.body;
     js.resp = res;
-    r_client.get('_client_' + js.client.gui, function (err, res) {
+    r_client.get(_current_system+'_client_' + js.client.gui, function (err, res) {
         if (err) {
             js.client.data.message = err;
             js.resp.send(js.client);
@@ -877,7 +877,7 @@ function get_client_ws(js) {
             js.client.prefix = 'GUEST-' + uuidV4();
         //_client_prefix.push(js.client.prefix);
         //console.log('before send '+JSON.stringify(js.client));
-        r_client.set('_client_' + js.client.gui, JSON.stringify({
+        r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
             command: 'client-changed',
             client: js.client
         }), 'EX', 60 * 60 / 2);
@@ -909,7 +909,7 @@ app.post('/get_client', function (req, res) {
             js.client.prefix = 'GUEST-' + uuidV4();
         //_client_prefix.push(js.client.prefix);
         //console.log('before send '+JSON.stringify(js.client));
-        r_client.set('_client_' + js.client.gui, JSON.stringify(js.client), 'EX', 60 * 60 / 2);
+        r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify(js.client), 'EX', 60 * 60 / 2);
         js.resp.send(js.client);
 
     }).catch(function (err) {
@@ -954,7 +954,7 @@ app.all('/login', function (req, res) {
 
 function login_ws(js) {
     let deferred = Q.defer();
-    // r_client.get('_login_',function(err,res){
+    // r_client.get(_current_system+'_login_',function(err,res){
     //     if(err){
 
     //     }
@@ -998,7 +998,7 @@ function login_ws(js) {
         js.client.logintime = convertTZ(new Date());
         //js.resp.send(js.client);
         //_arrUsers.push(js.client);
-        r_client.set('_login_' + js.client.logintoken, JSON.stringify({
+        r_client.set(_current_system+'_login_' + js.client.logintoken, JSON.stringify({
             command: 'login-changed',
             logintoken: js.client.logintoken,
             logintime: js.client.logintime,
@@ -1006,7 +1006,7 @@ function login_ws(js) {
         }), 'EX', 60 * 5);
         console.log('gui-changing');
         //console.log(res);
-        r_client.set('_usergui_' + js.client.logintoken, JSON.stringify({
+        r_client.set(_current_system+'_usergui_' + js.client.logintoken, JSON.stringify({
             command: 'usergui-changed',
             gui: res.gui
         }), 'EX', 60 * 5);
@@ -1194,7 +1194,7 @@ app.all('/update_user', function (req, res) {
 
 function update_user_ws(js) {
     let deferred = Q.defer();
-    r_client.get('_usergui_' + js.client.logintoken, function (err, gui) {
+    r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
         let c = JSON.parse(gui);
         gui = c.gui;
         findUserByGUI(gui).then(function (res) {
@@ -1268,7 +1268,7 @@ function send_confirm_phone_sms_ws(js) {
             if (res) {
                 p.secret = randomSecret(6, '1234567890');
                 //p.phone=phone;
-                r_client.set('_phone_' + js.client.gui, secret, 'EX', 60 * 30);
+                r_client.set(_current_system+'_phone_' + js.client.gui, secret, 'EX', 60 * 30);
                 SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
                 js.client.data.message = 'OK';
                 deferred.resolve(js);
@@ -1328,7 +1328,7 @@ function checkPhoneSecret(secret, phone) {
 
 function update_phone_ws(js) {
     let deferred = Q.defer();
-    r_client.get('_phone_' + js.client.gui, function (err, res) {
+    r_client.get(_current_system+'_phone_' + js.client.gui, function (err, res) {
         if (err) {
             js.client.data.message = err;
             deferred.reject(js);
@@ -1485,7 +1485,7 @@ app.all('/display_user_details', function (req, res) {
 
 function get_user_details_ws(js) {
     let deferred = Q.defer();
-    r_client.get('_usergui_' + js.client.logintoken, function (err, gui) {
+    r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
         let c = JSON.parse(gui);
         gui = c.gui;
         displayUserDetails(gui).then(function (res) {
@@ -1692,7 +1692,7 @@ function LTCserviceSMS(client) {
     ws_client.on('open', function open() {
         ws_client.send(JSON.stringify(client), function (err) {
             if (err)
-                r_client.set('_error_' + client.gui, JSON.stringify({
+                r_client.set(_current_system+'_error_' + client.gui, JSON.stringify({
                     command: 'error-changed',
                     err: err
                 }), 'EX', 60 * 5);
@@ -1702,13 +1702,13 @@ function LTCserviceSMS(client) {
         data = JSON.parse(data);
         delete data.system;
         //delete data.res.SendSMSResult.user_id;
-        r_client.set('_client_' + client.gui, JSON.stringify({
+        r_client.set(_current_system+'_client_' + client.gui, JSON.stringify({
             command: 'client-changed',
             client: data
         }), 'EX', 60 * 60 / 2);
     });
     ws_client.on("error", (err) => {
-        r_client.set('_error_' + client.gui, JSON.stringify({
+        r_client.set(_current_system+'_error_' + client.gui, JSON.stringify({
             command: 'error-changed',
             err: err
         }), 'EX', 60 * 5);
@@ -1757,7 +1757,7 @@ function submit_forgot_keys(js) {
         let keys = randomSecret(6, '1234567890');
         js.client.username = res.username;
         js.client.data.forgot = keys;
-        r_client.set('_forgot_' + js.client.gui, JSON.stringify({
+        r_client.set(_current_system+'_forgot_' + js.client.gui, JSON.stringify({
             forgot: keys
         }))
         deferred.resolve(js);
@@ -1813,7 +1813,7 @@ function forgot_password_ws(js) {
 
 function forgot_password(js) {
     let deferred = Q.defer();
-    r_client.get('_forgot_' + js.client.gui, function (err, res) {
+    r_client.get(_current_system+'_forgot_' + js.client.gui, function (err, res) {
         if (err) deferred.reject(err);
         else {
             if(res){
@@ -1874,7 +1874,7 @@ function change_password_ws(js) {
         js.client.data.message = new Error('ERROR wrong confirm password');
         deferred.reject(js);
     } else
-        r_client.get('_usergui_' + js.client.logintoken, function (err, gui) {
+        r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
             let c = JSON.parse(gui);
             gui = c.gui;
             findUserByGUI(gui).then(function (res) {
