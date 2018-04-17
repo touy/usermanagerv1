@@ -623,7 +623,8 @@ function init_default_user(js) {
         //console.log(res);
         if (res) {
                 copyObject(defaultUser,res);
-                //console.log(res);
+                console.log('new default user');
+                console.log(res);
                 db.insert(res,res.gui ,function(err,res){
                     if(err){
                         js.client.data.message=err;
