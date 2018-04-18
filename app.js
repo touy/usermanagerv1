@@ -103,11 +103,11 @@ r_client.on("monitor", function (time, args, raw_reply) {
             const element = ws;
             //console.log(element);
             if (_current_system+"_client_" + element.gui == key) {
-                //console.log('client-changed');
+                console.log('client-changed');
                 element.send(JSON.stringify(js));
             }
             if (_current_system+"_error_" + element.gui == key) {
-                //console.log('error-changed');
+                console.log('error-changed');
                 element.send(JSON.stringify(js));
                 var l = {
                     log: JSON.stringify(js),
@@ -118,7 +118,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 errorLogging(l);
             }
             if (_current_system+"_login_" + element.client.logintoken == key) {
-                //console.log('login-changed');
+                console.log('login-changed');
                 element.send(JSON.stringify(js));
             }
             if (_current_system+"_usergui_" + element.client.logintoken == key) {
@@ -145,195 +145,224 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
             }
+            if (_current_system+"_message_" + element.client.logintoken == key) {
+
+                console.log('message-changed');
+                if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    element.send(JSON.stringify(js));
+            }
+            if (_current_system+"_notification_" + element.client.logintoken == key) {
+
+                console.log('notification-changed');
+                if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    element.send(JSON.stringify(js));
+            }
         });
 });
-
-
-
-
 
 function commandReader(js) {
     const deferred = Q.defer();
     // const isValid=validateTopup(js.client);
     // if(!isValid.length)
-    console.log('command : '+js.client.data.command);
-    switch (js.client.data.command) {
-        case 'shake-hands':
-        break;
-        case 'login':
-            login_ws(js).then(res => {
-                deferred.resolve(res);
-                //console.log(res);
-                js.ws.lastupdate = convertTZ(new Date());
-            }).catch(err => {
-                //console.log(err);
-                deferred.reject(err);
-            });
+    try {
+        console.log('command : '+js.client.data.command);
+        switch (js.client.data.command) {
+            case 'ping':
+                console.log('ping test');
+                js.client.data.message='PONG test';
+                deferred.resolve(js);
             break;
-        case 'logout':
-            logout_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
+            case 'shake-hands':
+                get_client_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
             break;
-        case 'register':
-            console.log('regiseter here');
-            register_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
+            
+            case 'login':
+                login_ws(js).then(res => {
+                    deferred.resolve(res);
+                    //console.log(res);
+                    js.ws.lastupdate = convertTZ(new Date());
+                }).catch(err => {
+                    //console.log(err);
+                    deferred.reject(err);
+                });
             break;
-        case 'add-user-manual':
-            addNewUserManual_WS(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'check-forgot':
-            forgot_password_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'submit-forgot':
-            submit_forgot_keys_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-
-        case 'change-password':
-            console.log(js.client);
-            change_password_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'send-confirm-phone-sms':
-            send_confirm_phone_sms_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'check-confirm-phone-sms':
-            update_phone_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'edit-profile':
-            update_user_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'get-profile':
-            get_user_details_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'get-user-list':
-            show_user_list_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-
-        case 'get-client':
-            get_client_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'get-user-gui':
-            get_user_gui_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'heart-beat':
-            heartbeat_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'check-username':
-            check_username_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'check-password':
-            check_password_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'check-phonenumber':
-            check_phonenumber_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'check-username':
-            check_username_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'get-secret':
-            get_secret_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'check-secret':
-            check_secret_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'validate-phonenumber':
-            validate_phonenumber_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-        case 'get-user-info':
-            get_user_info_ws(js).then(res => {
-                deferred.resolve(res);
-            }).catch(err => {
-                deferred.reject(err);
-            });
-            break;
-            // case 'system-prefix':
-            //     deferred.resolve(get_system_prefix());
-            // break;
-        default:
-            break;
+            case 'logout':
+                logout_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'register':
+                console.log('regiseter here');
+                register_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'add-user-manual':
+                addNewUserManual_WS(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-forgot':
+                forgot_password_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'submit-forgot':
+                submit_forgot_keys_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+    
+            case 'change-password':
+                console.log(js.client);
+                change_password_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'send-confirm-phone-sms':
+                send_confirm_phone_sms_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-confirm-phone-sms':
+                update_phone_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'edit-profile':
+                update_user_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'get-profile':
+                get_user_details_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'get-user-list':
+                show_user_list_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+    
+            case 'get-client':
+                get_client_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'get-user-gui':
+                get_user_gui_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'heart-beat':
+                heartbeat_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-username':
+                check_username_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-password':
+                check_password_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-phonenumber':
+                check_phonenumber_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-username':
+                check_username_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'get-secret':
+                get_secret_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-secret':
+                check_secret_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'validate-phonenumber':
+                validate_phonenumber_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'get-user-info':
+                get_user_info_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+                // case 'system-prefix':
+                //     deferred.resolve(get_system_prefix());
+                // break;
+            default:
+                break;
+        }         
+    } catch (error) {
+        js={};
+        js.client={};
+        js.client.data={};
+        js.client.data.message=error;
+        deferred.reject(js);
     }
+    
+    
     return deferred.promise;
 }
 wss.on('connection', function connection(ws, req) {
@@ -355,6 +384,7 @@ wss.on('connection', function connection(ws, req) {
     ws.on('message', function incoming(data) {
         let js = {};
         js.client = data = JSON.parse(data);
+        console.log(data);
         js.ws = ws;
         ws.client = data;
         commandReader(js).then(res => {
@@ -454,17 +484,21 @@ function get_secret_ws(js) {
     let secret = randomSecret(6, '1234567890');
     let content = "secret is: " + secret;
     r_client.set(_current_system+'_secret_' + js.client.gui, JSON.stringify({
+        command:'secret-changed',
         secret: secret
     }), 'EX', 60 * 30, function (err, res) {
         if (err) {
             js.client.data.message = err;
-            r_client.set(_current_system+'_error_' + js.client.gui, JSON.stringify(js), 'EX', 60 * 5);
+            r_client.set(_current_system+'_error_' + js.client.gui, JSON.stringify({
+                command:'error-changed',
+                client:js.client
+            }), 'EX', 60 * 5);
             deferred.reject(js);
         } else {
             js.client.data.message = 'OK';
-        }
-        SMSToPhone(js.client.gui, content, js.client.data.user.phonenumber);
-        deferred.resolve(js);
+            SMSToPhone(js.client.gui, content, js.client.data.user.phonenumber);
+            deferred.resolve(js);
+        }        
     });
     return deferred.promise;
 }
@@ -518,10 +552,10 @@ function check_phonenumber_ws(js) {
 }
 function get_user_gui_ws(js) {
     let deferred = Q.defer();
-    console.log(js.client.prefix);
-    console.log(_system_prefix);
-    console.log(_system_prefix.indexOf(js.client.prefix));
-    if (_system_prefix.indexOf(js.client.prefix) > -1) {
+    // console.log(js.client.prefix);
+    // console.log(_system_prefix);
+    console.log(_system_prefix.indexOf(js.client['prefix']));
+    if (_system_prefix.indexOf(js.client['prefix']) > -1) {
         console.log('exist');
         r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, res) {
             if (err) {
@@ -531,6 +565,7 @@ function get_user_gui_ws(js) {
                 if (res) {
                     let gui = JSON.parse(res);
                     js.client.data.user = {};
+                    js.client.data.message='OK';
                     js.client.data.user.gui = gui.gui;
                     deferred.resolve(js);
                 } else {
@@ -549,9 +584,31 @@ function get_user_gui_ws(js) {
 
 function heartbeat_ws(js) {
     let deferred = Q.defer();
-    js.client.lastupdate = convertTZ(new Date());
-    js.client.clientip = js.ws._socket.remoteAddress;
-    deferred.resolve(js);
+        js.client.lastupdate = convertTZ(new Date());
+        js.client.clientip = js.ws._socket.remoteAddress;
+        js.client.data.message='heart beat';
+        r_client.get(_current_system+'_login_' + js.client.logintoken,function(err,res){
+            if(err) {
+                js.client.data.message=err;
+                r_client.set(_current_system+'_error_' + client.gui, JSON.stringify({
+                    command: 'error-changed',
+                    client:js.client
+                }), 'EX', 60 * 5);
+            }else if(res){
+                js.client.data.message='heart beat with login';
+                r_client.set(_current_system+'_login_' + js.client.logintoken, JSON.stringify({
+                    command: 'login-changed',
+                    client:js.client
+                }), 'EX', 60 * 5);
+            }else{
+                js.client.data.message='heart beat no login';
+                r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
+                    command: 'client-changed',
+                    client:js.client
+                }), 'EX', 60 * 5);
+            }                
+        });        
+        deferred.resolve(js);
     return deferred.promise;
 }
 
@@ -627,7 +684,7 @@ var defaultUser = {
     createddate: convertTZ(new Date()),
     lastupdate: convertTZ(new Date()),
     isactive: true,
-    parents: [],
+    parents: ["default"],
     roles: ['admin', 'user'],
     logintoken: '',
     expirelogintoken: '',
@@ -639,6 +696,87 @@ var defaultUser = {
     totalgij: 0,
     totalgijspent: 0
 }
+var sDefaultUsers = [{
+    username: 'webpost-admin',
+    password: '123456',
+    phonenumber: '2055516321',
+    gui: uuidV4(),
+    createddate: convertTZ(new Date()),
+    lastupdate: convertTZ(new Date()),
+    isactive: true,
+    parents: ["default"],
+    roles: ['admin', 'user'],
+    logintoken: '',
+    expirelogintoken: '',
+    description: '',
+    photo: '',
+    note: '',
+    system: ['web-post'],
+    gijvalue: 0,
+    totalgij: 0,
+    totalgijspent: 0
+},
+{
+    username: 'gij-admin',
+    password: '123456',
+    phonenumber: '2055516321',
+    gui: uuidV4(),
+    createddate: convertTZ(new Date()),
+    lastupdate: convertTZ(new Date()),
+    isactive: true,
+    parents: ["default"],
+    roles: ['admin', 'user'],
+    logintoken: '',
+    expirelogintoken: '',
+    description: '',
+    photo: '',
+    note: '',
+    system: ['gij'],
+    gijvalue: 0,
+    totalgij: 0,
+    totalgijspent: 0
+},
+{
+    username: 'gps-admin',
+    password: '123456',
+    phonenumber: '2055516321',
+    gui: uuidV4(),
+    createddate: convertTZ(new Date()),
+    lastupdate: convertTZ(new Date()),
+    isactive: true,
+    parents: ["default"],
+    roles: ['admin', 'user'],
+    logintoken: '',
+    expirelogintoken: '',
+    description: '',
+    photo: '',
+    note: '',
+    system: ['gps'],
+    gijvalue: 0,
+    totalgij: 0,
+    totalgijspent: 0
+},
+{
+    username: 'ice-maker-admin',
+    password: '123456',
+    phonenumber: '2055516321',
+    gui: uuidV4(),
+    createddate: convertTZ(new Date()),
+    lastupdate: convertTZ(new Date()),
+    isactive: true,
+    parents: ["default"],
+    roles: ['admin', 'user'],
+    logintoken: '',
+    expirelogintoken: '',
+    description: '',
+    photo: '',
+    note: '',
+    system: ['ice-maker'],
+    gijvalue: 0,
+    totalgij: 0,
+    totalgijspent: 0
+},
+];
 
 app.all('/init_default_user', function (req, res) {
     let js = {};
@@ -673,7 +811,34 @@ function copyObject(o1, o2) {
         o2[key] = o1[key];
     }
 }
-
+function loadAdmin(js){
+    let db = create_db('gijusers');
+    db.view(__design_view,'findAdmin',{key:'user-management'},function(err,res){
+        if(err){
+            js.client.data.message=err;
+            js.resp.send(js.client);
+        }
+        else{
+            if(res.rows.length){
+                defaultUser=res.rows[0];
+                js.client.data.message='OK';
+                js.resp.send(js.client);
+            }else{
+                js.client.data = {};
+                db.insert(defaultUser, defaultUser.gui, function (err, res) {
+                    if (err) {
+                        js.client.data.message = err;
+                        js.resp.send(js.client);
+                    } else {
+                        js.client.data.message = 'OK';
+                        js.resp.send(js.client);
+                    }
+                });
+            
+            }
+        }
+    });
+}
 function init_default_user(js) {
     let db = create_db('gijusers');
     //console.log('default user:'+defaultUser.username);
@@ -702,8 +867,20 @@ function init_default_user(js) {
                     js.client.data.message = err;
                     js.resp.send(js.client);
                 } else {
-                    js.client.data.message = 'OK';
-                    js.resp.send(js.client);
+                    for (let index = 0; index < sDefaultUsers.length; index++) {
+                        const element = sDefaultUsers[index];
+                        db.insert(element, element.gui, function (err, res) {
+                            if (err) {
+                                js.client.data.message = err;
+                                js.resp.send(js.client);     
+                                return;                           
+                            } else {
+                                //js.client.data.message = 'OK';
+                                //js.resp.send(js.client);
+                                
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -745,12 +922,20 @@ var __design_users = {
             "map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], doc);\n}"
         },
         "findByParent": {
-            "map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.parents[i]], doc);\n}"
+            "map": "function (doc) {\n   for(var i=0;i<doc.parents.length;i++) emit([doc.parents[i]], doc);\n}"
         },
         "countByParent": {
             "reduce": "_count",
-            "map": "function (doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.parents[i]], doc);\n}"
+            "map": "function (doc) {\n   for(var i=0;i<doc.parents.length;i++) emit([doc.parents[i]], doc);\n}"
+        },
+        "findAdmin": {
+            "map": "function (doc) {\n   for(var i=0;i<doc.system.length;i++) emit([doc.system[i]], doc);\n}"
+        },
+        "countAdmin": {
+            "reduce": "_count",
+            "map": "function (doc) {\n   for(var i=0;i<doc.system.length;i++) emit([doc.system[i]], doc);\n}"
         }
+
     },
     "language": "javascript"
 };
@@ -880,7 +1065,7 @@ function clearPrefix() {
     for (let index = 0; index < _client_prefix.length; index++) {
         const element = _client_prefix[index];
         if (element.indexOf('GUEST') > -1) {
-            delete element;
+             element='';
         }
     }
 }
@@ -961,7 +1146,10 @@ app.post('/get_client', function (req, res) {
             js.client.prefix = 'GUEST-' + uuidV4();
         //_client_prefix.push(js.client.prefix);
         //console.log('before send '+JSON.stringify(js.client));
-        r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify(js.client), 'EX', 60 * 60 / 2);
+        r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
+            command: 'client-changed',
+            client: js.client
+        }), 'EX', 60 * 60 / 2);
         js.resp.send(js.client);
 
     }).catch(function (err) {
@@ -1037,11 +1225,10 @@ function login_ws(js) {
         js.client.logintime = convertTZ(new Date());
         //js.resp.send(js.client);
         //_arrUsers.push(js.client);
+        js.client.data.user={};
         r_client.set(_current_system+'_login_' + js.client.logintoken, JSON.stringify({
             command: 'login-changed',
-            logintoken: js.client.logintoken,
-            logintime: js.client.logintime,
-            username: js.client.data.user.username
+            client:js.client
         }), 'EX', 60 * 5);
         console.log('gui-changing');
         //console.log(res);
@@ -1176,7 +1363,7 @@ function addNewUser(userinfo) {
     let db = create_db('gijusers');
     let parents=[];
     if(userinfo.parents==undefined){
-        userinfo.parents=[];
+        userinfo.parents=['default'];
     }        
     parents.push(userinfo.parents[0]);
         //console.log(userinfo.confirmpassword+"  -  "+userinfo.password);
@@ -1287,43 +1474,47 @@ app.all('/update_user', function (req, res) {
 function update_user_ws(js) {
     let deferred = Q.defer();
     r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
-        let c = JSON.parse(gui);
-        gui = c.gui;
-        findUserByGUI(gui).then(function (res) {            
-            if (res) {
-                //js.client.data={};
-                //js.client.data.user={};     
-
-                res.lastupdate = convertTZ(new Date());
-                res.photo = js.client.data.user.photo;
-                res.note = js.client.data.user.note;
-                res.description = js.client.data.user.description;
-
-                updateUser(res).then(function (res) {
-                    js.client.data.message = 'OK updated';
-                    try {
-                        if (js.client.data.user.photo)
-                            if (fs.existsSync(__dirname + "/temp/" + js.client.data.user.photo)) {
-                                fs.rename(__dirname + "/temp/" + js.client.data.user.photo, __dirname + '/photo/' + js.client.data.user.photo);
-                            }
-                    } catch (error) {
-                        console.log(error);
-                    }
-                    deferred.resolve(js);
-                }).catch(function (err) {
-                    js.client.data.message = err;
-                    console.log(err);
-                    deferred.reject(js);
-                });
-            } else {
-                //throw new Error('ERROR user not found');
-                js.client.data.message = new Error('ERROR user not found');
-                deferred.reject(js);
-            }
-        }).catch(function (err) {
+        if(err){
             js.client.data.message = err;
             deferred.reject(js);
-        });
+        }else if(gui){
+            let c = JSON.parse(gui);
+            gui = c.gui;
+            findUserByGUI(gui).then(function (res) {            
+                if (res) {
+                    res.lastupdate = convertTZ(new Date());
+                    res.photo = js.client.data.user.photo;
+                    res.note = js.client.data.user.note;
+                    res.description = js.client.data.user.description;
+                    updateUser(res).then(function (res) {
+                        js.client.data.message = 'OK updated';
+                        try {
+                            if (js.client.data.user.photo)
+                                if (fs.existsSync(__dirname + "/temp/" + js.client.data.user.photo)) {
+                                    fs.rename(__dirname + "/temp/" + js.client.data.user.photo, __dirname + '/photo/' + js.client.data.user.photo);
+                                }
+                        } catch (error) {
+                            console.log(error);
+                        }
+                        deferred.resolve(js);
+                    }).catch(function (err) {
+                        js.client.data.message = err;
+                        console.log(err);
+                        deferred.reject(js);
+                    });
+                } else {
+                    //throw new Error('ERROR user not found');
+                    js.client.data.message = new Error('ERROR user not found');
+                    deferred.reject(js);
+                }
+            }).catch(function (err) {
+                js.client.data.message = err;
+                deferred.reject(js);
+            });
+        } else{
+            js.client.data.message = new Error('ERROR key not found');
+                deferred.reject(js);
+        }  
     });
 
 
@@ -1358,6 +1549,7 @@ function send_confirm_phone_sms_ws(js) {
                 p.secret = randomSecret(6, '1234567890');
                 //p.phonenumber=phone;
                 r_client.set(_current_system+'_phone_' + js.client.gui, JSON.stringify({
+                    command:'phone-changed',
                     secret: p.secret
                 }), 'EX', 60 * 30);
                 SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
@@ -1400,16 +1592,16 @@ app.all('/confirm_phone_sms', function (req, res) {
 
 });
 
-function checkPhoneSecret(secret, phone) {
-    for (let index = 0; index < phoneSecret.length; index++) {
-        const element = phoneSecret[index];
-        if (element.secret == secret && element.phonenumber == phone) {
-            return true;
-            delete phoneSecret[index];
-        }
-    }
-    return false;
-}
+// function checkPhoneSecret(secret, phone) {
+//     for (let index = 0; index < phoneSecret.length; index++) {
+//         const element = phoneSecret[index];
+//         if (element.secret == secret && element.phonenumber == phone) {
+//             return true;
+//             delete phoneSecret[index];
+//         }
+//     }
+//     return false;
+// }
 
 // function check_phone_secret_ws(js) {
 //     let deferred = Q.defer();
@@ -1533,31 +1725,52 @@ function showUserList(gui) {
     });
     return deferred.promise;
 }
-
+function countUserListByParentName(username){
+    let deferred = Q.defer();
+    let db = create_db('gijusers');
+    db.view(__design_view,'countByParent',{key:[username]},
+    function(err,res){
+        if(err) deferred.reject(err);
+        else{
+            if(rows)
+                deferred.resolve(res.rows[0].value);
+            else
+                deferred.reject(0);
+        }
+    });
+}
 function findUserListByParentName(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
-    db.view(__design_view, 'findByParent', {
-        key: [username]
-    }, function (err, res) {
-        if (err) deferred.reject(err);
-        else {
-            if (res.rows.length) {
-                let arr = [];
-                for (let index = 0; index < res.rows.length; index++) {
-                    const element = res.rows[index].value;
-                    let e = {};
-                    e.gui = element.gui;
-                    e.username = element.username;
-                    e._id = element._id;
-                    arr.push(e);
+    countUserListByParentName(username).then(function(res){
+        let count=res;
+        if(res){
+            db.view(__design_view, 'findByParent', {
+                key: [username]
+            }, function (err, res) {
+                if (err) deferred.reject(err);
+                else {
+                    if (res.rows.length) {
+                        let arr = [];
+                        for (let index = 0; index < res.rows.length; index++) {
+                            const element = res.rows[index].value;
+                            let e = {};
+                            e.gui = element.gui;
+                            e.username = element.username;
+                            e._id = element._id;
+                            arr.push(e);
+                        }
+                        deferred.resolve({arr:arr,count:count});
+                    } else {
+                        deferred.reject(new Error('ERROR NO SUB USERS'));
+                    }
                 }
-                deferred.resolve(arr);
-            } else {
-                deferred.reject('ERROR NO SUB USERS');
-            }
+            });
         }
+    }).catch(function(err){
+        deferred.reject(new Error('ERROR not found by this parent'));
     });
+    
     return deferred.promise;
 }
 
@@ -1630,15 +1843,15 @@ function displayUserDetails(gui) {
 }
 
 function cleanUserInfo(element) {
-    delete element._rev;
-    delete element._id;
-    delete element.gui;
-    delete element.oldphone;
-    delete element.roles;
-    delete element.parents;
-    delete element.isactive;
-    delete element.system;
-    delete element.password;
+    element._rev='';
+    element._id='';
+    element.gui='';
+    element.oldphone='';
+    element.roles='';
+    element.parents='';
+    element.isactive='';
+    element.system='';
+    element.password='';
 }
 
 function findUserByGUI(gui) {
@@ -1713,13 +1926,18 @@ function logout_ws(js) {
     // for (let index = 0; index < _arrUsers.length; index++) {
     //     const element = _arrUsers[index];       
     //     if(element.username==client.data.username&&element.logintoken==client.data.logintoken){
-    //r_client.del('_client_'+client.gui);
-    r_client.del('_login_' + client.logintoken);
-    r_client.del('_usergui_' + client.logintoken);
+    //r_client.del('_client_'+client.gui);    
+    r_client.del('_login_' + js.client.logintoken);
+    r_client.del('_usergui_' + js.client.logintoken);
     js.client.data = {};
+    js.client.data.user = {};
     js.client.data.command = 'logout';
     js.client.accessedtime = convertTZ(new Date());
     js.client.data.message = 'OK';
+    js.client.logintoken='';
+    js.client.loginip='';
+    js.client.logintime='';
+    js.client.username = '';
     deferred.resolve(js);
     //delete _arrUsers[index];                
     //     }
@@ -1778,7 +1996,7 @@ function submit_forgot_keys_ws(js) {
         content = 'send code to username:' + js.client.username;
         content += ' with phone number:' + js.client.data.user.phonenumber;
         content += ' please check SMS for keys ' + js.client.data.forgot;
-        delete js.client.data.forgot;
+        js.client.data.forgot='';
         js.client.data.message = 'OK';
         console.log('forgot here');
         SMSToPhone(js.client.gui, content, js.client.data.user.phonenumber);
@@ -1810,26 +2028,30 @@ function LTCserviceSMS(client) {
     let ws_client = new WebSocket('ws://localhost:8081/');//ltcservice
     ws_client.on('open', function open() {
         ws_client.send(JSON.stringify(client), function (err) {
-            if (err)
+            if (err){
+                js.client.data.message=err;
                 r_client.set(_current_system+'_error_' + client.gui, JSON.stringify({
                     command: 'error-changed',
-                    err: err
+                    client:js.client
                 }), 'EX', 60 * 5);
+            }                
         });
     });
     ws_client.on('message', function incoming(data) {
         data = JSON.parse(data);
-        delete data.system;
+        data['notification']='SMS has been sent out';
+        data.system='';
         //delete data.res.SendSMSResult.user_id;
-        r_client.set(_current_system+'_client_' + client.gui, JSON.stringify({
-            command: 'client-changed',
+        r_client.set(_current_system+'_notification_' + client.gui, JSON.stringify({
+            command: 'notification-changed',
             client: data
         }), 'EX', 60 * 60 / 2);// client side could not see this , the other server as a client can see this .
     });
     ws_client.on("error", (err) => {
+        client.data.message=err;
         r_client.set(_current_system+'_error_' + client.gui, JSON.stringify({
             command: 'error-changed',
-            err: err
+            client:client
         }), 'EX', 60 * 5);
 
     });
@@ -1879,6 +2101,7 @@ function get_for_got_keys(js) {
         js.client.username = res.username;
         js.client.data.forgot = keys;
         r_client.set(_current_system+'_forgot_' + js.client.gui, JSON.stringify({
+            command:'forgot-changed',
             forgot: keys
         }),'EX',60*60/2);
         //console.log('forgot here 1');
@@ -2035,7 +2258,7 @@ function change_password_ws(js) {
                     let c = JSON.parse(gui);
                     gui = c.gui;
                     findUserByGUI(gui).then(function (res) {
-                        change_password(js.client.data.user.username, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
+                        change_password(js.client.gui,js.client.data.user.username, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
                             js.client.data.message = 'OK changed password';
                             deferred.resolve(js);
                         }).catch(function (err) {
@@ -2085,7 +2308,7 @@ function updateUser(userinfo) {
     return deferred.promise;
 }
 
-function change_password(username, phone, oldpass, newpass) {
+function change_password(clientgui,username, phone, oldpass, newpass) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     console.log("username:" + username);
@@ -2103,7 +2326,11 @@ function change_password(username, phone, oldpass, newpass) {
                 res.password = newpass;
                 console.log('updating ' + JSON.stringify(res));
                 updateUser(res).then(res => {
+                    content='your password has been changed';
+                    SMSToPhone(clientgui,content,phone);
                     deferred.resolve('OK');
+                }).catch(err=>{
+                    deferred.reject(err);
                 });
             }
         }
@@ -2240,7 +2467,7 @@ function errorLogging(log) {
 }
 
 /****** INIT DB */
-//initDB();
+initDB();
 
 
 

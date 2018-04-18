@@ -1,832 +1,855 @@
 <!DOCTYPE html>
 <html>
-    <!--FOR ADMIN ONLY -->
-    <head>
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
-            <script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.1/mootools-yui-compressed.js"></script>
-            <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-            <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-            <script src="/public/js/WebSocketFileTransfer.js" type="application/javascript"></script>
-            <style>
-                .progressBar {
-                    border: 1px solid #000;
-                    width: 400px;
-                    height: 15px;
-                    margin: 5px;
-                }
+<!--FOR ADMIN ONLY -->
 
-                .progressBar .progress {
-                    background-color: #000088;
-                    height: 100%;
-                }
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.1/mootools-yui-compressed.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <script src="/public/js/WebSocketFileTransfer.js" type="application/javascript"></script>
+    <style>
+        .progressBar {
+            border: 1px solid #000;
+            width: 400px;
+            height: 15px;
+            margin: 5px;
+        }
 
-                .progressBar .progress.finished {
-                    background-color: #008800;
-                }
-            </style>
-        <script>
-            var _arrUsers=[];
-            var _client={
-                username:'',
-                logintoken:'',
-                logintime:'',
-                loginip:'',
-                prefix:'',//later delete this , this using between server only
-                data:{
-                }
-            }
-            var fullhost = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
-            $(function(){
-                var ws = new WebSocket("ws://"+location.hostname+(location.port ? ':'+location.port: ''));
-                console.log('connecting to ws: '+"ws://"+location.hostname+(location.port ? ':'+location.port: ''));
-                if( !("WebSocket" in window) ) {
-                    throw("Sorry, no WebSockets support");
-                }
-                else
-                    console.log('WS OK');
-                ws.onmessage = function(evt) {
-                    console.log(evt); 
-                     d=JSON.parse(evt.data);                                   
-                    if(d){
-                        if(d.command!=undefined){
-                            //change command changed first
-                            // client-changed
-                            // error-changed
-                            // login-changed
-                            // gui-changed
-                            switch (d.command) {
-                                case 'client-changed':
-                                        _client=d.client;
-                                        console.log(_client.data.message);  
-                                        
-                                        if(_client.data.sms!=undefined){     
-                                                console.log('SMS');                                       
-                                                console.log(_client.data.res.resultDesc);
-                                                console.log(_client.data.res.msisdn);                                                                                     
-                                        }
-                                        if(_client.data.topup!=undefined){                                            
-                                                console.log('topup');
-                                                console.log(_client.data.res.resultDesc);
-                                                console.log(_client.data.res.msisdn);                                        
-                                        }
-                                        if(_client.data.checkbalance!=undefined){                                            
-                                                console.log('check balance');
-                                                console.log(_client.data.res.resultDesc);
-                                                console.log(_client.data.res.msisdn);
-                                            
-                                        }
-                                    break;
-                                    case 'error-changed':
-                                        console.log(d.err);
-                                    break;
-                                    case 'login-changed':
-                                        console.log(d.logintoken+"   -   "+d.logintime );
-                                    break;
-                                    case 'usergui-changed':
-                                        console.log(d.gui);
-                                    break;
-                                default:
-                                    break;
-                            }
+        .progressBar .progress {
+            background-color: #000088;
+            height: 100%;
+        }
+
+        .progressBar .progress.finished {
+            background-color: #008800;
+        }
+    </style>
+    <script>
+        var _arrUsers = [];
+        var _client = {
+            username: '',
+            logintoken: '',
+            logintime: '',
+            loginip: '',
+            prefix: '', //later delete this , this using between server only
+            data: {}
+        }
+        var fullhost = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
+        $(function () {
+            var ws = new WebSocket("ws://" + location.hostname + (location.port ? ':' + location.port : ''));
+            console.log('connecting to ws: ' + "ws://" + location.hostname + (location.port ? ':' + location.port :
+                ''));
+            if (!("WebSocket" in window)) {
+                throw ("Sorry, no WebSockets support");
+            } else
+                console.log('WS OK');
+            ws.onmessage = function (evt) {
+                console.log(evt);
+                d = JSON.parse(evt.data);
+                if (d) {
+                    if (d.command != undefined) {
+                        //change command changed first
+                        // client-changed
+                        // error-changed
+                        // login-changed
+                        // gui-changed
+                        switch (d.command) {
+                            case 'client-changed':
+                                _client = d.client;
+                                console.log(_client.data.message);
+
+                                if (_client.data.sms != undefined) {
+                                    console.log('SMS');
+                                    console.log(_client.data.res.resultDesc);
+                                    console.log(_client.data.res.msisdn);
+                                }
+                                if (_client.data.topup != undefined) {
+                                    console.log('topup');
+                                    console.log(_client.data.res.resultDesc);
+                                    console.log(_client.data.res.msisdn);
+                                }
+                                if (_client.data.checkbalance != undefined) {
+                                    console.log('check balance');
+                                    console.log(_client.data.res.resultDesc);
+                                    console.log(_client.data.res.msisdn);
+
+                                }
+                                break;
+                            case 'error-changed':
+                                console.log(d.err);
+                                break;
+                            case 'login-changed':
+                                console.log(d.logintoken + "   -   " + d.logintime);
+                                break;
+                            case 'usergui-changed':
+                                console.log(d.gui);
+                                break;
+                            default:
+                                break;
                         }
-                        else{
-                            _client=JSON.parse(evt.data);                
-                            switch (_client.data.command) {
+                    } else {
+                        _client = JSON.parse(evt.data);
+                        switch (_client.data.command) {
                             case 'login':
-                                if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
+                                } else {
                                     console.log('LOGIN OK');
                                 }
                                 break;
                             case 'get-client':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
+                                } else {
                                     console.log('get-client OK');
-                                }          
+                                }
                                 break;
                             case 'logout':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
+                                } else {
                                     console.log('LOGOUT OK');
-                                }           
+                                }
                                 break;
-                            case 'get-profile':                                
-                                if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                            case 'get-profile':
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
-                                    showUserDetails(_client.data.user) ;  
-                                }      
-                            break;
+                                } else {
+                                    showUserDetails(_client.data.user);
+                                }
+                                break;
                             case 'change-password':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
-                                    alert('change password OK');  
+                                } else {
+                                    alert('change password OK');
                                 }
                                 break;
                             case 'check-forgot':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
-                                    alert(_client.data.message);  
+                                } else {
+                                    alert(_client.data.message);
                                 }
                                 break;
-                                case 'submit-forgot':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                            case 'submit-forgot':
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
-                                    alert(_client.data.message);  
+                                } else {
+                                    alert(_client.data.message);
                                 }
                                 break;
                             case 'get-user-gui':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
-                                    alert(_client.data.user.gui);  
+                                } else {
+                                    alert(_client.data.user.gui);
                                 }
                                 break;
                             case 'check-phonenumber':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
-                                    alert(_client.data.user.gui);  
+                                } else {
+                                    alert(_client.data.user.gui);
                                 }
-                            break;
+                                break;
                             case 'check-username':
-                            if(_client.data.message.toLowerCase().indexOf('error')>-1){
+                                if (_client.data.message.toLowerCase().indexOf('error') > -1) {
                                     console.log(_client.data.message);
-                                }else{
-                                    alert(_client.data.user.gui);  
+                                } else {
+                                    alert(_client.data.user.gui);
                                 }
-                            break;
+                                break;
                             default:
                                 break;
                         }
 
                         //if (evt.data != '.') $('#output').append('<p>'+evt.data+'</p>');
-                        }
-
-                    }                        
-                    else{
-                        alert('data empty');
                     }
-                };
-                ws.onclose = function() {
-                    console.log("socket closed");
-                };
-                ws.onopen = function() {
-                    console.log("connected...");
-                    getClient();
-                };
 
-                function get_user_gui(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='get-user-gui';
-                    _client.prefix='user-management';
-                    ws.send(JSON.stringify(_client));
+                } else {
+                    alert('data empty');
                 }
-                function getClient(){                 
-                    _client.data={};
-                    _client.data.user={};   
-                    _client.data.command='get-client';
-                    ws.send(JSON.stringify(_client));
-                }
+            };
+            ws.onclose = function () {
+                console.log("socket closed");
+            };
+            ws.onopen = function () {
+                console.log("connected...");
+                getClient();
+            };
 
-                var heartbeat_interval=setInterval(heartbeat,1000*30);
-                function heartbeat(){                    
-                    console.log('heartbeat');
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='heart-beat';
-                    ws.send(JSON.stringify(_client));                    
-                }
-                function login(username,password){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='login';                    
-                    _client.data.user.username=username;
-                    _client.data.user.password=password;
-                    ws.send(JSON.stringify(_client));  
-                }
-                function logout(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='logout';
-                    _client.data.user={};
-                    ws.send(JSON.stringify(_client));  
-                }
-                function getUserDetails(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='get-profile';  
-                    ws.send(JSON.stringify(_client));  
-                    
-                }
-                function showUserDetails(data){                    
-                    _client.data={};
-                    _client.data.user={};
-                        $('#userDetails').append(JSON.stringify(data));
-                        $('#eUserInfo').val(JSON.stringify(data));                   
-                    
-                }
-                function updateUserDetails(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='edit-profile';  
-                    ws.send(JSON.stringify(_client));  
-                }
-                function changePassword(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='change-password';                      
-                    _client.data.user.username=_client.username;
-                    _client.data.user.oldpassword=$("#oldPassword").val();
-                    _client.data.user.newpassword=$("#newPassword").val();
-                    _client.data.user.confirmpassword=$("#confirmPassword").val();
-                    _client.data.user.phonenumber=$("#phone").val();
-                    alert(JSON.stringify(_client));
-                    ws.send(JSON.stringify(_client));  
-                }
-                function register(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='register'; 
-                    _client.data.user.username=$("#username").val();
-                    _client.data.user.phonenumber=$("#phonenumber").val();
-                    _client.data.secret=$("#secret").val();
-                    _client.data.user.password=$("#rpassword").val();
-                    _client.data.user.confirmpassword=$("#rconfirmpassword").val();
-                    
-                    console.log('before sending register');
-                    alert(JSON.stringify(_client));                    
-                    ws.send(JSON.stringify(_client)); 
-                }
-                function checkUsername(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='check-username'; 
-                    _client.data.user.username=$("#username").val();                    
-                                        
-                    //alert(JSON.stringify(_client));                    
-                    ws.send(JSON.stringify(_client)); 
-                }
-                function checkPassword(){
+            function get_user_gui() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'get-user-gui';
+                _client.prefix = 'user-management';
+                ws.send(JSON.stringify(_client));
+            }
 
-                }
-                function confirmPassword(){
+            function getClient() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'get-client';
+                ws.send(JSON.stringify(_client));
+            }
 
-                }
-                function checkPhoneNumber(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='check-phonenumber'; 
-                    _client.data.user.phonenumber=$("#phonenumber").val();                    
-                                        
-                    //alert(JSON.stringify(_client));                    
-                    ws.send(JSON.stringify(_client)); 
-                }
-                function updateUserInfo(){
-                    let txt=$("#eUserInfo").val();
-                    txt=JSON.parse(txt);
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='edit-profile';
-                    _client.data.user=txt;        
-                    console.log(_client.data.user);            
-                    ws.send(JSON.stringify(_client));
-                }
-                function send_confirm_phone_sms(phone){
-                    phonesize=phone.length;
-                    _client.data={};
-                    _client.data.user={};
-                     console.log(phone.indexOf('205'));
-                     LTC=phone.indexOf('205');
-                     UNI=phone.indexOf('209');
-                     if(phonesize<10||phonesize>10)
-                        return alert('phone must start with 205 or 209 and 10 digit in total');
-                    if(LTC<0&&UNI<0)
-                        return alert('we support only LAOTEL and UNITEL number only');
-                    _client.data.command='send-confirm-phone-sms';                    
-                    _client.data.user.phonenumber=phone;
-                    ws.send(JSON.stringify(_client));
-                }
-                function check_confirm_phone_sms(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='check-confirm-phone-sms';                    
-                    _client.data.user.phonenumber=$('#cPhoneNumber').val();
-                    _client.data.secret=$('#csecret').val();
-                    //_client.data.user.phonenumber=phone;
-                    ws.send(JSON.stringify(_client));
-                }
-                function checkForgot(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='check-forgot';                    
-                    _client.data.user.phonenumber=$('#fPhoneNumber').val();
-                    _client.data.forgot=$('#forgotKey').val();
-                    //_client.data.user.phonenumber=phone;
-                    ws.send(JSON.stringify(_client));
-                }
-                function getSecret(phone){
-                    _client.data={};
-                    _client.data.user={};
-                     phonesize=phone.length;
-                     console.log(phone.indexOf('205'));
-                     LTC=phone.indexOf('205');
-                     UNI=phone.indexOf('209');
-                     if(phonesize<10||phonesize>10)
-                        return alert('phone must start with 205 or 209 and 10 digit in total');
-                    if(LTC<0&&UNI<0)
-                        return alert('we support only LAOTEL and UNITEL number only');
-                    _client.data.command='get-secret';                    
-                    _client.data.user.phonenumber=phone;
-                    ws.send(JSON.stringify(_client));
-                }
-                function  getForgotKeys(phone){
-                    _client.data={};
-                    _client.data.user={};
-                    phonesize=phone.length;
-                     console.log(phone.indexOf('205'));
-                     LTC=phone.indexOf('205');
-                     UNI=phone.indexOf('209');
-                     if(phonesize<10||phonesize>10)
-                        return alert('phone must start with 205 or 209 and 10 digit in total');
-                    if(LTC<0&&UNI<0)
-                        return alert('we support only LAOTEL and UNITEL number only');
-                    _client.data.command='submit-forgot';                    
-                    _client.data.user.phonenumber=phone;
-                    ws.send(JSON.stringify(_client));
-                }
-                function checkSecret(){
-                    _client.data={};
-                    _client.data.user={};
-                    _client.data.command='check-secret';
-                    _client.data.secret=$('#secret').val();
-                    ws.send(JSON.stringify(_client));
-                }
-                function uploadPhoto(){
-                    _client.data={};
-                    _client.data.user={};
-                    var socketServerUrl = 'ws://localhost:6688/';
-                    var files=[];
-                    $('input[type=file]').change(function(event) {
-                        files = event.target.files;
-                        if( files.length == 0 ) {
-                            alert('select files first !');
-                            return false;
-                        }                    
-                    for(var i=0; i < files.length; i++) {
-                        
+            var heartbeat_interval = setInterval(heartbeat, 1000 * 30);
+
+            function heartbeat() {
+                console.log('heartbeat');
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'heart-beat';
+                ws.send(JSON.stringify(_client));
+            }
+
+            function login(username, password) {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'login';
+                _client.data.user.username = username;
+                _client.data.user.password = password;
+                ws.send(JSON.stringify(_client));
+            }
+
+            function logout() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'logout';
+                _client.data.user = {};
+                ws.send(JSON.stringify(_client));
+            }
+
+            function getUserDetails() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'get-profile';
+                ws.send(JSON.stringify(_client));
+
+            }
+
+            function showUserDetails(data) {
+                _client.data = {};
+                _client.data.user = {};
+                $('#userDetails').append(JSON.stringify(data));
+                $('#eUserInfo').val(JSON.stringify(data));
+
+            }
+
+            function updateUserDetails() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'edit-profile';
+                ws.send(JSON.stringify(_client));
+            }
+
+            function changePassword() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'change-password';
+                _client.data.user.username = _client.username;
+                _client.data.user.oldpassword = $("#oldPassword").val();
+                _client.data.user.newpassword = $("#newPassword").val();
+                _client.data.user.confirmpassword = $("#confirmPassword").val();
+                _client.data.user.phonenumber = $("#phone").val();
+                alert(JSON.stringify(_client));
+                ws.send(JSON.stringify(_client));
+            }
+
+            function register() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'register';
+                _client.data.user.username = $("#username").val();
+                _client.data.user.phonenumber = $("#phonenumber").val();
+                _client.data.secret = $("#secret").val();
+                _client.data.user.password = $("#rpassword").val();
+                _client.data.user.confirmpassword = $("#rconfirmpassword").val();
+
+                console.log('before sending register');
+                alert(JSON.stringify(_client));
+                ws.send(JSON.stringify(_client));
+            }
+
+            function checkUsername() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'check-username';
+                _client.data.user.username = $("#username").val();
+
+                //alert(JSON.stringify(_client));                    
+                ws.send(JSON.stringify(_client));
+            }
+
+            function checkPassword() {
+
+            }
+
+            function confirmPassword() {
+
+            }
+
+            function checkPhoneNumber() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'check-phonenumber';
+                _client.data.user.phonenumber = $("#phonenumber").val();
+
+                //alert(JSON.stringify(_client));                    
+                ws.send(JSON.stringify(_client));
+            }
+
+            function updateUserInfo() {
+                let txt = $("#eUserInfo").val();
+                txt = JSON.parse(txt);
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'edit-profile';
+                _client.data.user = txt;
+                console.log(_client.data.user);
+                ws.send(JSON.stringify(_client));
+            }
+
+            function send_confirm_phone_sms(phone) {
+                phonesize = phone.length;
+                _client.data = {};
+                _client.data.user = {};
+                console.log(phone.indexOf('205'));
+                LTC = phone.indexOf('205');
+                UNI = phone.indexOf('209');
+                if (phonesize < 10 || phonesize > 10)
+                    return alert('phone must start with 205 or 209 and 10 digit in total');
+                if (LTC < 0 && UNI < 0)
+                    return alert('we support only LAOTEL and UNITEL number only');
+                _client.data.command = 'send-confirm-phone-sms';
+                _client.data.user.phonenumber = phone;
+                ws.send(JSON.stringify(_client));
+            }
+
+            function check_confirm_phone_sms() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'check-confirm-phone-sms';
+                _client.data.user.phonenumber = $('#cPhoneNumber').val();
+                _client.data.secret = $('#csecret').val();
+                //_client.data.user.phonenumber=phone;
+                ws.send(JSON.stringify(_client));
+            }
+
+            function checkForgot() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'check-forgot';
+                _client.data.user.phonenumber = $('#fPhoneNumber').val();
+                _client.data.forgot = $('#forgotKey').val();
+                //_client.data.user.phonenumber=phone;
+                ws.send(JSON.stringify(_client));
+            }
+
+            function getSecret(phone) {
+                _client.data = {};
+                _client.data.user = {};
+                phonesize = phone.length;
+                console.log(phone.indexOf('205'));
+                LTC = phone.indexOf('205');
+                UNI = phone.indexOf('209');
+                if (phonesize < 10 || phonesize > 10)
+                    return alert('phone must start with 205 or 209 and 10 digit in total');
+                if (LTC < 0 && UNI < 0)
+                    return alert('we support only LAOTEL and UNITEL number only');
+                _client.data.command = 'get-secret';
+                _client.data.user.phonenumber = phone;
+                ws.send(JSON.stringify(_client));
+            }
+
+            function getForgotKeys(phone) {
+                _client.data = {};
+                _client.data.user = {};
+                phonesize = phone.length;
+                console.log(phone.indexOf('205'));
+                LTC = phone.indexOf('205');
+                UNI = phone.indexOf('209');
+                if (phonesize < 10 || phonesize > 10)
+                    return alert('phone must start with 205 or 209 and 10 digit in total');
+                if (LTC < 0 && UNI < 0)
+                    return alert('we support only LAOTEL and UNITEL number only');
+                _client.data.command = 'submit-forgot';
+                _client.data.user.phonenumber = phone;
+                ws.send(JSON.stringify(_client));
+            }
+
+            function checkSecret() {
+                _client.data = {};
+                _client.data.user = {};
+                _client.data.command = 'check-secret';
+                _client.data.secret = $('#secret').val();
+                ws.send(JSON.stringify(_client));
+            }
+
+            function uploadPhoto() {
+                _client.data = {};
+                _client.data.user = {};
+                var socketServerUrl = 'ws://localhost:6688/';
+                var files = [];
+                $('input[type=file]').change(function (event) {
+                    files = event.target.files;
+                    if (files.length == 0) {
+                        alert('select files first !');
+                        return false;
+                    }
+                    for (var i = 0; i < files.length; i++) {
+
                         var $transfer = $('<div />').addClass('transfer');
                         var $progress = $('<div />').addClass('progress')
                         var $progressBar = $('<div />').addClass('progressBar');
                         $progressBar.append($progress);
-                        
+
                         $transfer.append($progressBar);
-                        
+
                         $('#progresses').append($transfer);
-                        
+
                         // Creates the transfer
                         var transfer = new WebSocketFileTransfer({
                             url: socketServerUrl,
                             file: files[i],
                             blockSize: 1024,
-                            type:WebSocketFileTransfer.binarySupported() ? 'binary' : 'base64',
+                            type: WebSocketFileTransfer.binarySupported() ? 'binary' : 'base64',
                             $progress: $progress,
-                            progress: function(event) {
-                                this.$progress.css('width', event.percentage+'%');
+                            progress: function (event) {
+                                this.$progress.css('width', event.percentage + '%');
                             },
-                            success: function(event) {
-                                this.$progress.addClass('finished');					
+                            success: function (event) {
+                                this.$progress.addClass('finished');
                             }
                         });
-                    
+
                         // Starts the transfer
                         transfer.start();
-                        
+
                     }
-                    
+
                     return false;
-                    });
+                });
+            }
+
+            // $('#phonenumber').keyup(function(event){
+            //     //$(this).attr('maxlength','6');
+            //     console.log($(this).val());
+            //     let str=$(this).val();
+            //     if(str.length==6){
+            //         console.log('checking secret');
+            //         checkSecret();
+            //         $('#code').val(checkSecret+"");
+            //     }
+            // });
+            // $('#username').keyup(function(event){
+            //     //$(this).attr('maxlength','6');
+            //     console.log($(this).val());
+            //     let str=$(this).val();
+            //     if(str.length==6){
+            //         console.log('checking secret');
+            //         checkSecret();
+            //         $('#code').val(checkSecret+"");
+            //     }
+            // });
+
+            $('#secret').keyup(function (event) {
+                //$(this).attr('maxlength','6');
+                console.log($(this).val());
+                let str = $(this).val();
+                if (str.length == 6) {
+                    console.log('checking secret');
+                    checkSecret();
+                    $('#code').val(checkSecret + "");
                 }
-                
-                // $('#phonenumber').keyup(function(event){
-                //     //$(this).attr('maxlength','6');
-                //     console.log($(this).val());
-                //     let str=$(this).val();
-                //     if(str.length==6){
-                //         console.log('checking secret');
-                //         checkSecret();
-                //         $('#code').val(checkSecret+"");
-                //     }
-                // });
-                // $('#username').keyup(function(event){
-                //     //$(this).attr('maxlength','6');
-                //     console.log($(this).val());
-                //     let str=$(this).val();
-                //     if(str.length==6){
-                //         console.log('checking secret');
-                //         checkSecret();
-                //         $('#code').val(checkSecret+"");
-                //     }
-                // });
-
-                $('#secret').keyup(function(event){
-                    //$(this).attr('maxlength','6');
-                    console.log($(this).val());
-                    let str=$(this).val();
-                    if(str.length==6){
-                        console.log('checking secret');
-                        checkSecret();
-                        $('#code').val(checkSecret+"");
-                    }
-                });
-                
-                $('#btnGetSecret').click(function(event){
-                    event.preventDefault();
-                    phone= $("#phonenumber").val();
-                    getSecret(phone);
-                    $('#code').val(getSecret+"");
-                });
-                $('#forgotKey').keyup(function(event){
-                    console.log($(this).val());
-                    let str=$(this).val();
-                    if(str.length==6){
-                        console.log('checking forgot key');
-                        checkForgot();
-                        $('#code').val(checkForgot+"");
-                    }
-                });
-                
-                $('#csecret').keyup(function(event){
-                    console.log($(this).val());
-                    let str=$(this).val();
-                    if(str.length==6){
-                        console.log('checking secret');
-                        check_confirm_phone_sms();
-                        $('#code').val(check_confirm_phone_sms+"");
-                    }
-                });
-                $('#btnLogin').click(function(event){
-                    event.preventDefault();
-                    //alert(event);
-                     username=$('#loginUsername').val();
-                     password=$('#loginPassword').val();
-                    login(username,password);
-                    $('#code').val(login+"");
-                });
-                $('#btnLogout').click(function(event){
-                    //event.preventDefault();
-                    //alert(event);
-                    event.preventDefault();
-                    logout();
-                    $('#code').val(logout+"");
-                });
-                $("#btnChangePassword").click(function(event){
-                    //event.preventDefault();
-                    event.preventDefault();
-                    changePassword();
-                    $('#code').val(changePassword+"");
-                });
-                $('#btnShowRegisterForm').click(function(event){                    
-                    event.preventDefault();
-                    $('#registerForm').siblings('div').hide();
-                    $('#registerForm').show();
-                });
-                $('#btnShowLoginForm').click(function(event){
-                    event.preventDefault();
-                    $('#loginForm').siblings('div').hide();
-                    $('#loginForm').show();
-                });
-                $('#btnShowUserInfo').click(function(event){                    
-                    event.preventDefault();
-                    if(_client.logintoken){
-                        $('#userInfoForm').siblings('div').hide();
-                        $('#userInfoForm').show();
-                        getUserDetails();
-                        $('code').val(getUserDetails);
-                    }                                      
-                    else
-                        alert('login first');
-                });
-                $('#btnShowChangePassword').click(function(event){   
-                    event.preventDefault();                                
-                    if(_client.logintoken){
-                        $('#changePasswordForm').siblings('div').hide();
-                        $('#changePasswordForm').show();  
-                    }                        
-                    else{
-                        alert('login first');
-                    }                         
-                });
-                $('#btnShowForgot').click(function(event){
-                    event.preventDefault();
-                    $('#forgotPassword').siblings('div').hide();
-                    $('#forgotPassword').show();      
-                    //show source code done              
-                });
-                
-                $('#btnShowChangePhoneNumber').click(function(event){
-                    event.preventDefault();
-                    if(_client.logintoken){
-                        $('#changePhoneNumber').siblings('div').hide();
-                        $('#changePhoneNumber').show();                        
-                        //show source code done                                                
-                    }                        
-                    else{
-                        alert('login first');
-                    }                                                                
-                });
-                $('#submitUserInfo').click(function (event){
-                    event.preventDefault();
-                    $('#code').val(updateUserInfo+"");
-                    updateUserInfo();
-                });
-                $('#uploadPhoto').click(function (){                    
-                    uploadPhoto();
-                    $('#code').val(uploadPhoto+"");
-                });
-                $('#btnGetUserGui').click(function (){
-                    event.preventDefault();
-                    if(_client.logintoken){
-                        //event.preventDefault();
-                        get_user_gui();                        
-                    }                        
-                    else{
-                        alert('login first');
-                    } 
-                    
-                    $('#code').val(get_user_gui+"");                    
-                });
-                $('#submit').click(function (event){
-                    event.preventDefault();
-                    register();
-                    $('#code').val(register+"");
-                    
-                });
-                $('#btnGetForgotKeys').click(function (event){
-                    event.preventDefault();
-                    getForgotKeys($('#fPhoneNumber').val());                    
-                    $('#code').val(getForgotKeys+"");
-                    //show source code done
-                });
-                $('#btnChangePhoneNumber').click(function (event){
-                    event.preventDefault();
-                    send_confirm_phone_sms($('#cPhoneNumber').val());
-                    $('#code').val(send_confirm_phone_sms+"");
-                });
             });
-        </script>
-    </head>
-    <body>
-        code
-        <textarea rows="6" cols="40" id="code"/>
 
-        </textarea>
-        <br/>
-        <button id="btnGetUserGui">get User GUI</button>--
-        <button id='btnLogout'>Logout</button>  --
-        <button id='btnShowRegisterForm'>show register</button>
-        <button id='btnShowLoginForm'>show login</button>
-        <button id='btnShowUserInfo'>show Userinfo</button>       
-        <button id='btnShowChangePassword'>show change password</button>     
-        <button id='btnShowForgot'>show forgot and reset password</button>  
-        <button id='btnShowChangePhoneNumber'>show Change Phone number</button>  
-        <!-- change phone number-->
-        <div id='changePhoneNumber' style="display: none"> 
-            <form class="form-horizontal">               
-                    <fieldset>                        
-                    <!-- Form Name -->
-                    <legend>forgot Password</legend>
-                    
-                    <!-- Text input-->
-                    <div class="form-group">
-                      <label class="col-md-4 control-label" for="cPhoneNumber">phone number(+856)</label>  
-                      <div class="col-md-4">
-                      <input id="cPhoneNumber" name="cPhoneNumber" maxlength="10" type="number" placeholder="phone number 205 or 209" class="form-control input-md" required>                          
-                      </div>
+            $('#btnGetSecret').click(function (event) {
+                event.preventDefault();
+                phone = $("#phonenumber").val();
+                getSecret(phone);
+                $('#code').val(getSecret + "");
+            });
+            $('#forgotKey').keyup(function (event) {
+                console.log($(this).val());
+                let str = $(this).val();
+                if (str.length == 6) {
+                    console.log('checking forgot key');
+                    checkForgot();
+                    $('#code').val(checkForgot + "");
+                }
+            });
+
+            $('#csecret').keyup(function (event) {
+                console.log($(this).val());
+                let str = $(this).val();
+                if (str.length == 6) {
+                    console.log('checking secret');
+                    check_confirm_phone_sms();
+                    $('#code').val(check_confirm_phone_sms + "");
+                }
+            });
+            $('#btnLogin').click(function (event) {
+                event.preventDefault();
+                //alert(event);
+                username = $('#loginUsername').val();
+                password = $('#loginPassword').val();
+                login(username, password);
+                $('#code').val(login + "");
+            });
+            $('#btnLogout').click(function (event) {
+                //event.preventDefault();
+                //alert(event);
+                event.preventDefault();
+                logout();
+                $('#code').val(logout + "");
+            });
+            $("#btnChangePassword").click(function (event) {
+                //event.preventDefault();
+                event.preventDefault();
+                changePassword();
+                $('#code').val(changePassword + "");
+            });
+            $('#btnShowRegisterForm').click(function (event) {
+                event.preventDefault();
+                $('#registerForm').siblings('div').hide();
+                $('#registerForm').show();
+            });
+            $('#btnShowLoginForm').click(function (event) {
+                event.preventDefault();
+                $('#loginForm').siblings('div').hide();
+                $('#loginForm').show();
+            });
+            $('#btnShowUserInfo').click(function (event) {
+                event.preventDefault();
+                if (_client.logintoken) {
+                    $('#userInfoForm').siblings('div').hide();
+                    $('#userInfoForm').show();
+                    getUserDetails();
+                    $('code').val(getUserDetails);
+                } else
+                    alert('login first');
+            });
+            $('#btnShowChangePassword').click(function (event) {
+                event.preventDefault();
+                if (_client.logintoken) {
+                    $('#changePasswordForm').siblings('div').hide();
+                    $('#changePasswordForm').show();
+                } else {
+                    alert('login first');
+                }
+            });
+            $('#btnShowForgot').click(function (event) {
+                event.preventDefault();
+                $('#forgotPassword').siblings('div').hide();
+                $('#forgotPassword').show();
+                //show source code done              
+            });
+
+            $('#btnShowChangePhoneNumber').click(function (event) {
+                event.preventDefault();
+                if (_client.logintoken) {
+                    $('#changePhoneNumber').siblings('div').hide();
+                    $('#changePhoneNumber').show();
+                    //show source code done                                                
+                } else {
+                    alert('login first');
+                }
+            });
+            $('#submitUserInfo').click(function (event) {
+                event.preventDefault();
+                $('#code').val(updateUserInfo + "");
+                updateUserInfo();
+            });
+            $('#uploadPhoto').click(function () {
+                uploadPhoto();
+                $('#code').val(uploadPhoto + "");
+            });
+            $('#btnGetUserGui').click(function () {
+                event.preventDefault();
+                if (_client.logintoken) {
+                    //event.preventDefault();
+                    get_user_gui();
+                } else {
+                    alert('login first');
+                }
+
+                $('#code').val(get_user_gui + "");
+            });
+            $('#submit').click(function (event) {
+                event.preventDefault();
+                register();
+                $('#code').val(register + "");
+
+            });
+            $('#btnGetForgotKeys').click(function (event) {
+                event.preventDefault();
+                getForgotKeys($('#fPhoneNumber').val());
+                $('#code').val(getForgotKeys + "");
+                //show source code done
+            });
+            $('#btnChangePhoneNumber').click(function (event) {
+                event.preventDefault();
+                send_confirm_phone_sms($('#cPhoneNumber').val());
+                $('#code').val(send_confirm_phone_sms + "");
+            });
+        });
+    </script>
+</head>
+
+<body>
+    code
+    <textarea rows="6" cols="40" id="code" />
+
+    </textarea>
+    <br/>
+    <button id="btnGetUserGui">get User GUI</button>--
+    <button id='btnLogout'>Logout</button> --
+    <button id='btnShowRegisterForm'>show register</button>
+    <button id='btnShowLoginForm'>show login</button>
+    <button id='btnShowUserInfo'>show Userinfo</button>
+    <button id='btnShowChangePassword'>show change password</button>
+    <button id='btnShowForgot'>show forgot and reset password</button>
+    <button id='btnShowChangePhoneNumber'>show Change Phone number</button>
+    <!-- change phone number-->
+    <div id='changePhoneNumber' style="display: none">
+        <form class="form-horizontal">
+            <fieldset>
+                <!-- Form Name -->
+                <legend>forgot Password</legend>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="cPhoneNumber">phone number(+856)</label>
+                    <div class="col-md-4">
+                        <input id="cPhoneNumber" name="cPhoneNumber" maxlength="10" type="number" placeholder="phone number 205 or 209" class="form-control input-md"
+                            required>
                     </div>
-                    <!-- Text input-->
-                    <div class="form-group">
-                      <label class="col-md-4 control-label" for="csecret">Secret</label>  
-                      <div class="col-md-4">
-                        <input id="csecret" name="csecret" maxlength="6" type="number" placeholder="secret" class="form-control input-md" required>                             
-                      </div>
+                </div>
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="csecret">Secret</label>
+                    <div class="col-md-4">
+                        <input id="csecret" name="csecret" maxlength="6" type="number" placeholder="secret" class="form-control input-md" required>
                     </div>
-                    <!-- Button -->
-                    <div class="form-group">
-                        <label class="col-md-4 control-label" for="btnChangePhoneNumber"></label>
-                        <div class="col-md-4">
-                          <button id="btnChangePhoneNumber" name="btnChangePhoneNumber" class="btn">send secret</button>
-                        </div>
-                      </div>                  
-            
-                </fieldset>
-            </form>
+                </div>
+                <!-- Button -->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="btnChangePhoneNumber"></label>
+                    <div class="col-md-4">
+                        <button id="btnChangePhoneNumber" name="btnChangePhoneNumber" class="btn">send secret</button>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
     </div>
-        <!-- change passowr-->
-        <div id='forgotPassword' style="display: none"> 
-            <form class="form-horizontal">               
-                    <fieldset>                        
-                    <!-- Form Name -->
-                    <legend>forgot Password</legend>
-                    
-                    <!-- Text input-->
-                    <div class="form-group">
-                      <label class="col-md-4 control-label" for="fPhoneNumber">phone number</label>  
-                      <div class="col-md-4">
-                      <input id="fPhoneNumber" name="fPhoneNumber" maxlength="10" type="number" placeholder="phone number 205 or 209" class="form-control input-md" required>                          
-                      </div>
+    <!-- change passowr-->
+    <div id='forgotPassword' style="display: none">
+        <form class="form-horizontal">
+            <fieldset>
+                <!-- Form Name -->
+                <legend>forgot Password</legend>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="fPhoneNumber">phone number</label>
+                    <div class="col-md-4">
+                        <input id="fPhoneNumber" name="fPhoneNumber" maxlength="10" type="number" placeholder="phone number 205 or 209" class="form-control input-md"
+                            required>
                     </div>
-                    <!-- Text input-->
-                    <div class="form-group">
-                      <label class="col-md-4 control-label" for="forgotKey">forgot key</label>  
-                      <div class="col-md-4">
-                        <input id="forgotKey" name="forgotKey" maxlength="6" type="number" placeholder="forgot key" class="form-control input-md" required>                             
-                      </div>
+                </div>
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="forgotKey">forgot key</label>
+                    <div class="col-md-4">
+                        <input id="forgotKey" name="forgotKey" maxlength="6" type="number" placeholder="forgot key" class="form-control input-md"
+                            required>
                     </div>
-                    <!-- Button -->
-                    <div class="form-group">
-                        <label class="col-md-4 control-label" for="btnGetForgotKeys"></label>
-                        <div class="col-md-4">
-                          <button id="btnGetForgotKeys" name="btnGetForgotKeys" class="btn">get Forgot keys</button>
-                        </div>
-                      </div>                  
-            
-                </fieldset>
-            </form>
-    </div> 
-        <!-- change passowr-->
-        <div id='changePasswordForm' style="display: none"> 
-                <form class="form-horizontal">               
-                        <fieldset>                        
-                        <!-- Form Name -->
-                        <legend>Change Password</legend>
-                        
-                        <!-- Text input-->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="oldPassword">old password</label>  
-                          <div class="col-md-4">
-                          <input id="oldPassword" name="oldPassword" type="password" placeholder="password" class="form-control input-md" required>                          
-                          </div>
-                        </div>
-                        <!-- Text input-->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="newPassword">new password</label>  
-                          <div class="col-md-4">
-                            <input id="newPassword" name="newPassword" type="password" placeholder="new password" class="form-control input-md" required>                             
-                          </div>
-                        </div>
-                        <div class="form-group">
-                                <label class="col-md-4 control-label" for="confirmPassword"> confirm password</label>  
-                                <div class="col-md-4">
-                                  <input id="confirmPassword" name="confirmPassword" type="password" placeholder="confirm password" class="form-control input-md" required>                                  
-                                </div>
-                              </div>
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="phone"> phone number</label>  
-                            <div class="col-md-4">
-                                <input id="phone" name="phone" type="number" placeholder="phonenumber" class="form-control input-md" required>                                  
-                            </div>
-                            </div>
-
-                        <!-- Button -->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="btnChangePassword"></label>
-                          <div class="col-md-4">
-                            <button id="btnChangePassword" name="btnChangePassword" class="btn btn-primary">change password</button>
-                          </div>
-                        </div>
-                
-                    </fieldset>
-                </form>
-        </div>  
-        <!-- Login-->
-        <div id='userInfoForm' style="display: none"> 
-                <form class="form-horizontal" type="multipart/form-data">               
-                        <fieldset>                        
-                        <!-- Form Name -->
-                        <legend>User Info</legend>
-                        <div id='userDetails'>
-
-                        </div>
-                        <textarea id="eUserInfo"></textarea>
-                        <img id='uploadPhoto' name='uploadPhoto' width="120px" height="120px"/>
-                        <input type="file" multiple="multiple" />
-                        <input type="submit" id="submitUserInfo" value="update"></input>
-                        
-                    </fieldset>
-                </form>
-                <div id="progresses">
-                
+                </div>
+                <!-- Button -->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="btnGetForgotKeys"></label>
+                    <div class="col-md-4">
+                        <button id="btnGetForgotKeys" name="btnGetForgotKeys" class="btn">get Forgot keys</button>
                     </div>
-                
-        </div> 
-        <!-- Login-->
-        <div id='loginForm' style="display: none"> 
-                <form class="form-horizontal">               
-                        <fieldset>                        
-                        <!-- Form Name -->
-                        <legend>Login</legend>
-                        
-                        <!-- Text input-->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="loginUsername">Username</label>  
-                          <div class="col-md-4">
-                          <input id="loginUsername" name="loginUsername" type="text" placeholder="Username" class="form-control input-md" required>                           
-                          </div>
-                        </div>
-                        <!-- Text input-->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="password">password</label>  
-                          <div class="col-md-4">
-                            <input id="loginPassword" name="loginPassword" type="password" placeholder="password" class="form-control input-md" required>                        
-                          </div>
-                        </div>
-                        
+                </div>
 
-                        <!-- Button -->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="btnLogin"></label>
-                          <div class="col-md-4">
-                            <button id="btnLogin" name="login" class="btn btn-primary">Login</button>
-                          </div>
-                        </div>
-                
-                    </fieldset>
-                </form>
-        </div>         
-        <!-- Register-->
-        <div id='registerForm' style="display: none">
-                <form class="form-horizontal">
-                        <fieldset>
-                        
-                        <!-- Form Name -->
-                        <legend>Register</legend>
-                        
-                        <!-- Text input-->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="username">Username</label>  
-                          <div class="col-md-4">
-                          <input id="username" name="username" type="text" placeholder="Username" class="form-control input-md" required>                          
-                          </div>
-                        </div>
-                        
-                        <!-- Text input-->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="phonenumber">phonenumber (+856)</label>  
-                          <div class="col-md-4">
-                          <input id="phonenumber" name="phonenumber" type="number" maxlength="10" placeholder="phonenumber: 205 or 209" class="form-control input-md" required>                          
-                          </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="rpassword">password</label>  
-                            <div class="col-md-4">
-                            <input id="rpassword" name="rpassword" type="password" placeholder="password" class="form-control input-md" required>                          
-                            </div>
-                          </div>
-                          <div class="form-group">
-                            <label class="col-md-4 control-label" for="rconfirmpassword">confirm password</label>  
-                            <div class="col-md-4">
-                            <input id="rconfirmpassword" name="rconfirmpassword" type="password" placeholder="confirm password" class="form-control input-md" required>                          
-                            </div>
-                          </div>
-                        <!-- Text input-->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="secret">secret</label>  
-                          <div class="col-md-2">
-                          <input id="secret" name="secret" maxlength="6" type="number" placeholder="secret" class="form-control input-md" required>                           
-                          </div>
-                        </div>
-                        
-                        <!-- Button -->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="btnGetSecret"></label>
-                          <div class="col-md-4">
-                            <button id="btnGetSecret" onclick="return false;"  name="btnGetSecret" class="btn btn-info">get secret</button>
-                          </div>
-                        </div>
-                        
-                        <!-- Button -->
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="submit"></label>
-                          <div class="col-md-4">
-                            <button id="submit" name="submit" class="btn btn-primary">submit</button>
-                          </div>
-                        </div>
-                        
-                        </fieldset>
-                        </form>
+            </fieldset>
+        </form>
+    </div>
+    <!-- change passowr-->
+    <div id='changePasswordForm' style="display: none">
+        <form class="form-horizontal">
+            <fieldset>
+                <!-- Form Name -->
+                <legend>Change Password</legend>
 
-                    
-                        
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="oldPassword">old password</label>
+                    <div class="col-md-4">
+                        <input id="oldPassword" name="oldPassword" type="password" placeholder="password" class="form-control input-md" required>
+                    </div>
+                </div>
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="newPassword">new password</label>
+                    <div class="col-md-4">
+                        <input id="newPassword" name="newPassword" type="password" placeholder="new password" class="form-control input-md" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="confirmPassword"> confirm password</label>
+                    <div class="col-md-4">
+                        <input id="confirmPassword" name="confirmPassword" type="password" placeholder="confirm password" class="form-control input-md"
+                            required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="phone"> phone number</label>
+                    <div class="col-md-4">
+                        <input id="phone" name="phone" type="number" placeholder="phonenumber" class="form-control input-md" required>
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="btnChangePassword"></label>
+                    <div class="col-md-4">
+                        <button id="btnChangePassword" name="btnChangePassword" class="btn btn-primary">change password</button>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+    <!-- Login-->
+    <div id='userInfoForm' style="display: none">
+        <form class="form-horizontal" type="multipart/form-data">
+            <fieldset>
+                <!-- Form Name -->
+                <legend>User Info</legend>
+                <div id='userDetails'>
+
+                </div>
+                <textarea id="eUserInfo"></textarea>
+                <img id='uploadPhoto' name='uploadPhoto' width="120px" height="120px" />
+                <input type="file" multiple="multiple" />
+                <input type="submit" id="submitUserInfo" value="update"></input>
+
+            </fieldset>
+        </form>
+        <div id="progresses">
+
         </div>
-    </body>
+
+    </div>
+    <!-- Login-->
+    <div id='loginForm' style="display: none">
+        <form class="form-horizontal">
+            <fieldset>
+                <!-- Form Name -->
+                <legend>Login</legend>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="loginUsername">Username</label>
+                    <div class="col-md-4">
+                        <input id="loginUsername" name="loginUsername" type="text" placeholder="Username" class="form-control input-md" required>
+                    </div>
+                </div>
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="password">password</label>
+                    <div class="col-md-4">
+                        <input id="loginPassword" name="loginPassword" type="password" placeholder="password" class="form-control input-md" required>
+                    </div>
+                </div>
+
+
+                <!-- Button -->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="btnLogin"></label>
+                    <div class="col-md-4">
+                        <button id="btnLogin" name="login" class="btn btn-primary">Login</button>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+    <!-- Register-->
+    <div id='registerForm' style="display: none">
+        <form class="form-horizontal">
+            <fieldset>
+
+                <!-- Form Name -->
+                <legend>Register</legend>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="username">Username</label>
+                    <div class="col-md-4">
+                        <input id="username" name="username" type="text" placeholder="Username" class="form-control input-md" required>
+                    </div>
+                </div>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="phonenumber">phonenumber (+856)</label>
+                    <div class="col-md-4">
+                        <input id="phonenumber" name="phonenumber" type="number" maxlength="10" placeholder="phonenumber: 205 or 209" class="form-control input-md"
+                            required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="rpassword">password</label>
+                    <div class="col-md-4">
+                        <input id="rpassword" name="rpassword" type="password" placeholder="password" class="form-control input-md" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="rconfirmpassword">confirm password</label>
+                    <div class="col-md-4">
+                        <input id="rconfirmpassword" name="rconfirmpassword" type="password" placeholder="confirm password" class="form-control input-md"
+                            required>
+                    </div>
+                </div>
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="secret">secret</label>
+                    <div class="col-md-2">
+                        <input id="secret" name="secret" maxlength="6" type="number" placeholder="secret" class="form-control input-md" required>
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="btnGetSecret"></label>
+                    <div class="col-md-4">
+                        <button id="btnGetSecret" onclick="return false;" name="btnGetSecret" class="btn btn-info">get secret</button>
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="submit"></label>
+                    <div class="col-md-4">
+                        <button id="submit" name="submit" class="btn btn-primary">submit</button>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+
+
+
+    </div>
+</body>
+
 </html>
