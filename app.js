@@ -117,45 +117,47 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 };
                 errorLogging(l);
             }
-            if (_current_system+"_login_" + element.client.logintoken == key) {
-                console.log('login-changed');
-                element.send(JSON.stringify(js));
-            }
-            if (_current_system+"_usergui_" + element.client.logintoken == key) {
-
-                console.log('gui-changed');
-                if (_system_prefix.indexOf(element.client.prefix) > -1)
+            if(element['client']!==undefined){
+                if (_current_system+"_login_" + element.client.logintoken == key) {
+                    console.log('login-changed');
                     element.send(JSON.stringify(js));
-            }
-            if (_current_system+"_forgot_" + element.client.logintoken == key) {
+                }
+                if (_current_system+"_usergui_" + element.client.logintoken == key) {
 
-                console.log('forgot-changed');
-                if (_system_prefix.indexOf(element.client.prefix) > -1)
-                    element.send(JSON.stringify(js));
-            }
-            if (_current_system+"_phone_" + element.client.logintoken == key) {
+                    console.log('gui-changed');
+                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                        element.send(JSON.stringify(js));
+                }
+                if (_current_system+"_forgot_" + element.client.logintoken == key) {
 
-                console.log('phone-changed');
-                if (_system_prefix.indexOf(element.client.prefix) > -1)
-                    element.send(JSON.stringify(js));
-            }
-            if (_current_system+"_secret_" + element.client.logintoken == key) {
+                    console.log('forgot-changed');
+                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                        element.send(JSON.stringify(js));
+                }
+                if (_current_system+"_phone_" + element.client.logintoken == key) {
 
-                console.log('secret-changed');
-                if (_system_prefix.indexOf(element.client.prefix) > -1)
-                    element.send(JSON.stringify(js));
-            }
-            if (_current_system+"_message_" + element.client.logintoken == key) {
+                    console.log('phone-changed');
+                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                        element.send(JSON.stringify(js));
+                }
+                if (_current_system+"_secret_" + element.client.logintoken == key) {
 
-                console.log('message-changed');
-                if (_system_prefix.indexOf(element.client.prefix) > -1)
-                    element.send(JSON.stringify(js));
-            }
-            if (_current_system+"_notification_" + element.client.logintoken == key) {
+                    console.log('secret-changed');
+                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                        element.send(JSON.stringify(js));
+                }
+                if (_current_system+"_message_" + element.client.logintoken == key) {
+
+                    console.log('message-changed');
+                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                        element.send(JSON.stringify(js));
+                }
+                if (_current_system+"_notification_" + element.client.logintoken == key) {
 
                 console.log('notification-changed');
                 if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
+            }
             }
         });
 });
