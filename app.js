@@ -401,7 +401,6 @@ wss.on('connection', function connection(ws, req) {
                 ws.gui = res.client.gui;
                 ws.lastupdate = res.client.lastupdate;
             }
-
             //}   
             // data.client.clientip=ip;// need to handle when IP changed
             // data.client.data.message='OK';
