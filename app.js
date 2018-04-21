@@ -315,13 +315,7 @@ function commandReader(js) {
                     deferred.reject(err);
                 });
                 break;
-            case 'check-username':
-                check_username_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
+
             case 'get-secret':
                 get_secret_ws(js).then(res => {
                     deferred.resolve(res);
@@ -1629,7 +1623,9 @@ function update_phone_ws(js) {
                             if(res.oldphone==undefined)
                                 res.oldphone=[];
                             res.oldphone.push(res.phonenumber);
-                            res.phonenumber = js.client.data.user.phonenumber;
+                            res.phonenumber = js.client.data.user.newphonenumber;
+                            delete js.client.data.user.newphonenumber;
+                            js.client.data.user.phonenumber=res.phonenumber;
                             updateUser(res).then(function (res) {
                                 r_client.del(_current_system+'_phone_' + js.client.gui);
                                 js.client.data.message = 'OK updated';
