@@ -1217,28 +1217,29 @@ function login_ws(js) {
             js.client.logintime = '';
             js.client.data.message = new Error('ERROR user has no an authorization');
             deferred.reject(js);
+        }else{
+            
+            js.client.username = js.client.data.user.username;
+            js.client.data.user = {};
+            js.client.loginip = js.ws._socket.remoteAddress;
+            js.client.data.message = 'OK';
+            js.client.logintoken = uuidV4();
+            js.client.logintime = convertTZ(new Date());
+            //js.resp.send(js.client);
+            //_arrUsers.push(js.client);
+            js.client.data.user={};
+            r_client.set(_current_system+'_login_' + js.client.logintoken, JSON.stringify({
+                command: 'login-changed',
+                client:js.client
+            }), 'EX', 60 * 5);
+            console.log('gui-changing');
+            //console.log(res);
+            r_client.set(_current_system+'_usergui_' + js.client.logintoken, JSON.stringify({
+                command: 'usergui-changed',
+                gui: res.gui
+            }), 'EX', 60 * 5);
+            deferred.resolve(js);
         }
-
-        js.client.username = js.client.data.user.username;
-        js.client.data.user = {};
-        js.client.loginip = js.ws._socket.remoteAddress;
-        js.client.data.message = 'OK';
-        js.client.logintoken = uuidV4();
-        js.client.logintime = convertTZ(new Date());
-        //js.resp.send(js.client);
-        //_arrUsers.push(js.client);
-        js.client.data.user={};
-        r_client.set(_current_system+'_login_' + js.client.logintoken, JSON.stringify({
-            command: 'login-changed',
-            client:js.client
-        }), 'EX', 60 * 5);
-        console.log('gui-changing');
-        //console.log(res);
-        r_client.set(_current_system+'_usergui_' + js.client.logintoken, JSON.stringify({
-            command: 'usergui-changed',
-            gui: res.gui
-        }), 'EX', 60 * 5);
-        deferred.resolve(js);
     }).catch(function (err) {
         js.client.data.message = err;
         js.client.data.user = {};
