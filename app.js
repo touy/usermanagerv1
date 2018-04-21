@@ -245,6 +245,13 @@ function commandReader(js) {
                 });
                 break;
             case 'check-confirm-phone-sms':
+                check_confirm_phone_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'update-confirm-phone-sms':
                 update_phone_ws(js).then(res => {
                     deferred.resolve(res);
                 }).catch(err => {
@@ -1606,6 +1613,43 @@ app.all('/confirm_phone_sms', function (req, res) {
 //         deferred.reject(new Error('ERROR Wrong secret'));
 //     return deferred.promise;
 // }
+function check_confirm_phone_ws(js) {
+    let deferred = Q.defer();
+    r_client.get(_current_system+'_phone_' + js.client.gui, function (err, res) {
+        if (err) {
+            js.client.data.message = err;
+            deferred.reject(js);
+        } else {
+            if(res){
+                res = JSON.parse(res);
+                if (res.secret == js.client.data.secret) {
+                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+                        if(res){
+                            js.client.data.message='OK secret';
+                            deferred.resolve(js);
+                        }
+                        else{
+                            js.client.data.message=new Error('ERROR no phonenumber found');
+                            deferred.reject(js);
+                        }
+                    }).catch(function (err) {
+                        //console.log(err);
+                        js.client.data.message = err;
+                        deferred.reject(js);
+                        });
+                } else {
+                    js.client.data.message = new Error('ERROR wrong secret and phone');
+                    deferred.reject(js);
+                }
+            }
+            else{
+                js.client.data.message=new Error('ERROR empty secret');
+                deferred.reject(js); 
+            }
+        }
+    });
+    return deferred.promise;
+}
 
 function update_phone_ws(js) {
     let deferred = Q.defer();
@@ -1637,9 +1681,6 @@ function update_phone_ws(js) {
                         }
                     }).catch(function (err) {
                         //console.log(err);
-                        js.client.data.message = err;
-                        deferred.reject(js);
-                    }).catch(function (err) {
                         js.client.data.message = err;
                         deferred.reject(js);
                     });
