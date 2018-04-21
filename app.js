@@ -1115,7 +1115,7 @@ function checkCurrentClient(client){
 function get_client_ws(js) {
     let deferred = Q.defer();
     init_client(js.client);
-    checkCurrentClient().then(res=>{
+    checkCurrentClient(js.client).then(res=>{
         if(res===1){
             js.client.clientip = js.ws._socket.remoteAddress;
             js.client.lastupdate = convertTZ(new Date());
