@@ -1222,7 +1222,7 @@ function login_ws(js) {
             js.client.username = js.client.data.user.username;
             js.client.data.user = {};
             js.client.loginip = js.ws._socket.remoteAddress;
-            js.client.data.message = 'OK';
+            js.client.data.message = 'OK Login';
             js.client.logintoken = uuidV4();
             js.client.logintime = convertTZ(new Date());
             //js.resp.send(js.client);
@@ -1624,7 +1624,7 @@ function check_confirm_phone_ws(js) {
             if(res){
                 res = JSON.parse(res);
                 if (res.secret == js.client.data.secret) {
-                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+                    findUserByPhone(js.client.data.user.newphonenumber).then(function (res) {
                         if(res){
                             js.client.data.message='OK secret';
                             deferred.resolve(js);
@@ -1662,7 +1662,7 @@ function update_phone_ws(js) {
             if(res){
                 res = JSON.parse(res);
                 if (res.secret == js.client.data.secret) {
-                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+                    findUserByPhone(js.client.data.user.newphonenumber).then(function (res) {
                         if (res) {
                             //client.data.user.password=res.password;
                             if(res.oldphone==undefined)
