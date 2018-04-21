@@ -1098,34 +1098,62 @@ function checkTest() {
     deferred.resolve('OK');
     return deferred.promise;
 }
-
+function checkCurrentClient(client){
+    let deferred=Q.defer();
+    r_client.get(_current_system+'_client_' + client.gui,(err,res)=>{
+        if(err) deferred.reject(err);
+        else{
+            if(res){
+                deferred.resolve(1);
+            }else{
+                deferred.resolve(0);
+            }
+        }
+    });
+    return deferred.promise;
+}
 function get_client_ws(js) {
     let deferred = Q.defer();
     init_client(js.client);
-    getClient(js.client).then(function (res) {
-        //js.client=res;
-        //console.log(js.ws._socket.remoteAddress);
-        js.client.clientip = js.ws._socket.remoteAddress;
-        js.client.accessedtime = convertTZ(new Date());
-        js.client.lastupdate = convertTZ(new Date());
-        js.client.timeout = 60 * 60 * 24;
-        //js.client.gui=uuidV4();        
-
-        js.client.data.message = 'OK';
-        if (!js.client.prefix)
-            js.client.prefix = 'GUEST-' + uuidV4();
-        //_client_prefix.push(js.client.prefix);
-        //console.log('before send '+JSON.stringify(js.client));
-        r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
-            command: 'client-changed',
-            client: js.client
-        }), 'EX', 60 * 60 / 2);
-        deferred.resolve(js);
-
-    }).catch(function (err) {
-        //console.log(err);    
-        js.client.data.message = err;
-        deferred.reject(js);
+    checkCurrentClient().then(res=>{
+        if(res===1){
+            js.client.clientip = js.ws._socket.remoteAddress;
+            js.client.lastupdate = convertTZ(new Date());
+            r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
+                command: 'client-changed',
+                client: js.client
+            }), 'EX', 60 * 60 / 2);
+            deferred.resolve(js);
+        }else{
+            getClient(js.client).then(function (res) {
+                //js.client=res;
+                //console.log(js.ws._socket.remoteAddress);
+                js.client.clientip = js.ws._socket.remoteAddress;
+                js.client.accessedtime = convertTZ(new Date());
+                js.client.lastupdate = convertTZ(new Date());
+                js.client.timeout = 60 * 60 * 24;
+                js.client.logintoken='';
+                js.client.logintime='';
+                //js.client.gui=uuidV4();        
+                js.client.data.message = 'OK new client';
+                if (!js.client.prefix)
+                    js.client.prefix = 'GUEST-' + uuidV4();
+                //_client_prefix.push(js.client.prefix);
+                //console.log('before send '+JSON.stringify(js.client));
+                r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
+                    command: 'client-changed',
+                    client: js.client
+                }), 'EX', 60 * 60 / 2);
+                deferred.resolve(js);
+        
+            }).catch(function (err) {
+                //console.log(err);    
+                js.client.data.message = err;
+                deferred.reject(js);
+            });
+        }
+    }).catch(err=>{
+        deferred.reject(err);
     });
     return deferred.promise;
 }
@@ -1623,8 +1651,9 @@ function check_confirm_phone_ws(js) {
         } else {
             if(res){
                 res = JSON.parse(res);
+                console.log(res);
                 if (res.secret == js.client.data.secret) {
-                    findUserByPhone(js.client.data.user.newphonenumber).then(function (res) {
+                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         if(res){
                             js.client.data.message='OK secret';
                             deferred.resolve(js);
@@ -1661,15 +1690,15 @@ function update_phone_ws(js) {
         } else {
             if(res){
                 res = JSON.parse(res);
-                if (res.secret == js.client.data.secret) {
-                    findUserByPhone(js.client.data.user.newphonenumber).then(function (res) {
+                if (res.secret === js.client.data.secret) {
+                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         if (res) {
                             //client.data.user.password=res.password;
                             if(res.oldphone==undefined)
                                 res.oldphone=[];
                             res.oldphone.push(res.phonenumber);
                             res.phonenumber = js.client.data.user.newphonenumber;
-                            delete js.client.data.user.newphonenumber;
+                            //delete js.client.data.user.newphonenumber;
                             js.client.data.user.phonenumber=res.phonenumber;
                             updateUser(res).then(function (res) {
                                 r_client.del(_current_system+'_phone_' + js.client.gui);
