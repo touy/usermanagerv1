@@ -215,6 +215,13 @@ function commandReader(js) {
                 });
                 break;
             case 'check-forgot':
+                check_forgot_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'reset-forgot':
                 forgot_password_ws(js).then(res => {
                     deferred.resolve(res);
                 }).catch(err => {
@@ -325,6 +332,20 @@ function commandReader(js) {
 
             case 'get-secret':
                 get_secret_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'get-transaction':
+                get_transaction_id_ws(js).then(res => {
+                    deferred.resolve(res);
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+                break;
+            case 'check-transaction':
+                check_transaction_id_ws (js).then(res => {
                     deferred.resolve(res);
                 }).catch(err => {
                     deferred.reject(err);
@@ -480,27 +501,83 @@ function check_secret_ws(js) {
     });
     return deferred.promise;
 }
-
+function get_transaction_id_ws(js){
+    let deferred = Q.defer();
+    let t={};
+    t.transactionid=uuidV4();
+    t.transactiontime=convertTZ(new Date());
+    js.client.data.transaction=t;
+    r_client.set(_current_system+'_transaction_' + js.client.gui+js.client.data.transactionid, JSON.stringify({
+                            command:'transaction-changed',
+                            client:js.client
+                        }), 'EX', 60 * 1,(err,res)=>{
+                            if(err){
+                                js.client.data.message=err;
+                                deferred.reject(js);
+                            }else{
+                                if(res){
+                                    js.client.data.message='OK';
+                                    deferred.resolve(js);                                
+                                }else{
+                                    js.client.data.message=new Error('ERROR set transaction failed');
+                                    deferred.reject(js);
+                                }
+                            }
+                        });
+    return deferred.promise;
+}
+function check_transaction_id_ws(js){
+    let deferred = Q.defer();
+    r_client.get(_current_system+'_transaction_' + js.client.gui+js.client.data.transactionid,(err,res)=>{
+        if(err){
+            js.client.data.message=err;
+                deferred.reject(js);
+        }else{
+            if(res){
+                const t=JSON.stringify(res);
+                js.client.data.message='OK transaction';
+                js.client.data.transaction=t;                
+                deferred.resolve(js);
+            }else{
+                js.client.data.message=new Error('ERROR get transaction failed');
+                deferred.reject(js);
+            }
+        }
+    });
+    return deferred.promise;
+}
 function get_secret_ws(js) {
     let deferred = Q.defer();
     let secret = randomSecret(6, '1234567890');
     let content = "secret is: " + secret;
-    r_client.set(_current_system+'_secret_' + js.client.gui, JSON.stringify({
-        command:'secret-changed',
-        secret: secret
-    }), 'EX', 60 * 30, function (err, res) {
-        if (err) {
+    r_client.get(_current_system+'_secret_' + js.client.gui,(err,res)=>{
+        if(err){
             js.client.data.message = err;
-            r_client.set(_current_system+'_error_' + js.client.gui, JSON.stringify({
-                command:'error-changed',
-                client:js.client
-            }), 'EX', 60 * 5);
-            deferred.reject(js);
-        } else {
-            js.client.data.message = 'OK';
-            SMSToPhone(js.client.gui, content, js.client.data.user.phonenumber);
-            deferred.resolve(js);
-        }        
+                deferred.reject(js); 
+        }else{
+            if(res){
+                js.client.data.message = new Error('ERROR could not send out need 3 minutes');
+                deferred.reject(js); 
+            }else{
+                r_client.set(_current_system+'_secret_' + js.client.gui, JSON.stringify({
+                    command:'secret-changed',
+                    secret: secret
+                }), 'EX', 60 * 3, function (err, res) {
+                    if (err) {
+                        js.client.data.message = err;
+                        // r_client.set(_current_system+'_error_' + js.client.gui, JSON.stringify({
+                        //     command:'error-changed',
+                        //     client:js.client
+                        // }), 'EX', 60 * 5);
+                        deferred.reject(js);
+                    } else {
+                        js.client.data.message = 'OK';
+                        SMSToPhone(js.client.gui, content, js.client.data.user.phonenumber);
+                        deferred.resolve(js);
+                    }        
+                });
+            }
+        }
     });
     return deferred.promise;
 }
@@ -1574,29 +1651,41 @@ function send_confirm_phone_sms_ws(js) {
     let deferred = Q.defer();
     let p = {};
     let phone = js.client.data.user.phonenumber;
-    validate_phonenumber_ws(js).then(function (res) {
-        findUserByPhone(phone).then(function (res) {
-            if (res) {
-                p.secret = randomSecret(6, '1234567890');
-                //p.phonenumber=phone;
-                r_client.set(_current_system+'_phone_' + js.client.gui, JSON.stringify({
-                    command:'phone-changed',
-                    secret: p.secret
-                }), 'EX', 60 * 30);
-                SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
-                js.client.data.message = 'OK';
-                deferred.resolve(js);
-            } else {
-                js.client.data.message = new Error('ERROR phone or username not found');;
-                deferred.reject(js);
-            }
-        }).catch(function (err) {
+    r_client.get(_current_system+'_phone_' + js.client.gui,(err,res)=>{
+        if(err){
             js.client.data.message = err;
-            deferred.reject(js);
-        });
-    }).catch(function (err) {
-        js.client.data.message = err;
-        deferred.reject(js);
+            deferred.resolve(js);
+        }else{
+            if(res){
+                js.client.data.message =new Error('ERROR could send more message need 3 minutes') ;
+                deferred.reject(js);
+            }else{
+                validate_phonenumber_ws(js).then(function (res) {
+                    findUserByPhone(phone).then(function (res) {
+                        if (res) {
+                            p.secret = randomSecret(6, '1234567890');
+                            //p.phonenumber=phone;
+                            r_client.set(_current_system+'_phone_' + js.client.gui, JSON.stringify({
+                                command:'phone-changed',
+                                secret: p.secret
+                            }), 'EX', 60 * 3);
+                            SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
+                            js.client.data.message = 'OK';
+                            deferred.resolve(js);
+                        } else {
+                            js.client.data.message = new Error('ERROR phone or username not found');;
+                            deferred.reject(js);
+                        }
+                    }).catch(function (err) {
+                        js.client.data.message = err;
+                        deferred.reject(js);
+                    });
+                }).catch(function (err) {
+                    js.client.data.message = err;
+                    deferred.reject(js);
+                });
+            }
+        }
     });
 
 
@@ -2164,21 +2253,32 @@ function get_for_got_keys(js) {
     let deferred = Q.defer();
     //console.log('forgot here 0'+js.client.data.user.phonenumber);
     //console.log(js);
-    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
-        let keys = randomSecret(6, '1234567890');
-        js.client.username = res.username;
-        js.client.data.forgot = keys;
-        r_client.set(_current_system+'_forgot_' + js.client.gui, JSON.stringify({
-            command:'forgot-changed',
-            forgot: keys
-        }),'EX',60*60/2);
-        //console.log('forgot here 1');
-        //js.client.data.message='OK';
-        deferred.resolve("OK");
-    }).catch(function (err) {
-       // console.log(err);
-        //js.client.data.message=err;
-        deferred.reject(err);
+    r_client.get(_current_system+'_forgot_'+js.client.gui,(err,res)=>{
+        if(err){
+            deferred.reject(err);
+        }
+        else{
+            if(res){
+                deferred.reject(new Error('ERROR could not send next sms need 3 minutes'));
+            }else{
+                findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+                    let keys = randomSecret(6, '1234567890');
+                    js.client.username = res.username;
+                    js.client.data.forgot = keys;
+                    r_client.set(_current_system+'_forgot_' + js.client.gui, JSON.stringify({
+                        command:'forgot-changed',
+                        forgot: keys
+                    }),'EX',60*3);
+                    //console.log('forgot here 1');
+                    //js.client.data.message='OK';
+                    deferred.resolve("OK");
+                }).catch(function (err) {
+                   // console.log(err);
+                    //js.client.data.message=err;
+                    deferred.reject(err);
+                });
+            }
+        }
     });
     return deferred.promise;
 }
@@ -2244,7 +2344,34 @@ function forgot_password_ws(js) {
     });
     return deferred.promise;
 }
+function check_forgot_ws(){
+    let deferred = Q.defer();
+    r_client.get(_current_system+'_forgot_' + js.client.gui, function (err, res) {
+        if (err) deferred.reject(err);
+        else {
+            if(res){
+                res = JSON.parse(res);
+                if (res.forgot == js.client.data.forgot) {
+                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+                        js.client.data.message='OK check forgot';
+                        deferred.resolve(js);
+                    }).catch(function (err) {
+                        deferred.reject(err);
+                    });
+                } else
+                js.client.data.message=(new Error('ERROR wrong keys'));
+                deferred.reject(js);
+            }
+            else{
+                js.client.data.message=(new Error('ERROR empty keys'));
+                deferred.reject(js);
+            }
+            
+        }
+    });
 
+    return deferred.promise;
+}
 function reset_password(js) {
     let deferred = Q.defer();
     r_client.get(_current_system+'_forgot_' + js.client.gui, function (err, res) {
