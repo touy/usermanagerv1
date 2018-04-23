@@ -2215,29 +2215,32 @@ function LTCserviceSMS(client) {
 }
 //SMSToPhone('TEST','2055516321');
 function SMSToPhone(clientgui, content, phone) {
-    let client = {};
-    let js = {};
-    client.gui = clientgui;
-    client.data = {};
-    client.data.sms = {};
-    client.data.sms.phonenumber = phone;
-    client.data.sms.content = content;
-    client.data.command = 'send-sms';
-    js.client = {};
-    js.client.data = {};
-    js.client.data.user = {};
-    js.client.data.user.phonenumber = phone;
-    console.log('send secret: ' + content);
-    validate_phonenumber_ws(js).then(function (res) {
-        console.log('validate: ' + res);
-        if (res) {
-            console.log('SMS to ' + client.data.sms.phonenumber);
-            LTCserviceSMS(client);
-        }
-    }).catch(function (err) {
-        throw err;
-    });
-
+    try {
+        let client = {};
+        let js = {};
+        client.gui = clientgui;
+        client.data = {};
+        client.data.sms = {};
+        client.data.sms.phonenumber = phone;
+        client.data.sms.content = content;
+        client.data.command = 'send-sms';
+        js.client = {};
+        js.client.data = {};
+        js.client.data.user = {};
+        js.client.data.user.phonenumber = phone;
+        console.log('send secret: ' + content);
+        validate_phonenumber_ws(js).then(function (res) {
+            console.log('validate: ' + res);
+            if (res) {
+                console.log('SMS to ' + client.data.sms.phonenumber);
+                LTCserviceSMS(client);
+            }
+        }).catch(function (err) {
+            throw err;
+        });   
+    } catch (error) {
+        throw error;
+    }
 }
 
 //var _arrForgotKeys = [];
