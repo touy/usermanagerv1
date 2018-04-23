@@ -2356,6 +2356,7 @@ function check_forgot_ws(js){
                 if(res){
                     res = JSON.parse(res);
                     if (res.forgot == js.client.data.forgot) {
+                        console.log('check forgot OK');
                         js.client.data.message='OK check forgot';
                         deferred.resolve(js);                        
                     } else
