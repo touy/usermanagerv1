@@ -1181,9 +1181,9 @@ function checkCurrentClient(client){
         if(err) deferred.reject(err);
         else{
             if(res){
-                deferred.resolve(1);
+                deferred.resolve('1');
             }else{
-                deferred.resolve(0);
+                deferred.resolve('');
             }
         }
     });
@@ -1193,7 +1193,7 @@ function get_client_ws(js) {
     let deferred = Q.defer();
     init_client(js.client);
     checkCurrentClient(js.client).then(res=>{
-        if(res===1){
+        if(res){
             js.client.clientip = js.ws._socket.remoteAddress;
             js.client.lastupdate = convertTZ(new Date());
             r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
