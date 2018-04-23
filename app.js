@@ -2347,7 +2347,7 @@ function forgot_password_ws(js) {
     });
     return deferred.promise;
 }
-function check_forgot_ws(){
+function check_forgot_ws(js){
     let deferred = Q.defer();
     r_client.get(_current_system+'_forgot_' + js.client.gui, function (err, res) {
         if (err) deferred.reject(err);
