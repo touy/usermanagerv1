@@ -131,7 +131,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 if (_current_system+"_forgot_" + element.client.logintoken == key) {
 
                     console.log('forgot-changed');
-                    //if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
                 if (_current_system+"_phone_" + element.client.logintoken == key) {
