@@ -372,6 +372,7 @@ function commandReader(js) {
                     deferred.reject(err);
                 });
                 break;
+            
                 // case 'system-prefix':
                 //     deferred.resolve(get_system_prefix());
                 // break;
