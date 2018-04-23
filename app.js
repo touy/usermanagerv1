@@ -2349,29 +2349,29 @@ function forgot_password_ws(js) {
 }
 function check_forgot_ws(js){
     let deferred = Q.defer();
-    r_client.get(_current_system+'_forgot_' + js.client.gui, function (err, res) {
-        if (err) deferred.reject(err);
-        else {
-            if(res){
-                res = JSON.parse(res);
-                if (res.forgot == js.client.data.forgot) {
-                    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+    findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
+        r_client.get(_current_system+'_forgot_' + js.client.gui, function (err, res) {
+            if (err) deferred.reject(err);
+            else {
+                if(res){
+                    res = JSON.parse(res);
+                    if (res.forgot == js.client.data.forgot) {
                         js.client.data.message='OK check forgot';
-                        deferred.resolve(js);
-                    }).catch(function (err) {
-                        deferred.reject(err);
-                    });
-                } else
-                js.client.data.message=(new Error('ERROR wrong keys'));
-                deferred.reject(js);
+                        deferred.resolve(js);                        
+                    } else
+                    js.client.data.message=(new Error('ERROR wrong keys'));
+                    deferred.reject(js);
+                }
+                else{
+                    js.client.data.message=(new Error('ERROR empty keys'));
+                    deferred.reject(js);
+                }
+                
             }
-            else{
-                js.client.data.message=(new Error('ERROR empty keys'));
-                deferred.reject(js);
-            }
-            
-        }
-    });
+        });           
+    }).catch(function (err) {
+        deferred.reject(err);
+    });    
 
     return deferred.promise;
 }
