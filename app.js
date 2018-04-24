@@ -40,8 +40,8 @@ var util = require('util');
 const Q = require('q');
 const bodyParser = require('body-parser');
 var methodOverride = require('method-override');
-var _client_prefix = ['ice-maker', 'gij', 'web-post', 'user-management'];
-var _system_prefix = _client_prefix;
+var _client_prefix = ['ice-maker', 'gij', 'web-post', 'user-management','default'];
+var _system_prefix = ['ice-maker', 'gij', 'web-post', 'user-management'];
 app.use(bodyParser.json());
 app.use(methodOverride());
 app.use(cors());
@@ -124,7 +124,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 }
                 if (_current_system+"_usergui_" + element.client.logintoken == key) {
 
-                    console.log('gui-changed');
+                    console.log('usergui-changed');
                     if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
@@ -161,224 +161,261 @@ r_client.on("monitor", function (time, args, raw_reply) {
             }
         });
 });
-
+function checkAuthorize(js){
+    let deferred = Q.defer();
+    try {
+        let except=['ping','login','shake-hands','heart-beat','register',
+        'check-secret','get-secret','submit-forgot','check-forgot','reset-forgot',
+        'check-username','check-password','check-phone'];
+        if(expt.indexOf(js.client.data.command)>-1){
+            js.client.data.message='OK';
+            deferred.resolve(js);
+        }else{
+            r_client.get(_current_system+'_login_'+js.client.logintoken,(err,res)=>{
+                if(err) {
+                    js.client.data.message=err;
+                    deferred.reject(js);
+                }else{
+                    res=JSON.parse(res);
+                    if(res.client.logintoken){
+                        js.client.data.message='OK';
+                        deferred.resolve(js);
+                    }else{
+                        js.client.data.message=new Error('ERROR empty login');
+                        deferred.resolve(js);
+                    }
+                }
+            }) ;  
+        }
+ 
+    } catch (error) {
+        js.client.data.message=error;
+        deferred.reject(js);
+    }
+    
+    return deferred.promise;
+}
 function commandReader(js) {
     const deferred = Q.defer();
     // const isValid=validateTopup(js.client);
     // if(!isValid.length)
     try {
         console.log('command : '+js.client.data.command);
-        switch (js.client.data.command) {
-            case 'ping':
-                console.log('ping test');
-                js.client.data.message='PONG test';
-                deferred.resolve(js);
-            break;
-            case 'shake-hands':
-                get_client_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-            break;
-            
-            case 'login':
-                login_ws(js).then(res => {
-                    deferred.resolve(res);
-                    //console.log(res);
-                    js.ws.lastupdate = convertTZ(new Date());
-                }).catch(err => {
-                    //console.log(err);
-                    deferred.reject(err);
-                });
-            break;
-            case 'logout':
-                logout_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
+        checkAuthorize(js).then(res=>{
+            switch (js.client.data.command) {
+                case 'ping':
+                    console.log('ping test');
+                    js.client.data.message='PONG test';
+                    deferred.resolve(js);
                 break;
-            case 'register':
-                console.log('regiseter here');
-                register_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
+                case 'shake-hands':
+                    get_client_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
                 break;
-            case 'add-user-manual':
-                addNewUserManual_WS(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
+                
+                case 'login':
+                    login_ws(js).then(res => {
+                        deferred.resolve(res);
+                        //console.log(res);
+                        js.ws.lastupdate = convertTZ(new Date());
+                    }).catch(err => {
+                        //console.log(err);
+                        deferred.reject(err);
+                    });
                 break;
-            case 'check-forgot':
-                check_forgot_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'reset-forgot':
-                forgot_password_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'submit-forgot':
-                submit_forgot_keys_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
+                case 'logout':
+                    logout_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'register':
+                    console.log('regiseter here');
+                    register_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'add-user-manual':
+                    addNewUserManual_WS(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'check-forgot':
+                    check_forgot_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'reset-forgot':
+                    forgot_password_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'submit-forgot':
+                    submit_forgot_keys_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+        
+                case 'change-password':
+                    console.log(js.client);
+                    change_password_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'send-confirm-phone-sms':
+                    send_confirm_phone_sms_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'check-confirm-phone-sms':
+                    check_confirm_phone_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'update-confirm-phone-sms':
+                    update_phone_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'edit-profile':
+                    update_user_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'get-profile':
+                    get_user_details_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'get-user-list':
+                    show_user_list_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+        
+                case 'get-client':
+                    get_client_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'get-user-gui':
+                    get_user_gui_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'heart-beat':
+                    heartbeat_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'check-username':
+                    check_username_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'check-password':
+                    check_password_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'check-phonenumber':
+                    check_phonenumber_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
     
-            case 'change-password':
-                console.log(js.client);
-                change_password_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'send-confirm-phone-sms':
-                send_confirm_phone_sms_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'check-confirm-phone-sms':
-                check_confirm_phone_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'update-confirm-phone-sms':
-                update_phone_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'edit-profile':
-                update_user_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'get-profile':
-                get_user_details_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'get-user-list':
-                show_user_list_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-    
-            case 'get-client':
-                get_client_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'get-user-gui':
-                get_user_gui_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'heart-beat':
-                heartbeat_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'check-username':
-                check_username_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'check-password':
-                check_password_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'check-phonenumber':
-                check_phonenumber_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-
-            case 'get-secret':
-                get_secret_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'get-transaction':
-                get_transaction_id_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'check-transaction':
-                check_transaction_id_ws (js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'check-secret':
-                check_secret_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'validate-phonenumber':
-                validate_phonenumber_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            case 'get-user-info':
-                get_user_info_ws(js).then(res => {
-                    deferred.resolve(res);
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-                break;
-            
-                // case 'system-prefix':
-                //     deferred.resolve(get_system_prefix());
-                // break;
-            default:
-                break;
-        }         
+                case 'get-secret':
+                    get_secret_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'get-transaction':
+                    get_transaction_id_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'check-transaction':
+                    check_transaction_id_ws (js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'check-secret':
+                    check_secret_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'validate-phonenumber':
+                    validate_phonenumber_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'get-user-info':
+                    get_user_info_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                
+                    // case 'system-prefix':
+                    //     deferred.resolve(get_system_prefix());
+                    // break;
+                default:
+                    break;
+            }   
+        }).catch(err=>{
+            throw new Error('Error no authorize');
+        });
     } catch (error) {
         js={};
         js.client={};
@@ -678,6 +715,14 @@ function heartbeat_ws(js) {
                 js.client.data.message='heart beat with login';
                 r_client.set(_current_system+'_login_' + js.client.logintoken, JSON.stringify({
                     command: 'login-changed',
+                    client:js.client
+                }), 'EX', 60 * 5);
+                r_client.set(_current_system+'_usergui_' + js.client.logintoken, JSON.stringify({
+                    command: 'usergui-changed',
+                    client:js.client
+                }), 'EX', 60 * 5);
+                r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
+                    command: 'client-changed',
                     client:js.client
                 }), 'EX', 60 * 5);
             }else{
@@ -1314,16 +1359,16 @@ function login_ws(js) {
             js.client.data.message = new Error('ERROR not allow this user');
             deferred.reject(js);
         }
-        else 
-        if (!res.system.match(['user-management']).length) {
-            js.client.username = '';
-            js.client.data.user = {};
-            js.client.loginip = js.ws._socket.remoteAddress;
-            js.client.logintoken = '';
-            js.client.logintime = '';
-            js.client.data.message = new Error('ERROR user has no an authorization');
-            deferred.reject(js);
-        }else{
+        // else if (!res.system.match(['user-management']).length) {
+        //     js.client.username = '';
+        //     js.client.data.user = {};
+        //     js.client.loginip = js.ws._socket.remoteAddress;
+        //     js.client.logintoken = '';
+        //     js.client.logintime = '';
+        //     js.client.data.message = new Error('ERROR user has no an authorization');
+        //     deferred.reject(js);
+        // }
+        else{
             
             js.client.username = js.client.data.user.username;
             js.client.data.user = {};
@@ -1962,6 +2007,7 @@ app.all('/display_user_details', function (req, res) {
 
 function get_user_details_ws(js) {
     let deferred = Q.defer();
+    
     r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
         if(err){
             js.client.data.message = err;
@@ -2182,7 +2228,7 @@ function randomSecret(howMany, chars) {
 var phoneSecret = [];
 
 function LTCserviceSMS(client) {
-    client.system = 'user-management';
+    client.prefix = 'user-management';
     let ws_client = new WebSocket('ws://localhost:8081/');//ltcservice
     ws_client.on('open', function open() {
         ws_client.send(JSON.stringify(client), function (err) {
@@ -2198,7 +2244,7 @@ function LTCserviceSMS(client) {
     ws_client.on('message', function incoming(data) {
         data = JSON.parse(data);
         data['notification']='SMS has been sent out';
-        data.system='';
+        data.prefix='';
         //delete data.res.SendSMSResult.user_id;
         r_client.set(_current_system+'_notification_' + client.gui, JSON.stringify({
             command: 'notification-changed',
