@@ -2101,7 +2101,10 @@ function findUserByGUI(gui) {
                 arr.push(element);
             }
             console.log('FOUND '+arr.length);
-            deferred.resolve(arr[0]);
+            if(arr[0].gui===gui)
+                deferred.resolve(arr[0]);
+            else
+                deferred.reject(new Error('ERROR system found more record please contact admin'));
         }
     });
     return deferred.promise;
