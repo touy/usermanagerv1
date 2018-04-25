@@ -163,6 +163,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
 });
 function checkAuthorize(js){
     let deferred = Q.defer();
+    deferred.resolve(js); // JUST BY PASS THIS TEMPORARY
     try {
         let except=['ping','login','shake-hands','heart-beat','register',
         'check-secret','get-secret','submit-forgot','check-forgot','reset-forgot',
@@ -929,8 +930,8 @@ app.all('/init_default_user', function (req, res) {
             }
         }
         init_default_user(js);
-        js.client.data.message = 'INIT OK ';
-        js.resp.send(js.client);
+        //js.client.data.message = 'INIT OK ';
+       // js.resp.send(js.client);
     });
 });
 
@@ -977,7 +978,6 @@ function init_default_user(js) {
                     js.client.data.message='destroy OK';                
                     js.resp.send(js.client);
                 });  
-
         }
         else {
             js.client.data = {};
