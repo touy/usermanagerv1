@@ -193,8 +193,7 @@ function checkAuthorize(js){
     } catch (error) {
         js.client.data.message=error;
         deferred.reject(js);
-    }
-    
+    }    
     return deferred.promise;
 }
 function commandReader(js) {
@@ -1359,8 +1358,7 @@ function login_ws(js) {
         //     js.client.data.message = new Error('ERROR user has no an authorization');
         //     deferred.reject(js);
         // }
-        else{
-            
+        else{            
             js.client.username = js.client.data.user.username;
             js.client.data.user = {};
             js.client.loginip = js.ws._socket.remoteAddress;
@@ -1411,23 +1409,28 @@ function authentication(userinfo) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     console.log('check authen');
-    db.view(__design_view, 'authentication', {
-        key: [userinfo.username, userinfo.password]
-    }, function (err, res) {
-        console.log('checking login')
-        // console.log("res:"+res);
-        // console.log("error:"+err);
-        if (err) deferred.reject(err);
-        else {
-            //console.log('login ok')
-            if(res){
-                if (res.rows.length) {
-                    deferred.resolve(res.rows[0].value);
-                } 
-            }     
-            deferred.reject(new Error('ERROR wrong username or password'));       
-        }
-    })
+    try {
+        db.view(__design_view, 'authentication', {
+            key: [userinfo.username, userinfo.password]
+        }, function (err, res) {
+            console.log('checking login')
+            // console.log("res:"+res);
+            // console.log("error:"+err);
+            if (err) deferred.reject(err);
+            else {
+                //console.log('login ok')
+                if(res){
+                    if (res.rows.length) {
+                        deferred.resolve(res.rows[0].value);
+                    } 
+                }     
+                deferred.reject(new Error('ERROR wrong username or password'));       
+            }
+        });
+    } catch (error) {
+        deferred.reject(error);
+    }
+
     return deferred.promise;
 }
 
@@ -1998,7 +2001,6 @@ app.all('/display_user_details', function (req, res) {
 
 function get_user_details_ws(js) {
     let deferred = Q.defer();
-    
     r_client.get(_current_system+'_usergui_' + js.client.logintoken, function (err, gui) {
         if(err){
             js.client.data.message = err;
@@ -2020,8 +2022,7 @@ function get_user_details_ws(js) {
                 js.client.data.message = new Error('gui not found');
                 deferred.reject(js);
             }
-        }
-        
+        }        
     });
     return deferred.promise;
 }
@@ -2029,14 +2030,35 @@ function get_user_details_ws(js) {
 function displayUserDetails(gui) {
     let deferred = Q.defer();
     findUserByGUI(gui).then(function (res) {
-        cleanUserInfo(res);
+        filterObject(res);
         deferred.resolve(res);
     }).catch(function (err) {
         deferred.reject(err);
     });
     return deferred.promise;
 }
-
+function filterObject(obj) {
+    var need=['gui','_rev','_id','password','oldphone','system','parents','roles','isActive'];
+    //console.log(key);
+    for (var i in obj) {
+      //if(i==='password')
+        //console.log(obj[i]);
+        for(x=0;x<need.length;x++){
+          let key=need[x];
+        if (!obj.hasOwnProperty(i)) {
+        }
+        else if(Array.isArray(obj[i])){
+          obj[i]='';
+        }
+        else if (typeof obj[i] == 'object') {
+            filterObject(obj[i], need);
+        } else if (i.indexOf(key)>-1) {
+            obj[i]='';
+        }
+    }
+  }  
+  return obj;
+}
 function cleanUserInfo(element) {
     element._rev='';
     element._id='';
@@ -2063,6 +2085,7 @@ function findUserByGUI(gui) {
                 //cleanUserInfo(element);
                 arr.push(element);
             }
+            console.log('FOUND '+arr.length);
             deferred.resolve(arr[0]);
         }
     });
