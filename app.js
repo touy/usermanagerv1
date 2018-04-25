@@ -2716,7 +2716,6 @@ function errorLogging(log) {
 initDB();
 
 
-
 Array.prototype.match = function (arr2) {
     var ret = [];
     this.sort();
