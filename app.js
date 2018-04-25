@@ -917,7 +917,9 @@ app.all('/init_default_user', function (req, res) {
             if (res.gui == js.client.gui)
                 if (js.client.secret == 'HGT') {
                     init_default_user(js);
-                }
+                    js.client.data.message = 'init OK by HGT';
+                    js.resp.send(js.client);
+                }                
             else {
                 js.client.data.message = 'ERRO NOT ALLOWED, init default user failed';
                 js.resp.send(js.client);
@@ -927,8 +929,9 @@ app.all('/init_default_user', function (req, res) {
             }
         }
         init_default_user(js);
+        js.client.data.message = 'INIT OK ';
+        js.resp.send(js.client);
     });
-
 });
 
 function copyObject(o1, o2) {
@@ -968,19 +971,10 @@ function init_default_user(js) {
     let db = create_db('gijusers');
     //console.log('default user:'+defaultUser.username);
     findUserByUsername(defaultUser.username).then(function (res) {
-        // console.log('res');
-        // console.log(res);
-        // console.log('res');
         if (res) {
-                // currentGUI=res.gui+"";
-                // copyObject(defaultUser,res);
-                // res.gui=currentGUI;
-                // console.log('new default user');
-                // console.log(res);
                 nano.db.destroy('gijusers', function (err, body) {
                     js.client.data={};
-                    js.client.data.message='destroy OK';
-                    //initDB();
+                    js.client.data.message='destroy OK';                
                     js.resp.send(js.client);
                 });  
 
@@ -992,20 +986,16 @@ function init_default_user(js) {
                     js.client.data.message = err;
                     js.resp.send(js.client);
                 } else {
-                    for (let index = 0; index < sDefaultUsers.length; index++) {
-                        const element = sDefaultUsers[index];
-                        db.insert(element, element.gui, function (err, res) {
-                            if (err) {
-                                js.client.data.message = err;
-                                js.resp.send(js.client);     
-                                return;                           
-                            } else {
-                                //js.client.data.message = 'OK';
-                                //js.resp.send(js.client);
-                                
-                            }
-                        });
-                    }
+                    db.bulk({docs:sDefaultUsers}, function (err, res) {
+                        if (err) {
+                            js.client.data.message = err;
+                            js.resp.send(js.client);     
+                            return;                           
+                        } else {
+                            js.client.data.message = 'OK INIT';
+                            js.resp.send(js.client);                                
+                        }
+                    });
                 }
             });
         }
