@@ -2098,7 +2098,7 @@ function findUserByGUI(gui) {
             for (let index = 0; index < res.rows.length; index++) {
                 const element = res.rows[index].value;
                 //cleanUserInfo(element);
-                arr.push(element);
+                arr.push(element); 
             }
             console.log('FOUND '+arr.length);
             if(arr[0].gui===gui)
