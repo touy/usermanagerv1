@@ -164,6 +164,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
 function checkAuthorize(js){
     let deferred = Q.defer();
     deferred.resolve(js); // JUST BY PASS THIS TEMPORARY
+    if(0)
     try {
         let except=['ping','login','shake-hands','heart-beat','register',
         'check-secret','get-secret','submit-forgot','check-forgot','reset-forgot',
