@@ -714,14 +714,29 @@ function heartbeat_ws(js) {
                 }), 'EX', 60 * 5);
             }else if(res){
                 js.client.data.message='heart beat with login';
+                r_client.get(_current_system+'_usergui_'+js.client.logintoken,(err,res)=>{
+                    if(err){
+                        js.client.data.message=err;
+                        deferred.reject(js);
+                    }else{  
+                        res=JSON.parse(res);
+                        if(res.gui){
+                            r_client.set(_current_system+'_usergui_' + js.client.logintoken, JSON.stringify({
+                                command: 'usergui-changed',
+                                gui:res.gui
+                            }), 'EX', 60 * 5);
+                        }else{
+                            js.client.data.message=new Error('ERROR gui not found');
+                            deferred.reject(js);
+                        }
+                    }
+                });
                 r_client.set(_current_system+'_login_' + js.client.logintoken, JSON.stringify({
                     command: 'login-changed',
                     client:js.client
                 }), 'EX', 60 * 5);
-                r_client.set(_current_system+'_usergui_' + js.client.logintoken, JSON.stringify({
-                    command: 'usergui-changed',
-                    client:js.client
-                }), 'EX', 60 * 5);
+
+                
                 r_client.set(_current_system+'_client_' + js.client.gui, JSON.stringify({
                     command: 'client-changed',
                     client:js.client
