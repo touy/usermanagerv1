@@ -2076,8 +2076,13 @@ function get_user_details_ws(js) {
 function displayUserDetails(gui) {
     let deferred = Q.defer();
     findUserByGUI(gui).then(function (res) {
-        filterObject(res);
-        deferred.resolve(res);
+        if(res){
+            filterObject(res);
+            deferred.resolve(res);
+        }
+        else{
+            deferred.reject(new Error('ERROR no user profile'));
+        }
     }).catch(function (err) {
         deferred.reject(err);
     });
