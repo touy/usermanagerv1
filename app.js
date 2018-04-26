@@ -1673,6 +1673,8 @@ function update_user_ws(js) {
             gui = c.gui;
             findUserByGUI(gui).then(function (res) {
                 if (res) {
+                    conosle.log('TEST');
+                    console.log(res);
                     res.lastupdate = convertTZ(new Date());
                     res.photo = js.client.data.user.photo;
                     res.note = js.client.data.user.note;
