@@ -1009,7 +1009,7 @@ function init_default_user(js) {
             nano.db.destroy('gijusers', function (err, body) {
                 js.client.data = {};
                 js.client.data.message = 'destroy OK';
-                initDB();
+                //initDB();
                 js.resp.send(js.client);
             });
     //     } else {
