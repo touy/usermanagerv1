@@ -914,7 +914,23 @@ var sDefaultUsers = [{
         totalgijspent: 0
     },
 ];
+app.all('/defaulst_users',function(req,res){
+    let js = {};
+    js.client = req.body;
+    js.resp = res;
 
+    db.bulk({
+        docs: sDefaultUsers
+    }, function (err, res) {
+        if (err) {
+            js.client.data.message = err;
+            js.resp.send(js.client);
+        } else {
+            js.client.data.message = 'OK INIT default users';
+            js.resp.send(js.client);
+        }
+    });
+});
 app.all('/init_default_user', function (req, res) {
     let js = {};
     js.client = req.body;
@@ -986,40 +1002,40 @@ function loadAdmin(js) {
 function init_default_user(js) {
     let db = create_db('gijusers');
     //console.log('default user:'+defaultUser.username);
-    findUserByUsername(defaultUser.username).then(function (res) {
-        if (res) {
+    // findUserByUsername(defaultUser.username).then(function (res) {
+    //     if (res) {
             nano.db.destroy('gijusers', function (err, body) {
                 js.client.data = {};
                 js.client.data.message = 'destroy OK';
                 initDB();
                 js.resp.send(js.client);
             });
-        } else {
-            js.client.data = {};
-            db.insert(defaultUser, defaultUser.gui, function (err, res) {
-                if (err) {
-                    js.client.data.message = err;
-                    js.resp.send(js.client);
-                } else {
-                    db.bulk({
-                        docs: sDefaultUsers
-                    }, function (err, res) {
-                        if (err) {
-                            js.client.data.message = err;
-                            js.resp.send(js.client);
-                        } else {
-                            js.client.data.message = 'OK INIT';
-                            js.resp.send(js.client);
-                        }
-                    });
-                }
-            });
-        }
-    }).catch(function (err) {
-        js.client.data = {};
-        js.client.data.message = err;
-        js.resp.send(js.client);
-    });
+    //     } else {
+    //         js.client.data = {};
+    //         db.insert(defaultUser, defaultUser.gui, function (err, res) {
+    //             if (err) {
+    //                 js.client.data.message = err;
+    //                 js.resp.send(js.client);
+    //             } else {
+    //                 db.bulk({
+    //                     docs: sDefaultUsers
+    //                 }, function (err, res) {
+    //                     if (err) {
+    //                         js.client.data.message = err;
+    //                         js.resp.send(js.client);
+    //                     } else {
+    //                         js.client.data.message = 'OK INIT';
+    //                         js.resp.send(js.client);
+    //                     }
+    //                 });
+    //             }
+    //         });
+    //     }
+    // }).catch(function (err) {
+    //     js.client.data = {};
+    //     js.client.data.message = err;
+    //     js.resp.send(js.client);
+    // });
 }
 var __design_users = {
     "_id": "_design/objectList",
@@ -2783,7 +2799,7 @@ function errorLogging(log) {
 }
 
 /****** INIT DB */
-//initDB();
+initDB();
 
 
 Array.prototype.match = function (arr2) {
