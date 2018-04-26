@@ -921,6 +921,7 @@ app.all('/default_users',function(req,res){
     js.client.data={};
    // initDB();
     let db=create_db('gijusers');
+    sDefaultUsers.push(defaultUser);
     db.bulk({
         docs: sDefaultUsers
     }, function (err, res) {
