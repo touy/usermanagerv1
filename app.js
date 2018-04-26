@@ -1405,8 +1405,8 @@ function login_ws(js) {
             //js.resp.send(js.client);
             //_arrUsers.push(js.client);
             js.client.data.user = {};
-            setLoginStatus(this.client);
-            setUserGUIStatus(this.client,res.gui);
+            setLoginStatus(js.client);
+            setUserGUIStatus(js.client,res.gui);
             setOnlineStatus(js.client);
             deferred.resolve(js);
         }
