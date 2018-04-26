@@ -919,7 +919,8 @@ app.all('/default_users',function(req,res){
     js.client = {};
     js.resp = res;
     js.client.data={};
-    let db=create_db('gijusers')
+   // initDB();
+    let db=create_db('gijusers');
     db.bulk({
         docs: sDefaultUsers
     }, function (err, res) {
@@ -2800,7 +2801,7 @@ function errorLogging(log) {
 }
 
 /****** INIT DB */
-initDB();
+//initDB();
 
 
 Array.prototype.match = function (arr2) {
