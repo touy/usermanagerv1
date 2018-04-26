@@ -984,18 +984,18 @@ function loadAdmin(js) {
 }
 
 function init_default_user(js) {
+    initDB(); 
     let db = create_db('gijusers');
     
     //console.log('default user:'+defaultUser.username);
     //findUserByUsername(defaultUser.username).then(function (res) {
-        //if (res) {
-            initDB(); 
+        //if (res) {            
             nano.db.destroy('gijusers', function (err, body) {
                 js.client.data = {};
                 js.client.data.message = 'destroy OK';  
                 console.log('destroy ok');  
                 if(err){
-                    initDB(); 
+                    //initDB(); 
                     js.client.data = {};
                     db.insert(defaultUser, defaultUser.gui, function (err, res) {
                         if (err) {
