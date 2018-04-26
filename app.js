@@ -914,11 +914,11 @@ var sDefaultUsers = [{
         totalgijspent: 0
     },
 ];
-app.all('/defaulst_users',function(req,res){
+app.all('/default_users',function(req,res){
     let js = {};
     js.client = req.body;
     js.resp = res;
-
+    let db=create_db('gijusers')
     db.bulk({
         docs: sDefaultUsers
     }, function (err, res) {
