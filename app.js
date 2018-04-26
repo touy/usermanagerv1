@@ -1405,20 +1405,9 @@ function login_ws(js) {
             //js.resp.send(js.client);
             //_arrUsers.push(js.client);
             js.client.data.user = {};
-            r_client.set(_current_system + '_login_' + js.client.logintoken, JSON.stringify({
-                command: 'login-changed',
-                client: js.client
-            }), 'EX', 60 * 5);
-            console.log('gui-changing');
-            //console.log(res);
-            r_client.set(_current_system + '_usergui_' + js.client.logintoken, JSON.stringify({
-                command: 'usergui-changed',
-                gui: res.gui
-            }), 'EX', 60 * 5);
-            r_client.set('_online_' + js.client.username, JSON.stringify({
-                command: 'online-changed',
-                client: {username:client.username,system:_current_system}
-            }), 'EX', 60 * 60 / 2);
+            setLoginStatus(this.client);
+            setUserGUIStatus(this.client,res.gui);
+            setOnlineStatus(js.client);
             deferred.resolve(js);
         }
     }).catch(function (err) {
@@ -1673,7 +1662,7 @@ function update_user_ws(js) {
             gui = c.gui;
             findUserByGUI(gui).then(function (res) {
                 if (res) {
-                    conosle.log('TEST');
+                    console.log('TEST');
                     console.log(res);
                     res.lastupdate = convertTZ(new Date());
                     res.photo = js.client.data.user.photo;
