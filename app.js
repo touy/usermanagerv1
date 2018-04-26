@@ -153,8 +153,10 @@ r_client.on("monitor", function (time, args, raw_reply) {
                         element.send(JSON.stringify(js));
                 }
                 if ("_online_" + element.client.username == key) {
-                    console.log('online-changed');   
-                    let c={username:js.client.username};                 
+                    console.log('online-changed');
+                    let c = {
+                        username: js.client.username
+                    };
                     element.send(JSON.stringify(c));
                 }
                 if (_current_system + "_notification_" + element.client.logintoken == key) {
@@ -729,17 +731,17 @@ function heartbeat_ws(js) {
                 } else {
                     res = JSON.parse(res);
                     if (res.gui) {
-                        setUserGUIStatus(js.client,res.gui)                                                
+                        setUserGUIStatus(js.client, res.gui)
                     } else {
                         js.client.data.message = new Error('ERROR gui not found');
                         deferred.reject(js);
                     }
                 }
             });
-            setLoginStatus(js.client);       
+            setLoginStatus(js.client);
             setClientStatus(js.client);
             setOnlineStatus(js.client);
-           
+
         } else {
             js.client.data.message = 'heart beat no login';
             setClientStatus(js.client)
@@ -914,13 +916,13 @@ var sDefaultUsers = [{
         totalgijspent: 0
     },
 ];
-app.all('/default_users',function(req,res){
+app.all('/default_users', function (req, res) {
     let js = {};
     js.client = {};
     js.resp = res;
-    js.client.data={};
-   // initDB();
-    let db=create_db('gijusers');
+    js.client.data = {};
+    // initDB();
+    let db = create_db('gijusers');
     sDefaultUsers.push(defaultUser);
     db.bulk({
         docs: sDefaultUsers
@@ -1007,12 +1009,12 @@ function init_default_user(js) {
     //console.log('default user:'+defaultUser.username);
     // findUserByUsername(defaultUser.username).then(function (res) {
     //     if (res) {
-            nano.db.destroy('gijusers', function (err, body) {
-                js.client.data = {};
-                js.client.data.message = 'destroy OK';
-                //initDB();
-                js.resp.send(js.client);
-            });
+    nano.db.destroy('gijusers', function (err, body) {
+        js.client.data = {};
+        js.client.data.message = 'destroy OK';
+        //initDB();
+        js.resp.send(js.client);
+    });
     //     } else {
     //         js.client.data = {};
     //         db.insert(defaultUser, defaultUser.gui, function (err, res) {
@@ -1406,7 +1408,7 @@ function login_ws(js) {
             //_arrUsers.push(js.client);
             js.client.data.user = {};
             setLoginStatus(js.client);
-            setUserGUIStatus(js.client,res.gui);
+            setUserGUIStatus(js.client, res.gui);
             setOnlineStatus(js.client);
             deferred.resolve(js);
         }
@@ -1662,8 +1664,8 @@ function update_user_ws(js) {
             gui = c.gui;
             findUserByGUI(gui).then(function (res) {
                 if (res) {
-                    console.log('TEST');
-                    console.log(res);
+                    // console.log('TEST');
+                    // console.log(res);
                     res.lastupdate = convertTZ(new Date());
                     res.photo = js.client.data.user.photo;
                     res.note = js.client.data.user.note;
@@ -2067,11 +2069,10 @@ function get_user_details_ws(js) {
 function displayUserDetails(gui) {
     let deferred = Q.defer();
     findUserByGUI(gui).then(function (res) {
-        if(res){
+        if (res) {
             filterObject(res);
             deferred.resolve(res);
-        }
-        else{
+        } else {
             deferred.reject(new Error('ERROR no user profile'));
         }
     }).catch(function (err) {
@@ -2284,42 +2285,52 @@ function randomSecret(howMany, chars) {
     return value.join('');
 }
 var phoneSecret = [];
-function setUserGUIStatus(client,gui){
+
+function setUserGUIStatus(client, gui) {
     r_client.set(_current_system + '_usergui_' + client.logintoken, JSON.stringify({
         command: 'usergui-changed',
         gui: gui
     }), 'EX', 60 * 60 / 2);
 }
-function setLoginStatus(client){
+
+function setLoginStatus(client) {
     r_client.set(_current_system + '_login_' + client.logintoken, JSON.stringify({
         command: 'login-changed',
         client: client
     }), 'EX', 60 * 5);
-}     
-function setClientStatus(client){
+}
+
+function setClientStatus(client) {
     r_client.set(_current_system + '_client_' + client.gui, JSON.stringify({
         command: 'client-changed',
         client: client
     }), 'EX', 60 * 5);
 }
-function setOnlineStatus(client){
+
+function setOnlineStatus(client) {
     r_client.set('_online_' + client.username, JSON.stringify({
         command: 'online-changed',
-        client: {username:client.username,system:_current_system} 
+        client: {
+            username: client.username,
+            system: _current_system
+        }
     }), 'EX', 60 * 30 / 2);
 }
-function setErrorStatus(client){
+
+function setErrorStatus(client) {
     r_client.set(_current_system + '_error_' + client.gui, JSON.stringify({
         command: 'error-changed',
         client: client
     }), 'EX', 60 * 5);
 }
-function setNotificationStatus(client){
+
+function setNotificationStatus(client) {
     r_client.set(_current_system + '_notification_' + client.gui, JSON.stringify({
         command: 'notification-changed',
         client: data
     }), 'EX', 60 * 60 / 2); // client side could not see this , the other server as a client can see this .
 }
+
 function LTCserviceSMS(client) {
     client.prefix = 'user-management';
     let ws_client = new WebSocket('ws://localhost:8081/'); //ltcservice
@@ -2338,7 +2349,7 @@ function LTCserviceSMS(client) {
         //delete data.res.SendSMSResult.user_id;
         setNotificationStatus(client);
         setOnlineStatus(client)
-        
+
     });
     ws_client.on("error", (err) => {
         client.data.message = err;
@@ -2630,7 +2641,8 @@ function updateUser(userinfo) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     console.log(userinfo);
-    db.insert(userinfo, userinfo.gui, function (err, res) {
+    // let id = ((userinfo.gui !== userinfo._id) userinfo._id : userinfo.gui);
+    db.insert(userinfo, userinfo._id, function (err, res) {
         if (err) deferred.reject(err);
         else {
             deferred.resolve('OK ' + JSON.stringify(res));
