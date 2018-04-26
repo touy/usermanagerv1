@@ -2817,7 +2817,7 @@ function errorLogging(log) {
 }
 
 /****** INIT DB */
-//initDB();
+initDB();
 
 
 Array.prototype.match = function (arr2) {
