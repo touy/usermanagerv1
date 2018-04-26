@@ -154,10 +154,8 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 }
                 if ("_online_" + element.client.username == key) {
                     console.log('online-changed');
-                    let c = {
-                        username: js.client.username
-                    };
-                    element.send(JSON.stringify(c));
+                    // broad cast to all or goup ;
+                    //element.send(JSON.stringify(c));
                 }
                 if (_current_system + "_notification_" + element.client.logintoken == key) {
 
