@@ -1377,7 +1377,7 @@ function login_ws(js) {
     try {
         authentication(js.client.data.user).then(function (user) {
             console.log('authen res');
-            //console.log(res);        
+            //console.log(res);
             r_client.get('_online_'+user.username,(err,res)=>{
                 let online=JSON.parse(res);
                 if(err){
