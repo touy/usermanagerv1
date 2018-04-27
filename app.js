@@ -2448,7 +2448,7 @@ function LTCserviceSMS(client) {
 function SMSToPhone(js, content, phone) {
     try {
         //client.gui = clientgui;
-        js.client.data = {};
+        // js.client.data = {};
         js.client.data.sms = {};
         js.client.data.sms.phonenumber = phone;
         js.client.data.sms.content = content;
