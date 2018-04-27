@@ -157,6 +157,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 }
                 if (_current_system + "_notification_" + element.client.logintoken == key) {
                     console.log('notification-changed');
+                    console.log(js);
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
                 }
