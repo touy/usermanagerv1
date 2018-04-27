@@ -915,22 +915,27 @@ app.all('/default_users', function (req, res) {
     js.client = {};
     js.resp = res;
     js.client.data = {};
-    initDB();
+    //initDB();
     let db = create_db('gijusers');
-    setTimeout(() => {
-        sDefaultUsers.push(defaultUser);
-        db.bulk({
-            docs: sDefaultUsers
-        }, function (err, res) {
-            if (err) {
-                js.client.data.message = err;
-                js.resp.send(js.client);
-            } else {
-                js.client.data.message = 'OK INIT default users';
-                js.resp.send(js.client);
-            }
-        });
-    }, 1000*3);
+    db.insert(__design_users, "_design/objectList", function (err, res) {
+        if (err) console.log('err insert new design ' + dbname + err);
+        else {
+            //setTimeout(() => {
+                sDefaultUsers.push(defaultUser);
+                db.bulk({
+                    docs: sDefaultUsers
+                }, function (err, res) {
+                    if (err) {
+                        js.client.data.message = err;
+                        js.resp.send(js.client);
+                    } else {
+                        js.client.data.message = 'OK INIT default users';
+                        js.resp.send(js.client);
+                    }
+                });
+            //}, 1000*3);
+        }
+    });
 
 });
 app.all('/init_default_user', function (req, res) {
@@ -2753,6 +2758,12 @@ function init_db(dbname, design) {
                                 }
                             });
                         } else {
+                            db.insert(design, "_design/objectList", function (err, res) {
+                                if (err) console.log('err insert new design ' + dbname + err);
+                                else {
+                                    //console.log('insert design completed ' + dbname);
+                                }
+                            });
                             // console.log("could not find design");
                         }
                     }
