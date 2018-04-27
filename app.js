@@ -131,19 +131,19 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 if (_current_system + "_forgot_" + element.client.logintoken == key) {
 
                     console.log('forgot-changed');
-                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_phone_" + element.client.logintoken == key) {
 
                     console.log('phone-changed');
-                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_secret_" + element.client.logintoken == key) {
 
                     console.log('secret-changed');
-                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_message_" + element.client.logintoken == key) {
@@ -157,7 +157,6 @@ r_client.on("monitor", function (time, args, raw_reply) {
                     //element.send(JSON.stringify(c));
                 }
                 if (_current_system + "_notification_" + element.client.logintoken == key) {
-
                     console.log('notification-changed');
                     if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
