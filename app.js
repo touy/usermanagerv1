@@ -1387,7 +1387,7 @@ function login_ws(js) {
                     //js.resp.send(js.client);
                     deferred.reject(js);
                 } else {
-                    if(online){
+                    if(!online){
 
                     } else{
                         /// need to clear other login 
