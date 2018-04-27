@@ -1391,15 +1391,15 @@ function login_ws(js) {
 
                     } else{
                         /// need to clear other login 
-                        console.log(online);
-                        if (online.client.login) {
-                            for (let index = 0; index < online.client.login.length; index++) {
-                                 //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
-                                const element = online.login[index];
-                                r_client.del(_current_system + '_login_' + element.logintoken);
-                                r_client.del(_current_system + '_usergui_' + element.logintoken);
-                            }
-                        }
+                        // console.log(online);
+                        // if (online.client.login) {
+                        //     for (let index = 0; index < online.client.login.length; index++) {
+                        //          //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
+                        //         const element = online.login[index];
+                        //         r_client.del(_current_system + '_login_' + element.logintoken);
+                        //         r_client.del(_current_system + '_usergui_' + element.logintoken);
+                        //     }
+                        // }
                     }
                     if (!_client_prefix.match(user.system).length) {
                             js.client.username = '';
@@ -2157,7 +2157,7 @@ function findUserByGUI(gui) {
                 //cleanUserInfo(element);
                 arr.push(element);
             }
-            console.log('FOUND ' + arr.length);
+            console.log('FOUND ' + gui);
             if (arr[0].gui === gui)
                 deferred.resolve(arr[0]);
             else
