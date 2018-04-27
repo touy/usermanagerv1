@@ -1387,19 +1387,21 @@ function login_ws(js) {
                     //js.resp.send(js.client);
                     deferred.reject(js);
                 } else {
-                    if (online) {
+                    if(online){
+
+                    } else{
                         /// need to clear other login 
                         console.log(online);
-                        if (online.login) {
-                            for (let index = 0; index < online.login.length; index++) {
-                                break; //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
+                        if (online.client.login) {
+                            for (let index = 0; index < online.client.login.length; index++) {
+                                 //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
                                 const element = online.login[index];
                                 r_client.del(_current_system + '_login_' + element.logintoken);
                                 r_client.del(_current_system + '_usergui_' + element.logintoken);
                             }
                         }
-                    } else {
-                        if (!_client_prefix.match(user.system).length) {
+                    }
+                    if (!_client_prefix.match(user.system).length) {
                             js.client.username = '';
                             js.client.data.user = {};
                             js.client.loginip = js.ws._socket.remoteAddress;
@@ -1431,8 +1433,7 @@ function login_ws(js) {
                             setUserGUIStatus(js.client, user.gui);
                             setOnlineStatus(js.client);
                             deferred.resolve(js);
-                        }
-                    }
+                        }                    
 
                 }
             });
