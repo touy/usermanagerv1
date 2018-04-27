@@ -2383,11 +2383,12 @@ function setErrorStatus(client) {
 function setNotificationStatus(client) {
     r_client.set(_current_system + '_notification_' + client.gui, JSON.stringify({
         command: 'notification-changed',
-        client: data
+        client: client
     }), 'EX', 60 * 60 / 2); // client side could not see this , the other server as a client can see this .
 }
 
 function LTCserviceSMS(client) {
+    client.data.command='send-sms'
     client.prefix = 'user-management';
     let ws_client = new WebSocket('ws://localhost:8081/'); //ltcservice
     ws_client.on('open', function open() {
@@ -2399,8 +2400,10 @@ function LTCserviceSMS(client) {
         });
     });
     ws_client.on('message', function incoming(data) {
+        console.log("RECIEVED  FROM SMS : ");
+        // console.log(data);
         client = JSON.parse(data);
-        data['notification'] = 'SMS has been sent out';
+        client.data['notification'] = 'SMS has been sent out';
         data.prefix = '';
         //delete data.res.SendSMSResult.user_id;
         setNotificationStatus(client);
@@ -2422,7 +2425,7 @@ function SMSToPhone(clientgui, content, phone) {
         client.data.sms = {};
         client.data.sms.phonenumber = phone;
         client.data.sms.content = content;
-        client.data.command = 'send-sms';
+       // client.data.command = 'send-sms';
         js.client = {};
         js.client.data = {};
         js.client.data.user = {};
