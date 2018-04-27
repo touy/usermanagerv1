@@ -915,7 +915,7 @@ app.all('/default_users', function (req, res) {
     js.client = {};
     js.resp = res;
     js.client.data = {};
-    // initDB();
+    initDB();
     let db = create_db('gijusers');
     setTimeout(() => {
         sDefaultUsers.push(defaultUser);
