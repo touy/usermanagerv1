@@ -157,7 +157,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 }
                 if (_current_system + "_notification_" + element.client.logintoken == key) {
                     console.log('notification-changed');
-                    console.log(js);
+                    //console.log(js);
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
                 }
@@ -2435,6 +2435,7 @@ function LTCserviceSMS(client) {
             //console.log(client);
             client.data.sms.content='';
             client.data.message = 'SMS recieved!'; 
+            client.data.command = 'recieved-sms';
             client.prefix = '';
             
             setNotificationStatus(client);
