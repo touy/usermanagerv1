@@ -2430,7 +2430,7 @@ function LTCserviceSMS(client) {
             console.log(client);
             client.data.sms.content='';
             client.data['notification'] = 'SMS has been sent out'; 
-            data.prefix = '';
+            client.prefix = '';
             
             setNotificationStatus(client);
             //setOnlineStatus(client);
