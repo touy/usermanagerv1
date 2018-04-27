@@ -1375,10 +1375,11 @@ app.all('/login', function (req, res) {
 function login_ws(js) {
     let deferred = Q.defer();
     try {
-        authentication(js.client.data.user).then(function (res) {
+        authentication(js.client.data.user).then(function (user) {
             console.log('authen res');
             //console.log(res);        
             r_client.get('_online_'+res.username,(err,res)=>{
+                let online=JSON.parse(res);
                 if(err){
                     js.client.data.message = err;
                     js.client.data.user = {};
@@ -1389,8 +1390,14 @@ function login_ws(js) {
                 else{
                     if(res){
                         /// need to clear other login 
+                        for (let index = 0; index < online.login.length; index++) {
+                            break; //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
+                            const element = online.login[index];
+                            r_client.del(_current_system+'_login_'+element.logintoken);
+                            r_client.del(_current_system+'_usergui_'+element.logintoken);
+                        }
                     }
-                    if (!_client_prefix.match(res.system).length) {
+                    if (!_client_prefix.match(user.system).length) {
                         js.client.username = '';
                         js.client.data.user = {};
                         js.client.loginip = js.ws._socket.remoteAddress;
@@ -1419,7 +1426,7 @@ function login_ws(js) {
                         //_arrUsers.push(js.client);
                         js.client.data.user = {};
                         setLoginStatus(js.client);
-                        setUserGUIStatus(js.client, res.gui);
+                        setUserGUIStatus(js.client, user.gui);
                         setOnlineStatus(js.client);
                         deferred.resolve(js);
                     }
@@ -2208,8 +2215,8 @@ function logout_ws(js) {
     //     const element = _arrUsers[index];       
     //     if(element.username==client.data.username&&element.logintoken==client.data.logintoken){
     //r_client.del('_client_'+client.gui);    
-    r_client.del('_login_' + js.client.logintoken);
-    r_client.del('_usergui_' + js.client.logintoken);
+    r_client.del(_current_system+'_login_' + js.client.logintoken);
+    r_client.del(_current_system+'_usergui_' + js.client.logintoken);
     js.client.data = {};
     js.client.data.user = {};
     js.client.data.command = 'logout';
@@ -2230,8 +2237,9 @@ function logout(client) {
     // for (let index = 0; index < _arrUsers.length; index++) {
     //     const element = _arrUsers[index];       
     //     if(element.username==client.data.username&&element.logintoken==client.data.logintoken){
-    r_client.del('_client_' + element.gui);
-    r_client.del('_login_' + element.gui);
+    r_client.del('_client_' + client.gui);
+    r_client.del('_login_' + client.logintoken);
+    r_client.del('_usergui_' + client.logintoken);
     //         delete _arrUsers[index];                
     //     }
     // }
@@ -2337,32 +2345,32 @@ function setClientStatus(client) {
 
 function setOnlineStatus(client) {
     try {
-        
+        r_client.get('_online_'+client.username,(err,res)=>{
+            if(err){
+                client.data.message=err;
+                setErrorStatus(client);
+            }
+            else{
+                let arr=[{logintoken:client.logintoken,ip:client.loginip}];
+                if(res){
+                    arr.concat(JSON.parse(res).login);
+                }
+                r_client.set('_online_' + client.username, JSON.stringify({
+                    command: 'online-changed',
+                    client: {
+                        username: client.username,
+                        onlinetime:convertTZ(new Date()),
+                        system: _current_system,
+                        login:arr,
+                    }
+                }), 'EX', 60 * 30 / 2);                      
+            }
+        });        
     } catch (error) {
         client.data.message=error;
         setErrorStatus(client);
     }
-    r_client.get('_online_'+client.username,(err,res)=>{
-        if(err){
-            client.data.message=err;
-            setErrorStatus(client);
-        }
-        else{
-            let arr=[client.logintoken];
-            if(res){
-                arr.push(JSON.parse(res));
-            }
-            r_client.set('_online_' + client.username, JSON.stringify({
-                command: 'online-changed',
-                client: {
-                    username: client.username,
-                    onlinetime:convertTZ(new Date()),
-                    system: _current_system,
-                    logintoken:arr,
-                }
-            }), 'EX', 60 * 30 / 2);                      
-        }
-    });
+
 }
 
 function setErrorStatus(client) {
