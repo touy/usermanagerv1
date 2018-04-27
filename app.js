@@ -622,7 +622,7 @@ function get_secret_ws(js) {
                         deferred.reject(js);
                     } else {
                         js.client.data.message = 'OK';
-                        SMSToPhone(js.client.gui, content, js.client.data.user.phonenumber);
+                        SMSToPhone(js,content, js.client.data.user.phonenumber);
                         deferred.resolve(js);
                     }
                 });
@@ -1784,7 +1784,7 @@ function send_confirm_phone_sms_ws(js) {
                             p.secret = randomSecret(6, '1234567890');
                             //p.phonenumber=phone;
                             setPhoneStatus(js.client, p.secret);
-                            SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
+                            SMSToPhone(js, 'your secret is :' + p.secret, phone);
                             js.client.data.message = 'OK';
                             deferred.resolve(js);
                         } else {
@@ -1817,7 +1817,7 @@ app.all('/confirm_phone_sms', function (req, res) {
             p.secret = randomSecret(6, '1234567890');
             p.phonenumber = phone;
             // phoneSecret.push(p);
-            SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
+            SMSToPhone(js, 'your secret is :' + p.secret, phone);
             js.resp.send('secret sms sent to this phone:' + p.phonenumber);
         }
     }).catch(function (err) {
@@ -2284,7 +2284,7 @@ app.all('/submit_forgot_keys', function (req, res) {
         content += ' with phone number:' + res.phonenumber;
         content += ' please check SMS for keys' + res.keys;
 
-        SMSToPhone(js.client.gui, content, phone);
+        SMSToPhone(js, content, phone);
         js.client.resp.send(js.client);
     }).catch(function (err) {
         js.client.data.message = err;
@@ -2302,7 +2302,7 @@ function submit_forgot_keys_ws(js) {
         js.client.data.forgot = '';
         js.client.data.message = 'OK';
         console.log('forgot here');
-        SMSToPhone(js.client.gui, content, js.client.data.user.phonenumber);
+        SMSToPhone(js, content, js.client.data.user.phonenumber);
         deferred.resolve(js)
     }).catch(function (err) {
         js.client.data.message = err;
@@ -2415,15 +2415,18 @@ function LTCserviceSMS(client) {
         ws_client.on('open', function open() {
             ws_client.send(JSON.stringify(client), function (err) {
                 if (err) {
-                    js.client.data.message = err;
+                    client.data.message = err;
+                    client.data.sms.content='';
                     setErrorStatus(client);
                 }
+
             });
         });
         ws_client.on('message', function incoming(data) {
             console.log("RECIEVED  FROM SMS : ");
             // console.log(data);
             client = JSON.parse(data);
+            client.data.sms.content='';
             client.data['notification'] = 'SMS has been sent out';
             data.prefix = '';
             //delete data.res.SendSMSResult.user_id;
@@ -2432,36 +2435,36 @@ function LTCserviceSMS(client) {
     
         });
         ws_client.on("error", (err) => {
-            client.data.message = err;
+            client.data.message = err;            
             setErrorStatus(client);
         });     
     } catch (error) {
         client.data.message = err;
-            setErrorStatus(client);
+        setErrorStatus(client);
     }
    
 }
 //SMSToPhone('TEST','2055516321');
-function SMSToPhone(clientgui, content, phone) {
+function SMSToPhone(js, content, phone) {
     try {
         let client = {};
         let js = {};
-        client.gui = clientgui;
-        client.data = {};
-        client.data.sms = {};
-        client.data.sms.phonenumber = phone;
-        client.data.sms.content = content;
-        // client.data.command = 'send-sms';
-        js.client = {};
+        //client.gui = clientgui;
         js.client.data = {};
-        js.client.data.user = {};
-        js.client.data.user.phonenumber = phone;
+        js.client.data.sms = {};
+        js.client.data.sms.phonenumber = phone;
+        js.client.data.sms.content = content;
+        // client.data.command = 'send-sms';
+        // js.client = {};
+        // js.client.data = {};
+        // js.client.data.user = {};
+        // js.client.data.user.phonenumber = phone;
         console.log('send secret: ' + content);
         validate_phonenumber_ws(js).then(function (res) {
             console.log('validate: ' + res);
             if (res) {
-                console.log('SMS to ' + client.data.sms.phonenumber);
-                LTCserviceSMS(client);
+                console.log('SMS to ' + js.client.data.sms.phonenumber);
+                LTCserviceSMS(js.client);
             }
         }).catch(function (err) {
             throw err;
@@ -2658,7 +2661,7 @@ app.all('/change_password', function (req, res) {
     js.client = req.body; //client.data.device
     js.resp = res;
     // if (checkUserPermission(js.client.data.user.username))
-    change_password(js.client.data.user.username, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
+    change_password(js, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
         js.client.data.message = 'OK changed password';
         js.resp.send(js.client);
     }).catch(function (err) {
@@ -2684,7 +2687,7 @@ function change_password_ws(js) {
                     let c = JSON.parse(gui);
                     gui = c.gui;
                     findUserByGUI(gui).then(function (res) {
-                        change_password(js.client.gui, js.client.data.user.username, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
+                        change_password(js, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
                             js.client.data.message = 'OK changed password';
                             deferred.resolve(js);
                         }).catch(function (err) {
@@ -2735,9 +2738,11 @@ function updateUser(userinfo) {
     return deferred.promise;
 }
 
-function change_password(clientgui, username, phone, oldpass, newpass) {
+function change_password(js, phone, oldpass, newpass) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
+    let username=js.client.username;
+    let gui=js.client.gui;
     console.log("username:" + username);
     console.log("phone:" + phone);
     console.log("oldpass:" + oldpass);
@@ -2754,7 +2759,7 @@ function change_password(clientgui, username, phone, oldpass, newpass) {
                 console.log('updating ' + JSON.stringify(res));
                 updateUser(res).then(res => {
                     content = 'your password has been changed';
-                    SMSToPhone(clientgui, content, phone);
+                    SMSToPhone(js, content, phone);
                     deferred.resolve('OK');
                 }).catch(err => {
                     deferred.reject(err);
