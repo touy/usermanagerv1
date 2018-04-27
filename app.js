@@ -1389,6 +1389,7 @@ function login_ws(js) {
                 } else {
                     if (online) {
                         /// need to clear other login 
+                        console.log(online);
                         if (online.login) {
                             for (let index = 0; index < online.login.length; index++) {
                                 break; //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
