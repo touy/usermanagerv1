@@ -127,7 +127,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                     if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
-                if (_current_system + "_forgot_" + element.client.logintoken == key) {
+                if (_current_system + "_forgot_" + element.client.gui == key) {
 
                     console.log('forgot-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
@@ -139,7 +139,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
                 }
-                if (_current_system + "_secret_" + element.client.logintoken == key) {
+                if (_current_system + "_secret_" + element.client.gui == key) {
 
                     console.log('secret-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
@@ -2401,7 +2401,7 @@ function setErrorStatus(client) {
 }
 
 function setNotificationStatus(client) {
-    r_client.set(_current_system + '_notification_' + client.gui, JSON.stringify({
+    r_client.set(_current_system + '_notification_' + client.logintoken, JSON.stringify({
         command: 'notification-changed',
         client: client
     }), 'EX', 60 * 60 / 2); // client side could not see this , the other server as a client can see this .
@@ -2417,9 +2417,13 @@ function LTCserviceSMS(client) {
                 if (err) {
                     client.data.message = err;
                     client.data.sms.content='';
-                    setErrorStatus(client);
+                    setErrorStatus(client);                    
                 }
                 console.log('socket open...');
+                client.data.sms.content='';
+                client.data.message = 'SMS has been sent out'; 
+                client.prefix = '';                
+                setNotificationStatus(client);
 
             });
         });
@@ -2429,7 +2433,7 @@ function LTCserviceSMS(client) {
             client = JSON.parse(data);
             //console.log(client);
             client.data.sms.content='';
-            client.data['notification'] = 'SMS has been sent out'; 
+            client.data.message = 'SMS recieved!'; 
             client.prefix = '';
             
             setNotificationStatus(client);
