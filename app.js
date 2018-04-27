@@ -921,26 +921,7 @@ app.all('/default_users', function (req, res) {
     js.resp = res;
     js.client.data = {};
     //initDB();
-    let db = create_db('gijusers');
-    db.insert(__design_users, "_design/objectList", function (err, res) {
-        if (err) console.log('err insert new design ' + err);
-        else {
-            //setTimeout(() => {
-            sDefaultUsers.push(defaultUser);
-            db.bulk({
-                docs: sDefaultUsers
-            }, function (err, res) {
-                if (err) {
-                    js.client.data.message = err;
-                    js.resp.send(js.client);
-                } else {
-                    js.client.data.message = 'OK INIT default users';
-                    js.resp.send(js.client);
-                }
-            });
-            //}, 1000*3);
-        }
-    });
+    res.end();
 
 });
 app.all('/init_default_user', function (req, res) {
@@ -1019,8 +1000,26 @@ function init_default_user(js) {
     nano.db.destroy('gijusers', function (err, body) {
         js.client.data = {};
         js.client.data.message = 'destroy OK';
-        //initDB();
-        js.resp.send(js.client);
+        let db = create_db('gijusers');
+        db.insert(__design_users, "_design/objectList", function (err, res) {
+            if (err) console.log('err insert new design ' + err);
+            else {
+                //setTimeout(() => {
+                sDefaultUsers.push(defaultUser);
+                db.bulk({
+                    docs: sDefaultUsers
+                }, function (err, res) {
+                    if (err) {
+                        js.client.data.message = err;
+                        js.resp.send(js.client);
+                    } else {
+                        js.client.data.message = 'OK INIT default users';
+                        js.resp.send(js.client);
+                    }
+                });
+                //}, 1000*3);
+            }
+        });
     });
     //     } else {
     //         js.client.data = {};
