@@ -2521,15 +2521,20 @@ function get_for_got_keys(js) {
                 deferred.reject(new Error('ERROR could not send next sms need 3 minutes'));
             } else {
                 findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
-                    let keys = randomSecret(6, '1234567890');
-                    js.client.username = res.username;
-                    js.client.data.forgot = keys;
-                    setForgotStatus(js.client);
-
-
-                    //console.log('forgot here 1');
-                    //js.client.data.message='OK';
-                    deferred.resolve("OK");
+                    if(res){
+                        let keys = randomSecret(6, '1234567890');
+                        js.client.username = res.username;
+                        js.client.data.forgot = keys;
+                        setForgotStatus(js.client);
+    
+    
+                        //console.log('forgot here 1');
+                        //js.client.data.message='OK';
+                        deferred.resolve("OK");
+                    }                   
+                    else{
+                        deferred.reject(new Error('ERROR phone number not found'));
+                    }
                 }).catch(function (err) {
                     // console.log(err);
                     //js.client.data.message=err;
@@ -2571,7 +2576,7 @@ function findUserByPhone(phone) {
                 //console.log(res);
                 deferred.resolve(res.rows[0].value);
             } else
-                deferred.reject(new Error('ERROR no records'));
+            deferred.resolve('');
         }
     });
     return deferred.promise;
@@ -2608,25 +2613,29 @@ function forgot_password_ws(js) {
 function check_forgot_ws(js) {
     let deferred = Q.defer();
     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
-        r_client.get(_current_system + '_forgot_' + js.client.gui, function (err, res) {
-            if (err) deferred.reject(err);
-            else {
-                if (res) {
-                    res = JSON.parse(res);
-                    if (res.forgot===js.client.data.forgot) {
-                        console.log('check forgot OK');
-                        js.client.data.message = 'OK check forgot';
-                        deferred.resolve(js);
-                    } else
-                        js.client.data.message = (new Error('ERROR wrong keys'));
-                    deferred.reject(js);
-                } else {
-                    js.client.data.message = (new Error('ERROR empty keys'));
-                    deferred.reject(js);
+        if(res){
+            r_client.get(_current_system + '_forgot_' + js.client.gui, function (err, res) {
+                if (err) deferred.reject(err);
+                else {
+                    if (res) {
+                        res = JSON.parse(res);
+                        if (res.forgot===js.client.data.forgot) {
+                            console.log('check forgot OK');
+                            js.client.data.message = 'OK check forgot';
+                            deferred.resolve(js);
+                        } else
+                            js.client.data.message = (new Error('ERROR wrong keys'));
+                        deferred.reject(js);
+                    } else {
+                        js.client.data.message = (new Error('ERROR empty keys'));
+                        deferred.reject(js);
+                    }
+    
                 }
-
-            }
-        });
+            });
+        }else{
+            deferred.reject(new Error('ERROR phone number not found'));
+        }
     }).catch(function (err) {
         deferred.reject(err);
     });
@@ -2643,11 +2652,15 @@ function reset_password(js) {
                 res = JSON.parse(res);
                 if (res.forgot===js.client.data.forgot) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
-                        res.password = "123456";
-                        updateUser(res).then(function (res) {
+                        if(res){
+                            res.password = "123456";
+                            updateUser(res).then(function (res) {
                             r_client.del(_current_system + '_forgot_' + js.client.gui);
                             deferred.resolve('OK 123456');
-                        })
+                        });
+                        }else{
+                            deferred.reject(new Error('ERROR phone number not found'));
+                        }                        
                     }).catch(function (err) {
                         deferred.reject(err);
                     });
