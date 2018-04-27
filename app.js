@@ -2425,14 +2425,15 @@ function LTCserviceSMS(client) {
         });
         ws_client.on('message', function incoming(data) {
             console.log("RECIEVED  FROM SMS : ");
-            // console.log(data);
+            
             client = JSON.parse(data);
+            console.log(client);
             client.data.sms.content='';
-            client.data['notification'] = 'SMS has been sent out';
+            client.data['notification'] = 'SMS has been sent out'; 
             data.prefix = '';
-            //delete data.res.SendSMSResult.user_id;
+            
             setNotificationStatus(client);
-            setOnlineStatus(client);
+            //setOnlineStatus(client);
     
         });
         ws_client.on("error", (err) => {
