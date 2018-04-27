@@ -2427,7 +2427,7 @@ function LTCserviceSMS(client) {
             console.log("RECIEVED  FROM SMS : ");
             
             client = JSON.parse(data);
-            console.log(client);
+            //console.log(client);
             client.data.sms.content='';
             client.data['notification'] = 'SMS has been sent out'; 
             client.prefix = '';
