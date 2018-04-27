@@ -1770,40 +1770,51 @@ function send_confirm_phone_sms_ws(js) {
     let deferred = Q.defer();
     let p = {};
     let phone = js.client.data.user.phonenumber;
-    r_client.get(_current_system + '_phone_' + js.client.gui, (err, res) => {
-        if (err) {
-            js.client.data.message = err;
-            deferred.resolve(js);
-        } else {
-            if (res) {
-                js.client.data.message = new Error('ERROR could send more message need 3 minutes');
-                deferred.reject(js);
-            } else {
-                validate_phonenumber_ws(js).then(function (res) {
-                    findUserByPhone(phone).then(function (res) {
-                        if (res) {
-                            p.secret = randomSecret(6, '1234567890');
-                            //p.phonenumber=phone;
-                            setPhoneStatus(js.client, p.secret);
-                            SMSToPhone(js, 'your secret is :' + p.secret, phone);
-                            js.client.data.message = 'OK';
-                            deferred.resolve(js);
-                        } else {
-                            js.client.data.message = new Error('ERROR phone or username not found');;
-                            deferred.reject(js);
-                        }
-                    }).catch(function (err) {
-                        js.client.data.message = err;
-                        deferred.reject(js);
-                    });
-                }).catch(function (err) {
+    try {
+        if(phone===js.client.data.user.newphonenumber){
+            js.client.data.message = new Error('ERROR old phone number and new phone number are the same ');
+            deferred.reject(js);
+            
+        }else{
+            r_client.get(_current_system + '_phone_' + js.client.gui, (err, res) => {
+                if (err) {
                     js.client.data.message = err;
-                    deferred.reject(js);
-                });
-            }
+                    deferred.resolve(js);
+                } else {
+                    if (res) {
+                        js.client.data.message = new Error('ERROR could send more message need 3 minutes');
+                        deferred.reject(js);
+                    } else {
+                        validate_phonenumber_ws(js).then(function (res) {
+                            findUserByPhone(phone).then(function (res) {
+                                if (res) {
+                                    p.secret = randomSecret(6, '1234567890');
+                                    //p.phonenumber=phone;
+                                    setPhoneStatus(js.client, p.secret);
+                                    SMSToPhone(js, 'your secret is :' + p.secret, phone);
+                                    js.client.data.message = 'OK';
+                                    deferred.resolve(js);
+                                } else {
+                                    js.client.data.message = new Error('ERROR phone or username not found');;
+                                    deferred.reject(js);
+                                }
+                            }).catch(function (err) {
+                                js.client.data.message = err;
+                                deferred.reject(js);
+                            });
+                        }).catch(function (err) {
+                            js.client.data.message = err;
+                            deferred.reject(js);
+                        });
+                    }
+                }
+            });
         }
-    });
-
+        
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
 
     return deferred.promise;
 }
@@ -2421,7 +2432,7 @@ function LTCserviceSMS(client) {
                     setErrorStatus(client);                    
                 }
                 console.log('socket open...');
-                client.data.sms.content='';
+                //client.data.sms.content=''; /// FOR TESTING ONLY
                 client.data.message = 'SMS has been sent out'; 
                 client.prefix = '';                
                 setNotificationStatus(client);
@@ -2433,7 +2444,7 @@ function LTCserviceSMS(client) {
             
             client = JSON.parse(data);
             //console.log(client);
-            client.data.sms.content='';
+            //client.data.sms.content=''; /// FOR TESTING ONLY
             client.data.message = 'SMS recieved!'; 
             client.data.command = 'recieved-sms';
             client.prefix = '';
