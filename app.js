@@ -2411,7 +2411,7 @@ function LTCserviceSMS(client) {
     try {
         client.data.command = 'send-sms'
         client.prefix = 'user-management';
-        let ws_client = new WebSocket('ws://localhost:8081/'); //ltcservice
+        let ws_client = new WebSocket('ws://nonav.net:8081/'); //ltcservice
         ws_client.on('open', function open() {
             ws_client.send(JSON.stringify(client), function (err) {
                 if (err) {
@@ -2419,6 +2419,7 @@ function LTCserviceSMS(client) {
                     client.data.sms.content='';
                     setErrorStatus(client);
                 }
+                console.log('socket open...');
 
             });
         });
