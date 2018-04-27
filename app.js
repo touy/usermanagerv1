@@ -131,24 +131,24 @@ r_client.on("monitor", function (time, args, raw_reply) {
 
                     console.log('forgot-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                    element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_phone_" + element.client.logintoken == key) {
 
                     console.log('phone-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                    element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_secret_" + element.client.logintoken == key) {
 
                     console.log('secret-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                    element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_message_" + element.client.logintoken == key) {
                     console.log('message-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                    element.send(JSON.stringify(js));
                 }
                 if ("_online_" + element.client.username == key) {
                     console.log('online-changed');
@@ -158,7 +158,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 if (_current_system + "_notification_" + element.client.logintoken == key) {
                     console.log('notification-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                    element.send(JSON.stringify(js));
                 }
             }
         });
@@ -923,21 +923,21 @@ app.all('/default_users', function (req, res) {
     //initDB();
     let db = create_db('gijusers');
     db.insert(__design_users, "_design/objectList", function (err, res) {
-        if (err) console.log('err insert new design '  + err);
+        if (err) console.log('err insert new design ' + err);
         else {
             //setTimeout(() => {
-                sDefaultUsers.push(defaultUser);
-                db.bulk({
-                    docs: sDefaultUsers
-                }, function (err, res) {
-                    if (err) {
-                        js.client.data.message = err;
-                        js.resp.send(js.client);
-                    } else {
-                        js.client.data.message = 'OK INIT default users';
-                        js.resp.send(js.client);
-                    }
-                });
+            sDefaultUsers.push(defaultUser);
+            db.bulk({
+                docs: sDefaultUsers
+            }, function (err, res) {
+                if (err) {
+                    js.client.data.message = err;
+                    js.resp.send(js.client);
+                } else {
+                    js.client.data.message = 'OK INIT default users';
+                    js.resp.send(js.client);
+                }
+            });
             //}, 1000*3);
         }
     });
@@ -1378,60 +1378,63 @@ function login_ws(js) {
         authentication(js.client.data.user).then(function (user) {
             console.log('authen res');
             //console.log(res);
-            r_client.get('_online_'+user.username,(err,res)=>{
-                let online=JSON.parse(res);
-                if(err){
+            r_client.get('_online_' + user.username, (err, res) => {
+                let online = JSON.parse(res);
+                if (err) {
                     js.client.data.message = err;
                     js.client.data.user = {};
                     js.client.accessedtime = convertTZ(new Date());
                     //js.resp.send(js.client);
                     deferred.reject(js);
-                }
-                else{
-                    if(res){
+                } else {
+                    if (online) {
                         /// need to clear other login 
-                        for (let index = 0; index < online.login.length; index++) {
-                            break; //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
-                            const element = online.login[index];
-                            r_client.del(_current_system+'_login_'+element.logintoken);
-                            r_client.del(_current_system+'_usergui_'+element.logintoken);
+                        if (online.login) {
+                            for (let index = 0; index < online.login.length; index++) {
+                                break; //// TODO: this FUNCTION TO ALLOW 1 LOGIN TOKEN only
+                                const element = online.login[index];
+                                r_client.del(_current_system + '_login_' + element.logintoken);
+                                r_client.del(_current_system + '_usergui_' + element.logintoken);
+                            }
+                        }
+                    } else {
+                        if (!_client_prefix.match(user.system).length) {
+                            js.client.username = '';
+                            js.client.data.user = {};
+                            js.client.loginip = js.ws._socket.remoteAddress;
+                            js.client.logintoken = '';
+                            js.client.logintime = '';
+                            js.client.data.message = new Error('ERROR not allow this user');
+                            deferred.reject(js);
+                        }
+                        // else if (!res.system.match(['user-management']).length) {
+                        //     js.client.username = '';
+                        //     js.client.data.user = {};
+                        //     js.client.loginip = js.ws._socket.remoteAddress;
+                        //     js.client.logintoken = '';
+                        //     js.client.logintime = '';
+                        //     js.client.data.message = new Error('ERROR user has no an authorization');
+                        //     deferred.reject(js);
+                        // }
+                        else {
+                            js.client.username = js.client.data.user.username;
+                            js.client.data.user = {};
+                            js.client.loginip = js.ws._socket.remoteAddress;
+                            js.client.data.message = 'OK Login';
+                            js.client.logintoken = uuidV4();
+                            js.client.logintime = convertTZ(new Date());
+                            //js.resp.send(js.client);
+                            //_arrUsers.push(js.client);
+                            js.client.data.user = {};
+                            setLoginStatus(js.client);
+                            setUserGUIStatus(js.client, user.gui);
+                            setOnlineStatus(js.client);
+                            deferred.resolve(js);
                         }
                     }
-                    if (!_client_prefix.match(user.system).length) {
-                        js.client.username = '';
-                        js.client.data.user = {};
-                        js.client.loginip = js.ws._socket.remoteAddress;
-                        js.client.logintoken = '';
-                        js.client.logintime = '';
-                        js.client.data.message = new Error('ERROR not allow this user');
-                        deferred.reject(js);
-                    }
-                    // else if (!res.system.match(['user-management']).length) {
-                    //     js.client.username = '';
-                    //     js.client.data.user = {};
-                    //     js.client.loginip = js.ws._socket.remoteAddress;
-                    //     js.client.logintoken = '';
-                    //     js.client.logintime = '';
-                    //     js.client.data.message = new Error('ERROR user has no an authorization');
-                    //     deferred.reject(js);
-                    // }
-                    else {
-                        js.client.username = js.client.data.user.username;
-                        js.client.data.user = {};
-                        js.client.loginip = js.ws._socket.remoteAddress;
-                        js.client.data.message = 'OK Login';
-                        js.client.logintoken = uuidV4();
-                        js.client.logintime = convertTZ(new Date());
-                        //js.resp.send(js.client);
-                        //_arrUsers.push(js.client);
-                        js.client.data.user = {};
-                        setLoginStatus(js.client);
-                        setUserGUIStatus(js.client, user.gui);
-                        setOnlineStatus(js.client);
-                        deferred.resolve(js);
-                    }
+
                 }
-            });            
+            });
         }).catch(function (err) {
             js.client.data.message = err;
             js.client.data.user = {};
@@ -1471,7 +1474,7 @@ function authentication(userinfo) {
     console.log('check authen');
     try {
         db.view(__design_view, 'authentication', {
-            key: [userinfo.username+'', userinfo.password+'']
+            key: [userinfo.username + '', userinfo.password + '']
         }, function (err, res) {
             console.log('checking login')
             // console.log("res:"+res);
@@ -1769,7 +1772,7 @@ function send_confirm_phone_sms_ws(js) {
                         if (res) {
                             p.secret = randomSecret(6, '1234567890');
                             //p.phonenumber=phone;
-                            setPhoneStatus(js.client,p.secret);
+                            setPhoneStatus(js.client, p.secret);
                             SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
                             js.client.data.message = 'OK';
                             deferred.resolve(js);
@@ -1985,7 +1988,7 @@ function countUserListByParentName(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'countByParent', {
-            key: [username+'']
+            key: [username + '']
         },
         function (err, res) {
             if (err) deferred.reject(err);
@@ -2005,7 +2008,7 @@ function findUserListByParentName(username) {
         let count = res;
         if (res) {
             db.view(__design_view, 'findByParent', {
-                key: [username+'']
+                key: [username + '']
             }, function (err, res) {
                 if (err) deferred.reject(err);
                 else {
@@ -2215,8 +2218,8 @@ function logout_ws(js) {
     //     const element = _arrUsers[index];       
     //     if(element.username==client.data.username&&element.logintoken==client.data.logintoken){
     //r_client.del('_client_'+client.gui);    
-    r_client.del(_current_system+'_login_' + js.client.logintoken);
-    r_client.del(_current_system+'_usergui_' + js.client.logintoken);
+    r_client.del(_current_system + '_login_' + js.client.logintoken);
+    r_client.del(_current_system + '_usergui_' + js.client.logintoken);
     js.client.data = {};
     js.client.data.user = {};
     js.client.data.command = 'logout';
@@ -2311,12 +2314,14 @@ function randomSecret(howMany, chars) {
     return value.join('');
 }
 var phoneSecret = [];
-function setPhoneStatus(client,secret){
+
+function setPhoneStatus(client, secret) {
     r_client.set(_current_system + '_phone_' + client.gui, JSON.stringify({
         command: 'phone-changed',
         secret: secret
     }), 'EX', 60 * 3);
 }
+
 function setUserGUIStatus(client, gui) {
     r_client.set(_current_system + '_usergui_' + client.logintoken, JSON.stringify({
         command: 'usergui-changed',
@@ -2330,12 +2335,14 @@ function setLoginStatus(client) {
         client: client
     }), 'EX', 60 * 5);
 }
-function setForgotStatus(client){
+
+function setForgotStatus(client) {
     r_client.set(_current_system + '_forgot_' + client.gui, JSON.stringify({
         command: 'forgot-changed',
         forgot: keys
     }), 'EX', 60 * 3);
 }
+
 function setClientStatus(client) {
     r_client.set(_current_system + '_client_' + client.gui, JSON.stringify({
         command: 'client-changed',
@@ -2345,29 +2352,31 @@ function setClientStatus(client) {
 
 function setOnlineStatus(client) {
     try {
-        r_client.get('_online_'+client.username,(err,res)=>{
-            if(err){
-                client.data.message=err;
+        r_client.get('_online_' + client.username, (err, res) => {
+            if (err) {
+                client.data.message = err;
                 setErrorStatus(client);
-            }
-            else{
-                let arr=[{logintoken:client.logintoken,ip:client.loginip}];
-                if(res){
+            } else {
+                let arr = [{
+                    logintoken: client.logintoken,
+                    ip: client.loginip
+                }];
+                if (res) {
                     arr.concat(JSON.parse(res).login);
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
                     client: {
                         username: client.username,
-                        onlinetime:convertTZ(new Date()),
+                        onlinetime: convertTZ(new Date()),
                         system: _current_system,
-                        login:arr,
+                        login: arr,
                     }
-                }), 'EX', 60 * 30 / 2);                      
+                }), 'EX', 60 * 30 / 2);
             }
-        });        
+        });
     } catch (error) {
-        client.data.message=error;
+        client.data.message = error;
         setErrorStatus(client);
     }
 
@@ -2388,7 +2397,7 @@ function setNotificationStatus(client) {
 }
 
 function LTCserviceSMS(client) {
-    client.data.command='send-sms'
+    client.data.command = 'send-sms'
     client.prefix = 'user-management';
     let ws_client = new WebSocket('ws://localhost:8081/'); //ltcservice
     ws_client.on('open', function open() {
@@ -2425,7 +2434,7 @@ function SMSToPhone(clientgui, content, phone) {
         client.data.sms = {};
         client.data.sms.phonenumber = phone;
         client.data.sms.content = content;
-       // client.data.command = 'send-sms';
+        // client.data.command = 'send-sms';
         js.client = {};
         js.client.data = {};
         js.client.data.user = {};
@@ -2470,8 +2479,8 @@ function get_for_got_keys(js) {
                     js.client.username = res.username;
                     js.client.data.forgot = keys;
                     setForgotStatus(js.client);
-                    
-                    
+
+
                     //console.log('forgot here 1');
                     //js.client.data.message='OK';
                     deferred.resolve("OK");
@@ -2490,7 +2499,7 @@ function checkUserByPhone(phone) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByPhone', {
-        key: phone+''
+        key: phone + ''
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -2508,7 +2517,7 @@ function findUserByPhone(phone) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByPhone', {
-        key: phone+''
+        key: phone + ''
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -2610,7 +2619,7 @@ function findUserByUsername(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByUsername', {
-        key: username+''
+        key: username + ''
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -2746,7 +2755,7 @@ function findUserByUsernameAndPhone(username, phone) {
     let db = create_db('gijusers');
     console.log("finding : " + username + " phone:" + phone);
     db.view(__design_view, 'findByUsernameAndPhone', {
-        key: [username+'', phone+'']
+        key: [username + '', phone + '']
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
