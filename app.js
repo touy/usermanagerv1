@@ -993,33 +993,43 @@ function loadAdmin(js) {
 }
 
 function init_default_user(js) {
-    let db = create_db('gijusers');
+    //let db = create_db('gijusers');
     //console.log('default user:'+defaultUser.username);
     // findUserByUsername(defaultUser.username).then(function (res) {
     //     if (res) {
     nano.db.destroy('gijusers', function (err, body) {
         js.client.data = {};
         js.client.data.message = 'destroy OK';
-        let db = create_db('gijusers');
-        db.insert(__design_users, "_design/objectList", function (err, res) {
-            if (err) console.log('err insert new design ' + err);
-            else {
-                //setTimeout(() => {
-                sDefaultUsers.push(defaultUser);
-                db.bulk({
-                    docs: sDefaultUsers
-                }, function (err, res) {
-                    if (err) {
-                        js.client.data.message = err;
-                        js.resp.send(js.client);
-                    } else {
-                        js.client.data.message = 'OK INIT default users';
-                        js.resp.send(js.client);
-                    }
-                });
-                //}, 1000*3);
+        nano.db.create('gijusers', function (err, body) {
+            // specify the database we are going to use    
+            if (!err) {
+                console.log('database  created!');
+            } else{
+                    console.log("gijusers could not be created!");
             }
+            let db = nano.use('gijusers');
+            db.insert(__design_users, "_design/objectList", function (err, res) {
+                if (err) console.log('err insert new design ' + err);
+                else {
+                    //setTimeout(() => {
+                    sDefaultUsers.push(defaultUser);
+                    db.bulk({
+                        docs: sDefaultUsers
+                    }, function (err, res) {
+                        if (err) {
+                            js.client.data.message = err;
+                            js.resp.send(js.client);
+                        } else {
+                            js.client.data.message = 'OK INIT default users';
+                            js.resp.send(js.client);
+                        }
+                    });
+                    //}, 1000*3);
+                }
+            });
+            
         });
+
     });
     //     } else {
     //         js.client.data = {};
@@ -2398,32 +2408,38 @@ function setNotificationStatus(client) {
 }
 
 function LTCserviceSMS(client) {
-    client.data.command = 'send-sms'
-    client.prefix = 'user-management';
-    let ws_client = new WebSocket('ws://localhost:8081/'); //ltcservice
-    ws_client.on('open', function open() {
-        ws_client.send(JSON.stringify(client), function (err) {
-            if (err) {
-                js.client.data.message = err;
-                setErrorStatus(client);
-            }
+    try {
+        client.data.command = 'send-sms'
+        client.prefix = 'user-management';
+        let ws_client = new WebSocket('ws://localhost:8081/'); //ltcservice
+        ws_client.on('open', function open() {
+            ws_client.send(JSON.stringify(client), function (err) {
+                if (err) {
+                    js.client.data.message = err;
+                    setErrorStatus(client);
+                }
+            });
         });
-    });
-    ws_client.on('message', function incoming(data) {
-        console.log("RECIEVED  FROM SMS : ");
-        // console.log(data);
-        client = JSON.parse(data);
-        client.data['notification'] = 'SMS has been sent out';
-        data.prefix = '';
-        //delete data.res.SendSMSResult.user_id;
-        setNotificationStatus(client);
-        setOnlineStatus(client);
-
-    });
-    ws_client.on("error", (err) => {
+        ws_client.on('message', function incoming(data) {
+            console.log("RECIEVED  FROM SMS : ");
+            // console.log(data);
+            client = JSON.parse(data);
+            client.data['notification'] = 'SMS has been sent out';
+            data.prefix = '';
+            //delete data.res.SendSMSResult.user_id;
+            setNotificationStatus(client);
+            setOnlineStatus(client);
+    
+        });
+        ws_client.on("error", (err) => {
+            client.data.message = err;
+            setErrorStatus(client);
+        });     
+    } catch (error) {
         client.data.message = err;
-        setErrorStatus(client);
-    });
+            setErrorStatus(client);
+    }
+   
 }
 //SMSToPhone('TEST','2055516321');
 function SMSToPhone(clientgui, content, phone) {
