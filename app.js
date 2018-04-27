@@ -1949,33 +1949,33 @@ function update_phone_ws(js) {
     });
     return deferred.promise;
 }
-app.all('/update_phone', function (req, res) {
-    let js = {};
-    js.client = req.body; //client.data.device
-    js.resp = res;
-    if (checkPhoneSecret(js.client.data.secret, js.client.data.user.phonenumber))
-        findUserByUsername(client.data.user.username).then(function (res) {
-            if (res) {
-                //client.data.user.password=res.password;
-                res.phonenumber = cient.data.user.phonenumber;
-                updateUser(res).then(function (res) {
-                    js.client.data.message = 'OK updated';
-                    js.resp.send(js.client);
-                });
-            } else {
-                throw new Error('ERROR user not found');
-            }
-        }).catch(function (err) {
-            console.log(err);
-            js.client.data.message = err;
-            js.resp.send(js.client);
-        });
-    else {
-        js.client.data.message = new Error('ERROR wrong secret and phone');
-        js.resp.send(js.client);
-    }
+// app.all('/update_phone', function (req, res) {
+//     let js = {};
+//     js.client = req.body; //client.data.device
+//     js.resp = res;
+//     if (checkPhoneSecret(js.client.data.secret, js.client.data.user.phonenumber))
+//         findUserByUsername(client.data.user.username).then(function (res) {
+//             if (res) {
+//                 //client.data.user.password=res.password;
+//                 res.phonenumber = cient.data.user.phonenumber;
+//                 updateUser(res).then(function (res) {
+//                     js.client.data.message = 'OK updated';
+//                     js.resp.send(js.client);
+//                 });
+//             } else {
+//                 throw new Error('ERROR user not found');
+//             }
+//         }).catch(function (err) {
+//             console.log(err);
+//             js.client.data.message = err;
+//             js.resp.send(js.client);
+//         });
+//     else {
+//         js.client.data.message = new Error('ERROR wrong secret and phone');
+//         js.resp.send(js.client);
+//     }
 
-});
+// });
 app.all('/show_user_list', function (req, res) {
     let js = {};
     js.client = req.body; //client.data.device
