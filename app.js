@@ -123,7 +123,6 @@ r_client.on("monitor", function (time, args, raw_reply) {
                     element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_usergui_" + element.client.logintoken == key) {
-
                     console.log('usergui-changed');
                     if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
@@ -148,7 +147,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 }
                 if (_current_system + "_message_" + element.client.logintoken == key) {
                     console.log('message-changed');
-                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
                 if ("_online_" + element.client.username == key) {
@@ -158,7 +157,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 }
                 if (_current_system + "_notification_" + element.client.logintoken == key) {
                     console.log('notification-changed');
-                    if (_system_prefix.indexOf(element.client.prefix) > -1)
+                    //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
             }
@@ -351,6 +350,13 @@ function commandReader(js) {
                     break;
                 case 'check-username':
                     check_username_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'find-by-username':
+                    findUserByUsername(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
@@ -917,7 +923,7 @@ app.all('/default_users', function (req, res) {
     //initDB();
     let db = create_db('gijusers');
     db.insert(__design_users, "_design/objectList", function (err, res) {
-        if (err) console.log('err insert new design ' + dbname + err);
+        if (err) console.log('err insert new design '  + err);
         else {
             //setTimeout(() => {
                 sDefaultUsers.push(defaultUser);
@@ -1368,49 +1374,72 @@ app.all('/login', function (req, res) {
 
 function login_ws(js) {
     let deferred = Q.defer();
-    authentication(js.client.data.user).then(function (res) {
-        console.log('authen res');
-        //console.log(res);        
-        if (!_client_prefix.match(res.system).length) {
-            js.client.username = '';
+    try {
+        authentication(js.client.data.user).then(function (res) {
+            console.log('authen res');
+            //console.log(res);        
+            r_client.get('_online_'+res.username,(err,res)=>{
+                if(err){
+                    js.client.data.message = err;
+                    js.client.data.user = {};
+                    js.client.accessedtime = convertTZ(new Date());
+                    //js.resp.send(js.client);
+                    deferred.reject(js);
+                }
+                else{
+                    if(res){
+                        /// need to clear other login 
+                    }
+                    if (!_client_prefix.match(res.system).length) {
+                        js.client.username = '';
+                        js.client.data.user = {};
+                        js.client.loginip = js.ws._socket.remoteAddress;
+                        js.client.logintoken = '';
+                        js.client.logintime = '';
+                        js.client.data.message = new Error('ERROR not allow this user');
+                        deferred.reject(js);
+                    }
+                    // else if (!res.system.match(['user-management']).length) {
+                    //     js.client.username = '';
+                    //     js.client.data.user = {};
+                    //     js.client.loginip = js.ws._socket.remoteAddress;
+                    //     js.client.logintoken = '';
+                    //     js.client.logintime = '';
+                    //     js.client.data.message = new Error('ERROR user has no an authorization');
+                    //     deferred.reject(js);
+                    // }
+                    else {
+                        js.client.username = js.client.data.user.username;
+                        js.client.data.user = {};
+                        js.client.loginip = js.ws._socket.remoteAddress;
+                        js.client.data.message = 'OK Login';
+                        js.client.logintoken = uuidV4();
+                        js.client.logintime = convertTZ(new Date());
+                        //js.resp.send(js.client);
+                        //_arrUsers.push(js.client);
+                        js.client.data.user = {};
+                        setLoginStatus(js.client);
+                        setUserGUIStatus(js.client, res.gui);
+                        setOnlineStatus(js.client);
+                        deferred.resolve(js);
+                    }
+                }
+            });            
+        }).catch(function (err) {
+            js.client.data.message = err;
             js.client.data.user = {};
-            js.client.loginip = js.ws._socket.remoteAddress;
-            js.client.logintoken = '';
-            js.client.logintime = '';
-            js.client.data.message = new Error('ERROR not allow this user');
-            deferred.reject(js);
-        }
-        // else if (!res.system.match(['user-management']).length) {
-        //     js.client.username = '';
-        //     js.client.data.user = {};
-        //     js.client.loginip = js.ws._socket.remoteAddress;
-        //     js.client.logintoken = '';
-        //     js.client.logintime = '';
-        //     js.client.data.message = new Error('ERROR user has no an authorization');
-        //     deferred.reject(js);
-        // }
-        else {
-            js.client.username = js.client.data.user.username;
-            js.client.data.user = {};
-            js.client.loginip = js.ws._socket.remoteAddress;
-            js.client.data.message = 'OK Login';
-            js.client.logintoken = uuidV4();
-            js.client.logintime = convertTZ(new Date());
+            js.client.accessedtime = convertTZ(new Date());
             //js.resp.send(js.client);
-            //_arrUsers.push(js.client);
-            js.client.data.user = {};
-            setLoginStatus(js.client);
-            setUserGUIStatus(js.client, res.gui);
-            setOnlineStatus(js.client);
-            deferred.resolve(js);
-        }
-    }).catch(function (err) {
-        js.client.data.message = err;
+            deferred.reject(js);
+        });
+    } catch (error) {
+        js.client.data.message = error;
         js.client.data.user = {};
         js.client.accessedtime = convertTZ(new Date());
         //js.resp.send(js.client);
         deferred.reject(js);
-    });
+    }
+
     return deferred.promise;
 }
 
@@ -2307,14 +2336,33 @@ function setClientStatus(client) {
 }
 
 function setOnlineStatus(client) {
-    r_client.set('_online_' + client.username, JSON.stringify({
-        command: 'online-changed',
-        client: {
-            username: client.username,
-            onlinetime:convertTZ(new Date()),
-            system: _current_system
+    try {
+        
+    } catch (error) {
+        client.data.message=error;
+        setErrorStatus(client);
+    }
+    r_client.get('_online_'+client.username,(err,res)=>{
+        if(err){
+            client.data.message=err;
+            setErrorStatus(client);
         }
-    }), 'EX', 60 * 30 / 2);
+        else{
+            let arr=[client.logintoken];
+            if(res){
+                arr.push(JSON.parse(res));
+            }
+            r_client.set('_online_' + client.username, JSON.stringify({
+                command: 'online-changed',
+                client: {
+                    username: client.username,
+                    onlinetime:convertTZ(new Date()),
+                    system: _current_system,
+                    logintoken:arr,
+                }
+            }), 'EX', 60 * 30 / 2);                      
+        }
+    });
 }
 
 function setErrorStatus(client) {
@@ -2343,12 +2391,12 @@ function LTCserviceSMS(client) {
         });
     });
     ws_client.on('message', function incoming(data) {
-        data = JSON.parse(data);
+        client = JSON.parse(data);
         data['notification'] = 'SMS has been sent out';
         data.prefix = '';
         //delete data.res.SendSMSResult.user_id;
         setNotificationStatus(client);
-        setOnlineStatus(client)
+        setOnlineStatus(client);
 
     });
     ws_client.on("error", (err) => {
