@@ -147,7 +147,6 @@ r_client.on("monitor", function (time, args, raw_reply) {
                         element.send(JSON.stringify(js));
                 }
                 if (_current_system + "_message_" + element.client.logintoken == key) {
-
                     console.log('message-changed');
                     if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
@@ -614,10 +613,7 @@ function get_secret_ws(js) {
                 }), 'EX', 60 * 3, function (err, res) {
                     if (err) {
                         js.client.data.message = err;
-                        // r_client.set(_current_system+'_error_' + js.client.gui, JSON.stringify({
-                        //     command:'error-changed',
-                        //     client:js.client
-                        // }), 'EX', 60 * 5);
+                        setErrorStatus(js.client);
                         deferred.reject(js);
                     } else {
                         js.client.data.message = 'OK';
@@ -921,18 +917,21 @@ app.all('/default_users', function (req, res) {
     js.client.data = {};
     // initDB();
     let db = create_db('gijusers');
-    sDefaultUsers.push(defaultUser);
-    db.bulk({
-        docs: sDefaultUsers
-    }, function (err, res) {
-        if (err) {
-            js.client.data.message = err;
-            js.resp.send(js.client);
-        } else {
-            js.client.data.message = 'OK INIT default users';
-            js.resp.send(js.client);
-        }
-    });
+    setTimeout(() => {
+        sDefaultUsers.push(defaultUser);
+        db.bulk({
+            docs: sDefaultUsers
+        }, function (err, res) {
+            if (err) {
+                js.client.data.message = err;
+                js.resp.send(js.client);
+            } else {
+                js.client.data.message = 'OK INIT default users';
+                js.resp.send(js.client);
+            }
+        });
+    }, 1000*3);
+
 });
 app.all('/init_default_user', function (req, res) {
     let js = {};
@@ -1269,10 +1268,7 @@ function get_client_ws(js) {
         if (res) {
             js.client.clientip = js.ws._socket.remoteAddress;
             js.client.lastupdate = convertTZ(new Date());
-            r_client.set(_current_system + '_client_' + js.client.gui, JSON.stringify({
-                command: 'client-changed',
-                client: js.client
-            }), 'EX', 60 * 60 / 2);
+            setClientStatus(js.client);
             deferred.resolve(js);
         } else {
             getClient(js.client).then(function (res) {
@@ -1290,10 +1286,7 @@ function get_client_ws(js) {
                     js.client.prefix = 'GUEST-' + uuidV4();
                 //_client_prefix.push(js.client.prefix);
                 //console.log('before send '+JSON.stringify(js.client));
-                r_client.set(_current_system + '_client_' + js.client.gui, JSON.stringify({
-                    command: 'client-changed',
-                    client: js.client
-                }), 'EX', 60 * 60 / 2);
+                setClientStatus(js.client);
                 deferred.resolve(js);
 
             }).catch(function (err) {
@@ -1326,10 +1319,7 @@ app.post('/get_client', function (req, res) {
             js.client.prefix = 'GUEST-' + uuidV4();
         //_client_prefix.push(js.client.prefix);
         //console.log('before send '+JSON.stringify(js.client));
-        r_client.set(_current_system + '_client_' + js.client.gui, JSON.stringify({
-            command: 'client-changed',
-            client: js.client
-        }), 'EX', 60 * 60 / 2);
+        setClientStatus(js.client);
         js.resp.send(js.client);
 
     }).catch(function (err) {
@@ -1441,7 +1431,7 @@ function authentication(userinfo) {
     console.log('check authen');
     try {
         db.view(__design_view, 'authentication', {
-            key: [userinfo.username, userinfo.password]
+            key: [userinfo.username+'', userinfo.password+'']
         }, function (err, res) {
             console.log('checking login')
             // console.log("res:"+res);
@@ -1739,10 +1729,7 @@ function send_confirm_phone_sms_ws(js) {
                         if (res) {
                             p.secret = randomSecret(6, '1234567890');
                             //p.phonenumber=phone;
-                            r_client.set(_current_system + '_phone_' + js.client.gui, JSON.stringify({
-                                command: 'phone-changed',
-                                secret: p.secret
-                            }), 'EX', 60 * 3);
+                            setPhoneStatus(js.client,p.secret);
                             SMSToPhone(js.client.gui, 'your secret is :' + p.secret, phone);
                             js.client.data.message = 'OK';
                             deferred.resolve(js);
@@ -1958,7 +1945,7 @@ function countUserListByParentName(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'countByParent', {
-            key: [username]
+            key: [username+'']
         },
         function (err, res) {
             if (err) deferred.reject(err);
@@ -1978,7 +1965,7 @@ function findUserListByParentName(username) {
         let count = res;
         if (res) {
             db.view(__design_view, 'findByParent', {
-                key: [username]
+                key: [username+'']
             }, function (err, res) {
                 if (err) deferred.reject(err);
                 else {
@@ -2283,7 +2270,12 @@ function randomSecret(howMany, chars) {
     return value.join('');
 }
 var phoneSecret = [];
-
+function setPhoneStatus(client,secret){
+    r_client.set(_current_system + '_phone_' + client.gui, JSON.stringify({
+        command: 'phone-changed',
+        secret: secret
+    }), 'EX', 60 * 3);
+}
 function setUserGUIStatus(client, gui) {
     r_client.set(_current_system + '_usergui_' + client.logintoken, JSON.stringify({
         command: 'usergui-changed',
@@ -2297,7 +2289,12 @@ function setLoginStatus(client) {
         client: client
     }), 'EX', 60 * 5);
 }
-
+function setForgotStatus(client){
+    r_client.set(_current_system + '_forgot_' + client.gui, JSON.stringify({
+        command: 'forgot-changed',
+        forgot: keys
+    }), 'EX', 60 * 3);
+}
 function setClientStatus(client) {
     r_client.set(_current_system + '_client_' + client.gui, JSON.stringify({
         command: 'client-changed',
@@ -2310,6 +2307,7 @@ function setOnlineStatus(client) {
         command: 'online-changed',
         client: {
             username: client.username,
+            onlinetime:convertTZ(new Date()),
             system: _current_system
         }
     }), 'EX', 60 * 30 / 2);
@@ -2408,10 +2406,9 @@ function get_for_got_keys(js) {
                     let keys = randomSecret(6, '1234567890');
                     js.client.username = res.username;
                     js.client.data.forgot = keys;
-                    r_client.set(_current_system + '_forgot_' + js.client.gui, JSON.stringify({
-                        command: 'forgot-changed',
-                        forgot: keys
-                    }), 'EX', 60 * 3);
+                    setForgotStatus(js.client);
+                    
+                    
                     //console.log('forgot here 1');
                     //js.client.data.message='OK';
                     deferred.resolve("OK");
@@ -2430,7 +2427,7 @@ function checkUserByPhone(phone) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByPhone', {
-        key: phone
+        key: phone+''
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -2448,7 +2445,7 @@ function findUserByPhone(phone) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByPhone', {
-        key: phone
+        key: phone+''
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -2550,7 +2547,7 @@ function findUserByUsername(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     db.view(__design_view, 'findByUsername', {
-        key: username
+        key: username+''
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -2686,7 +2683,7 @@ function findUserByUsernameAndPhone(username, phone) {
     let db = create_db('gijusers');
     console.log("finding : " + username + " phone:" + phone);
     db.view(__design_view, 'findByUsernameAndPhone', {
-        key: [username, phone]
+        key: [username+'', phone+'']
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
@@ -2808,7 +2805,7 @@ function errorLogging(log) {
 }
 
 /****** INIT DB */
-initDB();
+//initDB();
 
 
 Array.prototype.match = function (arr2) {
