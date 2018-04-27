@@ -98,15 +98,15 @@ r_client.on("monitor", function (time, args, raw_reply) {
         timeout = arr[arr.length - 1]
     }
     let clients = wss.clients;
-    if (command == "set")
+    if (command==="set")
         wss.clients.forEach(function each(ws) {
             const element = ws;
             //console.log(element);
-            if (_current_system + "_client_" + element.gui == key) {
+            if (_current_system + "_client_" + element.gui===key) {
                 console.log('client-changed');
                 element.send(JSON.stringify(js));
             }
-            if (_current_system + "_error_" + element.gui == key) {
+            if (_current_system + "_error_" + element.gui===key) {
                 console.log('error-changed');
                 element.send(JSON.stringify(js));
                 var l = {
@@ -118,44 +118,44 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 errorLogging(l);
             }
             if (element['client'] !== undefined) {
-                if (_current_system + "_login_" + element.client.logintoken == key) {
+                if (_current_system + "_login_" + element.client.logintoken===key) {
                     console.log('login-changed');
                     element.send(JSON.stringify(js));
                 }
-                if (_current_system + "_usergui_" + element.client.logintoken == key) {
+                if (_current_system + "_usergui_" + element.client.logintoken===key) {
                     console.log('usergui-changed');
                     if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                 }
-                if (_current_system + "_forgot_" + element.client.gui == key) {
+                if (_current_system + "_forgot_" + element.client.gui===key) {
 
                     console.log('forgot-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
                 }
-                if (_current_system + "_phone_" + element.client.logintoken == key) {
+                if (_current_system + "_phone_" + element.client.logintoken===key) {
 
                     console.log('phone-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
                 }
-                if (_current_system + "_secret_" + element.client.gui == key) {
+                if (_current_system + "_secret_" + element.client.gui===key) {
 
                     console.log('secret-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
                 }
-                if (_current_system + "_message_" + element.client.logintoken == key) {
+                if (_current_system + "_message_" + element.client.logintoken===key) {
                     console.log('message-changed');
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
                     element.send(JSON.stringify(js));
                 }
-                if ("_online_" + element.client.username == key) {
+                if ("_online_" + element.client.username===key) {
                     console.log('online-changed');
                     // broad cast to all or goup ;
                     //element.send(JSON.stringify(c));
                 }
-                if (_current_system + "_notification_" + element.client.logintoken == key) {
+                if (_current_system + "_notification_" + element.client.logintoken===key) {
                     console.log('notification-changed');
                     //console.log(js);
                     //if (_system_prefix.indexOf(element.client.prefix) > -1)
@@ -468,7 +468,7 @@ wss.on('connection', function connection(ws, req) {
             // if(!data.client)  data.client={};
             // if(!data.client.gui||data.client.gui==undefined){
             //data.client.gui=uuidV4();
-            if (res.client.data.command == 'logout') {
+            if (res.client.data.command==='logout') {
                 ws.gui = '';
                 ws.lastupdate = 0;
             } else {
@@ -936,8 +936,8 @@ app.all('/init_default_user', function (req, res) {
         }
         if (res) {
             res = JSON.parse(res);
-            if (res.gui == js.client.gui)
-                if (js.client.secret == 'HGT') {
+            if (res.gui===js.client.gui)
+                if (js.client.secret==='HGT') {
                     init_default_user(js);
                     js.client.data.message = 'init OK by HGT';
 
@@ -1149,7 +1149,7 @@ const checkPrefix = function (req, res, next) {
     //js.client.ip=req.ip;
     js.client = req.body;
     console.log('using path' + req.path);
-    if (req.path == '/get_client')
+    if (req.path==='/get_client')
         next();
     else if (_client_prefix.indexOf(js.client.prefix) > -1) {
         next();
@@ -1173,7 +1173,7 @@ app.use(checkPrefix);
 //     if (checkAuthenPath(req.path)) {
 //         for (let index = 0; index < _arrUsers.length; index++) {
 //             const element = _arrUsers[index];
-//             if (element.username == js.client.username && element.logintoken == js.client.logintoken)
+//             if (element.username===js.client.username && element.logintoken===js.client.logintoken)
 //                 isAuthen = true;
 //         }
 //         if (isAuthen) {
@@ -1195,7 +1195,7 @@ app.use(checkPrefix);
 // function checkRolePath(urlpath, roles) {
 //     for (let index = 0; index < roles.length; index++) {
 //         for (let i = 0; i < _author_path.length; i++) {
-//             if (_author_path[i].urlpath == urlpath && _author_path[i].roles.indexOf(roles[index]) > -1)
+//             if (_author_path[i].urlpath===urlpath && _author_path[i].roles.indexOf(roles[index]) > -1)
 //                 return true;
 //         }
 //     }
@@ -1253,8 +1253,8 @@ function get_system_prefix() {
 }
 
 function init_client(client) {
-    if (client == undefined || null) client = _client;
-    if (client.data == undefined || null) client = _client;
+    if (client===undefined || null) client = _client;
+    if (client.data===undefined || null) client = _client;
 }
 app.post('/test', function (req, res) {
     res.send('TEST OK');
@@ -1588,7 +1588,7 @@ function addNewUser(userinfo) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     let parents = [];
-    if (userinfo.parents == undefined) {
+    if (userinfo.parents===undefined) {
         userinfo.parents = ['default'];
     }
     parents.push(userinfo.parents[0]);
@@ -1774,7 +1774,6 @@ function send_confirm_phone_sms_ws(js) {
         if(phone===js.client.data.user.newphonenumber){
             js.client.data.message = new Error('ERROR old phone number and new phone number are the same ');
             deferred.reject(js);
-            
         }else{
             r_client.get(_current_system + '_phone_' + js.client.gui, (err, res) => {
                 if (err) {
@@ -1788,12 +1787,22 @@ function send_confirm_phone_sms_ws(js) {
                         validate_phonenumber_ws(js).then(function (res) {
                             findUserByPhone(phone).then(function (res) {
                                 if (res) {
-                                    p.secret = randomSecret(6, '1234567890');
-                                    //p.phonenumber=phone;
-                                    setPhoneStatus(js.client, p.secret);
-                                    SMSToPhone(js, 'your secret is :' + p.secret, phone);
-                                    js.client.data.message = 'OK';
-                                    deferred.resolve(js);
+                                    findUserByPhone(js.client.data.user.newphonenumber).then(function (res) {
+                                        if(res){
+                                            js.client.data.message = new Error('ERROR can not use this new phone number');;
+                                            deferred.reject(js);
+                                        }else{
+                                            p.secret = randomSecret(6, '1234567890');
+                                            //p.phonenumber=phone;
+                                            setPhoneStatus(js.client, p.secret);
+                                            SMSToPhone(js, 'your secret is :' + p.secret, js.client.data.user.newphonenumber);
+                                            js.client.data.message = 'OK';
+                                            deferred.resolve(js);
+                                        }
+                                    }).catch(err=>{
+                                        js.client.data.message = err;
+                                        deferred.reject(js);
+                                    });
                                 } else {
                                     js.client.data.message = new Error('ERROR phone or username not found');;
                                     deferred.reject(js);
@@ -1842,7 +1851,7 @@ app.all('/confirm_phone_sms', function (req, res) {
 // function checkPhoneSecret(secret, phone) {
 //     for (let index = 0; index < phoneSecret.length; index++) {
 //         const element = phoneSecret[index];
-//         if (element.secret == secret && element.phonenumber == phone) {
+//         if (element.secret===secret && element.phonenumber===phone) {
 //             return true;
 //             delete phoneSecret[index];
 //         }
@@ -1868,7 +1877,7 @@ function check_confirm_phone_ws(js) {
             if (res) {
                 res = JSON.parse(res);
                 console.log(res);
-                if (res.secret == js.client.data.secret) {
+                if (res.secret === js.client.data.secret) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         if (res) {
                             js.client.data.message = 'OK secret';
@@ -1908,7 +1917,7 @@ function update_phone_ws(js) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         if (res) {
                             //client.data.user.password=res.password;
-                            if (res.oldphone == undefined)
+                            if (res.oldphone === undefined)
                                 res.oldphone = [];
                             res.oldphone.push(res.phonenumber);
                             res.phonenumber = js.client.data.user.newphonenumber;
@@ -2142,7 +2151,7 @@ function filterObject(obj) {
             let key = need[x];
             if (!obj.hasOwnProperty(i)) {} else if (Array.isArray(obj[i])) {
                 obj[i] = '';
-            } else if (typeof obj[i] == 'object') {
+            } else if (typeof obj[i]==='object') {
                 filterObject(obj[i], need);
             } else if (i.indexOf(key) > -1) {
                 obj[i] = '';
@@ -2604,7 +2613,7 @@ function check_forgot_ws(js) {
             else {
                 if (res) {
                     res = JSON.parse(res);
-                    if (res.forgot == js.client.data.forgot) {
+                    if (res.forgot===js.client.data.forgot) {
                         console.log('check forgot OK');
                         js.client.data.message = 'OK check forgot';
                         deferred.resolve(js);
@@ -2632,7 +2641,7 @@ function reset_password(js) {
         else {
             if (res) {
                 res = JSON.parse(res);
-                if (res.forgot == js.client.data.forgot) {
+                if (res.forgot===js.client.data.forgot) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         res.password = "123456";
                         updateUser(res).then(function (res) {
