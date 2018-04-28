@@ -1887,6 +1887,7 @@ function check_confirm_phone_ws(js) {
             if (res) {
                 res = JSON.parse(res);
                 console.log(res);
+                console.log((res.secret === js.client.data.secret));
                 if (res.secret === js.client.data.secret) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         if (res) {
@@ -1902,7 +1903,7 @@ function check_confirm_phone_ws(js) {
                         deferred.reject(js);
                     });
                 } else {
-                    js.client.data.message = new Error('ERROR wrong secret and phone');
+                    js.client.data.message = new Error('ERROR wrong secret');
                     deferred.reject(js);
                 }
             } else {
