@@ -1886,9 +1886,11 @@ function check_confirm_phone_ws(js) {
         } else {
             if (res) {
                 res = JSON.parse(res);
-                console.log(res);
-                console.log(`$js.client.data.secret`);
-                console.log(`$res.secret`);
+                
+                console.log(`OK 
+                `+JSON.stringify(res));
+                console.log($js.client.data.secret);
+                console.log(res.secret);
                 console.log((res.secret === js.client.data.secret));
 
                 if (res.secret === js.client.data.secret) {
