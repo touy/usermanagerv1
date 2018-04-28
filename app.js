@@ -1887,7 +1887,10 @@ function check_confirm_phone_ws(js) {
             if (res) {
                 res = JSON.parse(res);
                 console.log(res);
+                console.log(`$js.client.data.secret`);
+                console.log(`$res.secret`);
                 console.log((res.secret === js.client.data.secret));
+
                 if (res.secret === js.client.data.secret) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
                         if (res) {
