@@ -1074,6 +1074,13 @@ var __design_users = {
         "findByUsername": {
             "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit(doc.username.toLowerCase(),doc);\r\n    }\r\n}"
         },
+        "searchByUsername":{
+            "map":`function (doc) {
+                if(doc.username)
+                emit(doc.username, doc);
+                //startkey="abc"&endkey="abc\ufff0"
+                }`
+        },
         "findByUserGui": {
             "map": "function(doc) {\r\n    if(doc.gui) {\r\n        emit(doc.gui,doc);\r\n    }\r\n}"
         },
@@ -1092,6 +1099,9 @@ var __design_users = {
         },
         "findByParent": {
             "map": "function (doc) {\n   for(var i=0;i<doc.parents.length;i++) emit([doc.parents[i]], doc);\n}"
+        },
+        "searchByParent": {
+            "map": "function (doc) {\n   for(var i=0;i<doc.parents.length;i++) if(doc.username)emit([doc.parents[i],doc.username], doc);\n}"
         },
         "countByParent": {
             "reduce": "_count",
@@ -2032,7 +2042,38 @@ function countUserListByParentName(username) {
             }
         });
 }
-
+function searchUserByParentName(parent,username){
+    let deferred = Q.defer();
+    let db = create_db('gijusers');
+    db.view(__design_view, 'searchByParent', {
+        startkey: [parent + '',username+''],
+        endkey: [parent + '',username+'\ufff0'],
+        descending:true,
+        limit:30
+    }, function (err, res) {
+        if (err) deferred.reject(err);
+        else {
+            if (res.rows.length) {
+                let arr = [];
+                for (let index = 0; index < res.rows.length; index++) {
+                    const element = res.rows[index].value;
+                    let e = {};
+                    e.gui = element.gui;
+                    e.username = element.username;
+                    e._id = element._id;
+                    arr.push(e);
+                }
+                deferred.resolve({
+                    arr: arr,
+                    count: count
+                });
+            } else {
+                deferred.reject(new Error('ERROR NO SUB USERS'));
+            }
+        }
+    });
+    return deferred.promise;
+}
 function findUserListByParentName(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
@@ -2673,7 +2714,33 @@ function reset_password(js) {
 
     return deferred.promise;
 }
-
+function searchUserByUsername(username){
+    try {
+        let deferred = Q.defer();
+        let db = create_db('gijusers');
+        db.view(__design_view, 'searchByUsername', {
+            startkey: username + '',
+            endkey:username +'\ufff0"',
+            limit:30,
+            descending:true,
+        }, function (err, res) {
+            if (err) deferred.reject(err);
+            else {
+                //console.log(res);
+                let arr=[];
+                for (let index = 0; index < res.rows.length; index++) {
+                    const element = res.rows[index].value;
+                    arr.push(element);
+                }
+                deferred.resolve(arr);
+            }
+        });    
+    } catch (error) {
+       deferred.reject(error); 
+    }
+    
+    return deferred.promise;
+}
 function findUserByUsername(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
