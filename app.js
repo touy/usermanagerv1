@@ -1887,11 +1887,11 @@ function check_confirm_phone_ws(js) {
             if (res) {
                 res = JSON.parse(res);
                 
-                console.log('client');
-                console.log(js.client);
-                console.log('res')
-                console.log(res.secret);
-                console.log((res.secret === js.client.data.secret));
+                // console.log('client');
+                // console.log(js.client);
+                // console.log('res')
+                // console.log(res.secret);
+                // console.log((res.secret === js.client.data.secret));
 
                 if (res.secret === js.client.data.secret) {
                     findUserByPhone(js.client.data.user.phonenumber).then(function (res) {
@@ -2415,7 +2415,7 @@ function setLoginStatus(client) {
     }), 'EX', 60 * 5);
 }
 
-function setForgotStatus(client) {
+function setForgotStatus(client,keys) {
     r_client.set(_current_system + '_forgot_' + client.gui, JSON.stringify({
         command: 'forgot-changed',
         forgot: keys
@@ -2572,7 +2572,7 @@ function get_for_got_keys(js) {
                         let keys = randomSecret(6, '1234567890');
                         js.client.username = res.username;
                         js.client.data.forgot = keys;
-                        setForgotStatus(js.client);
+                        setForgotStatus(js.client,keys);
     
     
                         //console.log('forgot here 1');
