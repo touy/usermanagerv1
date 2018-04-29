@@ -2449,20 +2449,20 @@ function setOnlineStatus(client) {
                     if(res.login!==undefined) 
                         res.login.push(arr[0]);
                     arr=res.login;
-                    if(res.login!==undefined){
-                        // res.login.push(arr[0]);
-                        // arr=res.login;
-                        // let exist=false;
-                        // for (let index = 0; index < res.login.length; index++) {
-                        //     const element = res.login[index];
-                        //     if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
-                        //         exists=true;
-                        //     }
-                        // }
-                        // if(!exist){
-                        //     arr = res.login.concat(arr);                            
-                        // }  
-                    }                                                       
+                    // if(res.login!==undefined){
+                    //     // res.login.push(arr[0]);
+                    //     // arr=res.login;
+                    //     // let exist=false;
+                    //     // for (let index = 0; index < res.login.length; index++) {
+                    //     //     const element = res.login[index];
+                    //     //     if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
+                    //     //         exists=true;
+                    //     //     }
+                    //     // }
+                    //     // if(!exist){
+                    //     //     arr = res.login.concat(arr);                            
+                    //     // }  
+                    // }                                                       
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
@@ -2476,6 +2476,7 @@ function setOnlineStatus(client) {
             }
         });
     } catch (error) {
+        console.log(error);
         client.data.message = error;
         setErrorStatus(client);
     }
