@@ -2443,7 +2443,8 @@ function setOnlineStatus(client) {
                     gui:client.gui
                 }];
                 if (res) {
-                    res=JSON.parse(res);                    
+                    res=JSON.parse(res);                
+                    console.log(res);    
                     if(res.login!==undefined){
                         let exist=false;
                         for (let index = 0; index < res.login.length; index++) {
@@ -2453,10 +2454,11 @@ function setOnlineStatus(client) {
                             }
                         }
                         if(!exist){
-                            arr = res.login.concat(arr);
+                            arr = res.login.concat(arr);                            
                         }  
                     }             
-                                          
+                    console.log('arr');
+                    console.log(arr);                                          
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
