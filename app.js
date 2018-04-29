@@ -722,6 +722,7 @@ function heartbeat_ws(js) {
         if (err) {
             js.client.data.message = err;
             setErrorStatus(js.client);
+            deferred.reject(js);
         } else if (res) {
             js.client.data.message = 'heart beat with login';
             r_client.get(_current_system + '_usergui_' + js.client.logintoken, (err, res) => {
@@ -731,7 +732,9 @@ function heartbeat_ws(js) {
                 } else {
                     res = JSON.parse(res);
                     if (res.gui) {
-                        setUserGUIStatus(js.client, res.gui)
+                        setUserGUIStatus(js.client, res.gui);
+                        js.client.data.message='OK heart beat'
+                        deferred.resolve(js);
                     } else {
                         js.client.data.message = new Error('ERROR gui not found');
                         deferred.reject(js);
@@ -741,13 +744,14 @@ function heartbeat_ws(js) {
             setLoginStatus(js.client);
             setClientStatus(js.client);
             setOnlineStatus(js.client);
-
+            deferred.resolve(js);
         } else {
-            js.client.data.message = 'heart beat no login';
-            setClientStatus(js.client)
+            js.client.data.message = new Error('ERROR heart beat no login');
+            setClientStatus(js.client);
+            deferred.reject(js);
+            
         };
     });
-    deferred.resolve(js);
     return deferred.promise;
 }
 
@@ -2452,10 +2456,7 @@ function setOnlineStatus(client) {
                         // arr=res.login;
                         let exist=false;
                         for (let index = 0; index < res.client.login.length; index++) {
-                            const element = res.client.login[index];
-                            console.log('%s %s %s',element.gui,element.clientip,element.loginip);
-                            console.log('%s %s %s',client.gui,client.clientip,client.loginip);
-
+                            const element = res.client.login[index];                            
                             if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
                                 exist=true;
                                 console.log('exist');
