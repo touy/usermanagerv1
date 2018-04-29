@@ -748,8 +748,7 @@ function heartbeat_ws(js) {
         } else {
             js.client.data.message = new Error('ERROR heart beat no login');
             setClientStatus(js.client);
-            deferred.reject(js);
-            
+            deferred.resolve(js);            
         };
     });
     return deferred.promise;
@@ -1297,52 +1296,43 @@ function checkCurrentClient(client) {
 
 function get_client_ws(js) {
     let deferred = Q.defer();
-    r_client.get(_current_system+'_client_'+js.client.gui,(err,res)=>{
-        if(err){
-            js.client.data.message=err;
-            deferred.reject(js);
-        }else{
-            if(res){
+    checkCurrentClient(js.client).then(res => {
+        if (res) {
+            js.client.clientip = js.ws._socket.remoteAddress;
+            js.client.lastupdate = convertTZ(new Date());
+            setClientStatus(js.client);
+            deferred.resolve(js);
+        } else {
+            init_client(js.client);
+            getClient(js.client).then(function (res) {
+                //js.client=res;
+                //console.log(js.ws._socket.remoteAddress);
+                js.client.clientip = js.ws._socket.remoteAddress;
+                js.client.accessedtime = convertTZ(new Date());
+                js.client.lastupdate = convertTZ(new Date());
+                js.client.timeout = 60 * 60 * 24;
+                js.client.logintoken = '';
+                js.client.logintime = '';
+                //js.client.gui=uuidV4();        
+                js.client.data.message = 'OK new client';
+                if (!js.client.prefix)
+                    js.client.prefix = 'GUEST-' + uuidV4();
+                //_client_prefix.push(js.client.prefix);
+                //console.log('before send '+JSON.stringify(js.client));
+                setClientStatus(js.client);
+                deferred.resolve(js);
 
-            }else{
-                init_client(js.client);
-                checkCurrentClient(js.client).then(res => {
-                    if (res) {
-                        js.client.clientip = js.ws._socket.remoteAddress;
-                        js.client.lastupdate = convertTZ(new Date());
-                        setClientStatus(js.client);
-                        deferred.resolve(js);
-                    } else {
-                        getClient(js.client).then(function (res) {
-                            //js.client=res;
-                            //console.log(js.ws._socket.remoteAddress);
-                            js.client.clientip = js.ws._socket.remoteAddress;
-                            js.client.accessedtime = convertTZ(new Date());
-                            js.client.lastupdate = convertTZ(new Date());
-                            js.client.timeout = 60 * 60 * 24;
-                            js.client.logintoken = '';
-                            js.client.logintime = '';
-                            //js.client.gui=uuidV4();        
-                            js.client.data.message = 'OK new client';
-                            if (!js.client.prefix)
-                                js.client.prefix = 'GUEST-' + uuidV4();
-                            //_client_prefix.push(js.client.prefix);
-                            //console.log('before send '+JSON.stringify(js.client));
-                            setClientStatus(js.client);
-                            deferred.resolve(js);
-            
-                        }).catch(function (err) {
-                            //console.log(err);    
-                            js.client.data.message = err;
-                            deferred.reject(js);
-                        });
-                    }
-                }).catch(err => {
-                    deferred.reject(err);
-                });
-            }
+            }).catch(function (err) {
+                //console.log(err);    
+                js.client.data.message = err;
+                deferred.reject(js);
+            });
         }
+    }).catch(err => {
+        js.client.data.message = err;
+        deferred.reject(js);
     });
+            
     return deferred.promise;
 }
 app.post('/get_client', function (req, res) {
