@@ -2444,7 +2444,7 @@ function setOnlineStatus(client) {
                 }];
                 if (res) {
                     res=JSON.parse(res);                
-                    console.log(res);    
+                    console.log(JSON.stringify(res);    
                     if(res.login!==undefined){
                         let exist=false;
                         for (let index = 0; index < res.login.length; index++) {
@@ -2458,7 +2458,7 @@ function setOnlineStatus(client) {
                         }  
                     }             
                     console.log('arr');
-                    console.log(arr);                                          
+                    console.log(JSON.stringify(arr));                                          
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
