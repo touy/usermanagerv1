@@ -1,0 +1,39 @@
+{
+  "name": "usermanager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "async": "^2.6.0",
+    "cors": "^2.8.4",
+    "detect-browser": "^2.0.0",
+    "express": "^4.16.2",
+    "fs": "^0.0.1-security",
+    "method-override": "^2.3.10",
+    "moment": "^2.20.1",
+    "moment-timezone": "^0.5.14",
+    "multer": "^1.3.0",
+    "nano": "^6.4.2",
+    "password-validator": "^4.0.0",
+    "path": "^0.12.7",
+    "q": "^1.5.1",
+    "redis": "^2.8.0",
+    "request": "^2.83.0",
+    "uuid": "^3.2.1",
+    "web-terminal": "^0.7.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/touy/usermanager.git"
+  },
+  "author": "touy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/touy/usermanager/issues"
+  },
+  "homepage": "https://github.com/touy/usermanager#readme"
+}
