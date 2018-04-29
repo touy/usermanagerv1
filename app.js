@@ -2440,14 +2440,18 @@ function setOnlineStatus(client) {
                     logintoken: client.logintoken,
                     logip: client.loginip,
                     clientip:client.clientip,
-                    gui:client.gui
+                    gui:client.gui+' NO RES'
                 }];
                 if (res) {
+                    arr.gui+=' , there is RES';
                     res=JSON.parse(res);                
-                    // console.log(res);    
-                    if(res.login!==undefined){
+                    // console.log(res);   
+                    if(res.login!==undefined) 
                         res.login.push(arr[0]);
-                        arr=res.login;
+                    arr=res.login;
+                    if(res.login!==undefined){
+                        // res.login.push(arr[0]);
+                        // arr=res.login;
                         // let exist=false;
                         // for (let index = 0; index < res.login.length; index++) {
                         //     const element = res.login[index];
