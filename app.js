@@ -2441,7 +2441,7 @@ function setOnlineStatus(client) {
                     ip: client.loginip
                 }];
                 if (res) {
-                    arr.concat(JSON.parse(res).login);
+                    arr = arr.concat(JSON.parse(res).login);
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
