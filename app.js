@@ -1408,7 +1408,7 @@ function login_ws(js) {
                     deferred.reject(js);
                 } else {
                     if(!online){
-
+                        
                     } else{
                         /// need to clear other login 
                         // console.log(online);
@@ -2440,7 +2440,7 @@ function setOnlineStatus(client) {
                     logintoken: client.logintoken,
                     logip: client.loginip,
                     clientip:client.clientip,
-                    gui:client.gui+' NO RES'
+                    gui:client.gui
                 }];
                 if (res) {
                    // arr[0].gui+=' , there is RES';
