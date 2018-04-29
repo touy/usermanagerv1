@@ -2443,12 +2443,13 @@ function setOnlineStatus(client) {
                     gui:client.gui+' NO RES'
                 }];
                 if (res) {
-                    arr[0].gui+=' , there is RES';
+                   // arr[0].gui+=' , there is RES';
                     res=JSON.parse(res);                
                     // console.log(res);   
                     if(res.login!==undefined) 
-                        res.login.push(arr[0]);
-                    arr=res.login;
+                        res.login=[];
+                    res.login.push(arr[0]);
+                    //arr=res.login;
                     // if(res.login!==undefined){
                     //     // res.login.push(arr[0]);
                     //     // arr=res.login;
@@ -2470,7 +2471,7 @@ function setOnlineStatus(client) {
                         username: client.username,
                         onlinetime: convertTZ(new Date()),
                         system: _current_system,
-                        login: arr,
+                        login: res.login,
                     }
                 }), 'EX', 60 * 30 / 2);
             }
