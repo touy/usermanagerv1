@@ -2464,7 +2464,7 @@ function setOnlineStatus(client) {
                             }
                         }
                         if(!exist){
-                            arr = res.login.concat(arr);                            
+                            arr = res.client.login.concat(arr);                            
                         }  
                     }                                                       
                 }
