@@ -2453,9 +2453,12 @@ function setOnlineStatus(client) {
                         let exist=false;
                         for (let index = 0; index < res.client.login.length; index++) {
                             const element = res.client.login[index];
+                            console.log('%s %s %s',element.gui,element.clientip,element.loginip);
+                            console.log('%s %s %s',client.gui,client.clientip,client.loginip);
+
                             if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
                                 exists=true;
-                                break;
+                               // break;
                             }
                         }
                         if(!exist){
