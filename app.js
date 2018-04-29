@@ -2453,9 +2453,9 @@ function setOnlineStatus(client) {
                             }
                         }
                         if(!exist){
-                            arr = arr.concat(res.login);
+                            arr = res.login.concat(arr);
                         }  
-                    }                    
+                    }             
                                           
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
