@@ -2444,7 +2444,7 @@ function setOnlineStatus(client) {
                 }];
                 if (res) {
                     res=JSON.parse(res);                
-                    console.log(JSON.stringify(res);    
+                    console.log(JSON.stringify(res));    
                     if(res.login!==undefined){
                         let exist=false;
                         for (let index = 0; index < res.login.length; index++) {
