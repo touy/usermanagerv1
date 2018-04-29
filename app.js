@@ -2441,7 +2441,7 @@ function setOnlineStatus(client) {
             } else {
                 let arr = [{
                     logintoken: client.logintoken,
-                    logip: client.loginip,
+                    loginip: client.loginip,
                     clientip:client.clientip,
                     gui:client.gui
                 }];
