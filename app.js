@@ -2445,20 +2445,20 @@ function setOnlineStatus(client) {
                 }];
                 if (res) {
                     res=JSON.parse(res);                
+                    arr = res.login.concat(arr);   
                     //console.log(JSON.stringify(res));    
-                    if(res.login!==undefined){
-                        let exist=false;
-                        for (let index = 0; index < res.login.length; index++) {
-                            const element = res.login[index];
-                            if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
-                                exists=true;
-                            }
-                        }
-                        if(!exist){
-                            //arr = res.login.concat(arr);                            
-                        }  
-                        arr = res.login.concat(arr);   
-                    }             
+                    // if(res.login!==undefined){
+                    //     let exist=false;
+                    //     for (let index = 0; index < res.login.length; index++) {
+                    //         const element = res.login[index];
+                    //         if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
+                    //             exists=true;
+                    //         }
+                    //     }
+                    //     if(!exist){
+                    //         arr = res.login.concat(arr);                            
+                    //     }  
+                    // }             
                     // console.log('arr');
                     // console.log(JSON.stringify(arr));                                          
                 }
