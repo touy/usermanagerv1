@@ -2436,18 +2436,17 @@ function setOnlineStatus(client) {
                 client.data.message = err;
                 setErrorStatus(client);
             } else {
-                let arr = {
+                let arr = [{
                     logintoken: client.logintoken,
                     logip: client.loginip,
                     clientip:client.clientip,
                     gui:client.gui
-                };
+                }];
                 if (res) {
                     res=JSON.parse(res);                
                     // console.log(res);    
                     if(res.login!==undefined){
-                        res.login.push(arr);
-                        arr=res.login;
+                        res.login.push(arr[0]);
                         // let exist=false;
                         // for (let index = 0; index < res.login.length; index++) {
                         //     const element = res.login[index];
