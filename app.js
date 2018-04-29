@@ -2443,7 +2443,7 @@ function setOnlineStatus(client) {
                     gui:client.gui+' NO RES'
                 }];
                 if (res) {
-                    arr.gui+=' , there is RES';
+                    arr[0].gui+=' , there is RES';
                     res=JSON.parse(res);                
                     // console.log(res);   
                     if(res.login!==undefined) 
