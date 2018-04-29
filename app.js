@@ -2446,7 +2446,7 @@ function setOnlineStatus(client) {
                    // arr[0].gui+=' , there is RES';
                     res=JSON.parse(res);                
                     // console.log(res);   
-                    if(res.login!==undefined) 
+                    if(res.login===undefined) 
                         res.login=[];
                     res.login.push(arr[0]);
                     //arr=res.login;
