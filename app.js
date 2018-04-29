@@ -2455,6 +2455,7 @@ function setOnlineStatus(client) {
                             const element = res.client.login[index];
                             if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
                                 exists=true;
+                                break;
                             }
                         }
                         if(!exist){
