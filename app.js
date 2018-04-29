@@ -2447,6 +2447,7 @@ function setOnlineStatus(client) {
                     // console.log(res);    
                     if(res.login!==undefined){
                         res.login.push(arr[0]);
+                        arr=res.login;
                         // let exist=false;
                         // for (let index = 0; index < res.login.length; index++) {
                         //     const element = res.login[index];
