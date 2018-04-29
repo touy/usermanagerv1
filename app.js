@@ -2458,7 +2458,8 @@ function setOnlineStatus(client) {
 
                             if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
                                 exists=true;
-                               // break;
+                                console.log('exist');
+                                break;
                             }
                         }
                         if(!exist){
