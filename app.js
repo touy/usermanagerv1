@@ -1449,9 +1449,10 @@ function login_ws(js) {
                             //js.resp.send(js.client);
                             //_arrUsers.push(js.client);
                             js.client.data.user = {};
+                            setOnlineStatus(js.client);
                             setLoginStatus(js.client);
                             setUserGUIStatus(js.client, user.gui);
-                            setOnlineStatus(js.client);
+                            
                             deferred.resolve(js);
                         }                    
 
@@ -2444,7 +2445,7 @@ function setOnlineStatus(client) {
                 }];
                 if (res) {
                     res=JSON.parse(res);                
-                    console.log(JSON.stringify(res));    
+                    //console.log(JSON.stringify(res));    
                     if(res.login!==undefined){
                         let exist=false;
                         for (let index = 0; index < res.login.length; index++) {
@@ -2454,11 +2455,12 @@ function setOnlineStatus(client) {
                             }
                         }
                         if(!exist){
-                            arr = res.login.concat(arr);                            
+                            //arr = res.login.concat(arr);                            
                         }  
+                        arr = res.login.concat(arr);   
                     }             
-                    console.log('arr');
-                    console.log(JSON.stringify(arr));                                          
+                    // console.log('arr');
+                    // console.log(JSON.stringify(arr));                                          
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
@@ -2475,7 +2477,6 @@ function setOnlineStatus(client) {
         client.data.message = error;
         setErrorStatus(client);
     }
-
 }
 
 function setErrorStatus(client) {
