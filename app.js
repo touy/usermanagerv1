@@ -2445,14 +2445,8 @@ function setOnlineStatus(client) {
                     clientip:client.clientip,
                     gui:client.gui
                 }];
-                if (res) {
-                   // arr[0].gui+=' , there is RES';
-                    res=JSON.parse(res);                
-                    // // console.log(res);   
-                    // if(res.client.login===undefined) 
-                    //     res.client.login=[];
-                    // res.client.login.push(arr[0]);
-                    //arr=res.login;
+                if (res) {                   
+                    res=JSON.parse(res);                                    
                     if(res.client.login!==undefined){
                         // res.client.login.push(arr[0]);
                         // arr=res.login;
@@ -2466,7 +2460,7 @@ function setOnlineStatus(client) {
                         if(!exist){
                             arr = res.client.login.concat(arr);                            
                         }  
-                    }                                                       
+                    }                                            
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
@@ -2474,7 +2468,7 @@ function setOnlineStatus(client) {
                         username: client.username,
                         onlinetime: convertTZ(new Date()),
                         system: _current_system,
-                        login: res.login,
+                        login: arr,
                     }
                 }), 'EX', 60 * 30 / 2);
             }
