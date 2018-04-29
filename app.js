@@ -1408,7 +1408,7 @@ function login_ws(js) {
                     deferred.reject(js);
                 } else {
                     if(!online){
-                        
+
                     } else{
                         /// need to clear other login 
                         // console.log(online);
@@ -1452,7 +1452,10 @@ function login_ws(js) {
                             setLoginStatus(js.client);
                             setUserGUIStatus(js.client, user.gui);
                             setOnlineStatus(js.client);
-                            deferred.resolve(js);
+                            setTimeout(() => {
+                                deferred.resolve(js);
+                            }, 1000*3);
+                            
                         }                    
 
                 }
