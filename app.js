@@ -2448,25 +2448,25 @@ function setOnlineStatus(client) {
                 if (res) {
                    // arr[0].gui+=' , there is RES';
                     res=JSON.parse(res);                
-                    // console.log(res);   
-                    if(res.login===undefined) 
-                        res.login=[];
-                    res.login.push(arr[0]);
+                    // // console.log(res);   
+                    // if(res.client.login===undefined) 
+                    //     res.client.login=[];
+                    // res.client.login.push(arr[0]);
                     //arr=res.login;
-                    // if(res.login!==undefined){
-                    //     // res.login.push(arr[0]);
-                    //     // arr=res.login;
-                    //     // let exist=false;
-                    //     // for (let index = 0; index < res.login.length; index++) {
-                    //     //     const element = res.login[index];
-                    //     //     if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
-                    //     //         exists=true;
-                    //     //     }
-                    //     // }
-                    //     // if(!exist){
-                    //     //     arr = res.login.concat(arr);                            
-                    //     // }  
-                    // }                                                       
+                    if(res.client.login!==undefined){
+                        // res.client.login.push(arr[0]);
+                        // arr=res.login;
+                        let exist=false;
+                        for (let index = 0; index < res.client.login.length; index++) {
+                            const element = res.client.login[index];
+                            if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
+                                exists=true;
+                            }
+                        }
+                        if(!exist){
+                            arr = res.login.concat(arr);                            
+                        }  
+                    }                                                       
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
