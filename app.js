@@ -2443,19 +2443,20 @@ function setOnlineStatus(client) {
                     gui:client.gui
                 }];
                 if (res) {
-                    res=JSON.parse(res);
-                    let exist=false;
+                    res=JSON.parse(res);                    
                     if(res.login!==undefined){
+                        let exist=false;
                         for (let index = 0; index < res.login.length; index++) {
                             const element = res.login[index];
                             if(element.gui===client.gui&&element.clientip===client.clientip&&element.loginip===client.loginip){
                                 exists=true;
                             }
                         }
+                        if(!exist){
+                            arr = arr.concat(res.login);
+                        }  
                     }                    
-                    if(!exist){
-                        arr = arr.concat(res.login);
-                    }                        
+                                          
                 }
                 r_client.set('_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
