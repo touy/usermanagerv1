@@ -1297,40 +1297,51 @@ function checkCurrentClient(client) {
 
 function get_client_ws(js) {
     let deferred = Q.defer();
-    init_client(js.client);
-    checkCurrentClient(js.client).then(res => {
-        if (res) {
-            js.client.clientip = js.ws._socket.remoteAddress;
-            js.client.lastupdate = convertTZ(new Date());
-            setClientStatus(js.client);
-            deferred.resolve(js);
-        } else {
-            getClient(js.client).then(function (res) {
-                //js.client=res;
-                //console.log(js.ws._socket.remoteAddress);
-                js.client.clientip = js.ws._socket.remoteAddress;
-                js.client.accessedtime = convertTZ(new Date());
-                js.client.lastupdate = convertTZ(new Date());
-                js.client.timeout = 60 * 60 * 24;
-                js.client.logintoken = '';
-                js.client.logintime = '';
-                //js.client.gui=uuidV4();        
-                js.client.data.message = 'OK new client';
-                if (!js.client.prefix)
-                    js.client.prefix = 'GUEST-' + uuidV4();
-                //_client_prefix.push(js.client.prefix);
-                //console.log('before send '+JSON.stringify(js.client));
-                setClientStatus(js.client);
-                deferred.resolve(js);
+    r_client.get(_current_system+'_client_'+js.client.gui,(err,res)=>{
+        if(err){
+            js.client.data.message=err;
+            deferred.reject(js);
+        }else{
+            if(res){
 
-            }).catch(function (err) {
-                //console.log(err);    
-                js.client.data.message = err;
-                deferred.reject(js);
-            });
+            }else{
+                init_client(js.client);
+                checkCurrentClient(js.client).then(res => {
+                    if (res) {
+                        js.client.clientip = js.ws._socket.remoteAddress;
+                        js.client.lastupdate = convertTZ(new Date());
+                        setClientStatus(js.client);
+                        deferred.resolve(js);
+                    } else {
+                        getClient(js.client).then(function (res) {
+                            //js.client=res;
+                            //console.log(js.ws._socket.remoteAddress);
+                            js.client.clientip = js.ws._socket.remoteAddress;
+                            js.client.accessedtime = convertTZ(new Date());
+                            js.client.lastupdate = convertTZ(new Date());
+                            js.client.timeout = 60 * 60 * 24;
+                            js.client.logintoken = '';
+                            js.client.logintime = '';
+                            //js.client.gui=uuidV4();        
+                            js.client.data.message = 'OK new client';
+                            if (!js.client.prefix)
+                                js.client.prefix = 'GUEST-' + uuidV4();
+                            //_client_prefix.push(js.client.prefix);
+                            //console.log('before send '+JSON.stringify(js.client));
+                            setClientStatus(js.client);
+                            deferred.resolve(js);
+            
+                        }).catch(function (err) {
+                            //console.log(err);    
+                            js.client.data.message = err;
+                            deferred.reject(js);
+                        });
+                    }
+                }).catch(err => {
+                    deferred.reject(err);
+                });
+            }
         }
-    }).catch(err => {
-        deferred.reject(err);
     });
     return deferred.promise;
 }
@@ -2412,7 +2423,7 @@ function setUserGUIStatus(client, gui) {
     r_client.set(_current_system + '_usergui_' + client.logintoken, JSON.stringify({
         command: 'usergui-changed',
         gui: gui
-    }), 'EX', 60 * 60 / 2);
+    }), 'EX', 60 * 30);
 }
 
 function setLoginStatus(client) {
@@ -2476,7 +2487,7 @@ function setOnlineStatus(client) {
                         system: _current_system,
                         login: arr,
                     }
-                }), 'EX', 60 * 30 / 2);
+                }), 'EX', 60 * 5);
             }
         });
     } catch (error) {
@@ -2498,7 +2509,7 @@ function setNotificationStatus(client) {
     r_client.set(_current_system + '_notification_' + client.logintoken, JSON.stringify({
         command: 'notification-changed',
         client: client
-    }), 'EX', 60 * 60 / 2); // client side could not see this , the other server as a client can see this .
+    }), 'EX', 60 * 30); // client side could not see this , the other server as a client can see this .
 }
 
 function LTCserviceSMS(client) {
