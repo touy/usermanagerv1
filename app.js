@@ -463,44 +463,52 @@ wss.on('connection', function connection(ws, req) {
         console.log(data);
         js.ws = ws;
         ws.client = data;
-        commandReader(js).then(res => {
-            //setTimeout(function timeout() {
-            // if(!data.client)  data.client={};
-            // if(!data.client.gui||data.client.gui==undefined){
-            //data.client.gui=uuidV4();
-            if (res.client.data.command==='logout') {
-                ws.gui = '';
-                ws.lastupdate = 0;
-            } else {
-                ws.gui = res.client.gui;
-                ws.lastupdate = res.client.lastupdate;
-            }
-            //}   
-            // data.client.clientip=ip;// need to handle when IP changed
-            // data.client.data.message='OK';
-            //data.client.data.TopupResult=res;
-            // data.client.lastupdate=convertTZ(new Date());
-            //ws.client=data.client;  
-            //console.log(res.client);
-            // if(res.client.data.command=="system-prefix")
-            //         ws.send(JSON.stringify(res));
-            // else              
-            ws.send(JSON.stringify(res.client));
-            //}, 500);
-        }).catch(err => {
-            js = err;
-            var l = {
-                log: js.client.data.message,
-                logdate: convertTZ(new Date()),
-                type: "error",
-                gui: uuidV4()
-            };
-            //console.log(err);
-            errorLogging(l);
-            console.log('ws sending');
-            js.client.data.message = js.client.data.message.message;
+        try {
+            commandReader(js).then(res => {
+                //setTimeout(function timeout() {
+                // if(!data.client)  data.client={};
+                // if(!data.client.gui||data.client.gui==undefined){
+                //data.client.gui=uuidV4();
+                if (res.client.data.command==='logout') {
+                    ws.gui = '';
+                    ws.lastupdate = 0;
+                } else {
+                    ws.gui = res.client.gui;
+                    ws.lastupdate = res.client.lastupdate;
+                }
+                //}   
+                // data.client.clientip=ip;// need to handle when IP changed
+                // data.client.data.message='OK';
+                //data.client.data.TopupResult=res;
+                // data.client.lastupdate=convertTZ(new Date());
+                //ws.client=data.client;  
+                //console.log(res.client);
+                // if(res.client.data.command=="system-prefix")
+                //         ws.send(JSON.stringify(res));
+                // else              
+                ws.send(JSON.stringify(res.client));
+                //}, 500);
+            }).catch(err => {
+                js = err;
+                var l = {
+                    log: js.client.data.message,
+                    logdate: convertTZ(new Date()),
+                    type: "error",
+                    gui: uuidV4()
+                };
+                //console.log(err);
+                errorLogging(l);
+                console.log('ws sending');
+                js.client.data.message = js.client.data.message.message;
+                ws.send(JSON.stringify(js.client));
+            }); 
+        } catch (error) {
+            js.client={};
+            js.client.data={};
+            js.client.data.message=error;
             ws.send(JSON.stringify(js.client));
-        });
+        }
+
     });
 
 });
