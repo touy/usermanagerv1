@@ -1345,7 +1345,7 @@ function send_message(js) {
                                 targetid:'',
                                 membergui:[],
                                 createdata:'',
-                                msg=[] /// 10 ms earlier
+                                msg:[] /// 10 ms earlier
                             }
                             data=JSON.parse(res);
                             if(data.msg.length>5){
