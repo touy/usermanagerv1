@@ -2489,7 +2489,7 @@ function setOnlineStatus(client) {
 }
 
 function setErrorStatus(client) {
-    r_client.set(_current_system + '_error_' + client.gui, JSON.stringify({
+    r_client.set(_current_system + '_error_' + client.logintoken, JSON.stringify({
         command: 'error-changed',
         client: client
     }), 'EX', 60 * 5);
@@ -2502,8 +2502,9 @@ function setNotificationStatus(client) {
     }), 'EX', 60 * 30); // client side could not see this , the other server as a client can see this .
 }
 
-function LTCserviceSMS(client) {
+function LTCserviceSMS(c) {
     try {
+        let client=JSON.parse(JSON.stringify(c));
         client.data.command = 'send-sms'
         client.prefix = 'user-management';
         let ws_client = new WebSocket('ws://nonav.net:8081/'); //ltcservice
@@ -2829,10 +2830,10 @@ function change_password_ws(js) {
                         change_password(js, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
                             js.client.data.message = 'OK changed password';
                             deferred.resolve(js);
-                        }).catch(function (err) {
-                            js.client.data.message = err;
-                            deferred.reject(js);
-                        });
+                        })
+                    }).catch(err=>{
+                        js.client.data.message = err;
+                        deferred.reject(js);
                     });
                 } else {
                     js.client.data.message = new Error('gui not found');
@@ -2891,6 +2892,7 @@ function change_password(js, phone, oldpass, newpass) {
         if (res) {
             if (res.password != oldpass)
                 deferred.reject(new Error('ERROR wrong password'));
+
             let passValidate = validatePassword(newpass);
             if (passValidate.length) deferred.reject(new Error('ERROR validating ' + (passValidate.toString())));
             else {
@@ -2904,6 +2906,8 @@ function change_password(js, phone, oldpass, newpass) {
                     deferred.reject(err);
                 });
             }
+        }else{
+            throw new Error('ERROR username and phone not found');
         }
     }).catch(function (err) {
         deferred.reject(err);
