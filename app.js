@@ -1354,7 +1354,9 @@ function send_message(js) {
                             data.msg.push(msg);
                             for (let index = 0; index < data.membergui.length; index++) {
                                 const element = array[index];
-                                client.set('_msg_'+element,);
+                                r_client.set('_msg_'+element,JSON.stringify(msg),(err,res)=>{
+                                    
+                                });
                             }
                             
                         }else{
