@@ -215,6 +215,13 @@ function commandReader(js) {
                     js.client.data.message = 'PONG test';
                     deferred.resolve(js);
                     break;
+                case 'send-message':
+                    send_message(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
                 case 'shake-hands':
                     get_client_ws(js).then(res => {
                         deferred.resolve(res);
@@ -1301,7 +1308,34 @@ function checkCurrentClient(client) {
     });
     return deferred.promise;
 }
+function send_message(js){
+    let deferred=Q.defer();
+    try {
+        let msg={
+            target:'', // @user:.... , @group:.... , @chanel:.... , @room:.....
+            username:'',
+            content:'',
+            msgtype:'',// photo , sound, video, text, typing
+            attached:[],
+            senttime:convertTZ(new Date()),
+            received:''
+        }
+        msg=js.clietn.data.msg;
 
+        switch (msg.target) {
+            case value:
+                
+                break;
+        
+            default:
+                break;
+        }
+    } catch (error) {
+        js.client.data.message=error;
+        deferred.reject(js);
+    }
+    return deferred.promise;
+}
 function get_client_ws(js) {
     let deferred = Q.defer();
     checkCurrentClient(js.client).then(res => {
@@ -2532,13 +2566,13 @@ function LTCserviceSMS(c) {
             });
         });
         ws_client.on('message', function incoming(data) {
-            console.log("RECIEVED  FROM SMS : ");
+            console.log("received  FROM SMS : ");
             
             client = JSON.parse(data);
             //console.log(client);
             //client.data.sms.content=''; /// FOR TESTING ONLY
-            client.data.message = 'SMS recieved!'; 
-            client.data.command = 'recieved-sms';
+            client.data.message = 'SMS received!'; 
+            client.data.command = 'received-sms';
             client.prefix = '';
             
             setNotificationStatus(client);
