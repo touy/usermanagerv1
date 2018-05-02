@@ -87,7 +87,13 @@ r_client.on("monitor", function (time, args, raw_reply) {
         if (args.indexOf('set') != 0) //capture the set command only
             return;
         //args=args.replace('\\','');
-        let js = JSON.parse(args.substring(args.indexOf('{'), args.lastIndexOf('}') + 1));
+        let js ;
+        try {
+            js= JSON.parse(args.substring(args.indexOf('{'), args.lastIndexOf('}') + 1));
+            console.log(time + ": " + args); 
+        } catch (error) {
+            return;
+        }        
         let arr = args.split(',');
         //console.log(arr);
         let command = arr[0];
@@ -1153,7 +1159,7 @@ data = {
     pendingmemberapproval:[],
     deniedapprovlalist:[],                        
     pendinginvited:[],
-    refusedinvited:[],
+    refusedinvited:[],  
     createdata: convertTZ(new Date()),
     msg: [] /// 10 ms earlier
 }
