@@ -92,6 +92,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
         //console.log(arr);
         let command = arr[0];
         let key = arr[1];
+        console.log(key);
         if(key.indexOf(_current_system)<0){
             return;
         }
