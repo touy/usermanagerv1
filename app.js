@@ -81,7 +81,7 @@ r_client.monitor(function (err, res) {
 });
 
 r_client.on("monitor", function (time, args, raw_reply) {
-    //console.log(time + ": " + args); // 1458910076.446514:['set', 'foo', 'bar']
+    console.log(time + ": " + args); // 1458910076.446514:['set', 'foo', 'bar']
     try {
         args = args.toString();
         if (args.indexOf('set') != 0) //capture the set command only
@@ -1141,6 +1141,37 @@ function init_default_user(js) {
     //     js.resp.send(js.client);
     // });
 }
+data = {
+    gui: uuidV4(),
+    // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:..... // default is 0
+    targetid: js.client.data.msg.targetid,
+    username: js.client.data.username,
+    usergui: js.client.data.user.gui,
+    memberusername: [js.client.username],
+    membergui: [js.client.data.user.gui],
+    exmember:[],
+    pendingmemberapproval:[],
+    deniedapprovlalist:[],                        
+    pendinginvited:[],
+    refusedinvited:[],
+    createdata: convertTZ(new Date()),
+    msg: [] /// 10 ms earlier
+}
+
+var __design_targemsg = {
+    "_id": "_design/objectList",
+    "views": {
+        "findByUsergui": {
+            "map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],doc);\r\n    }\r\n}"
+        },
+        "findByTargetId": {
+            "map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],doc);\r\n    }\r\n}"
+        },
+    },    
+    "language": "javascript"
+}
+
+
 var __design_users = {
     "_id": "_design/objectList",
     "views": {
