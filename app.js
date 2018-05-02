@@ -1144,11 +1144,11 @@ function init_default_user(js) {
 data = {
     gui: uuidV4(),
     // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:..... // default is 0
-    targetid: js.client.data.msg.targetid,
-    username: js.client.data.username,
-    usergui: js.client.data.user.gui,
-    memberusername: [js.client.username],
-    membergui: [js.client.data.user.gui],
+    targetid: '',
+    username: '',
+    usergui: '',
+    memberusername: [''],
+    membergui: [''],
     exmember:[],
     pendingmemberapproval:[],
     deniedapprovlalist:[],                        
