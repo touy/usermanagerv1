@@ -101,7 +101,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
         let js ;
         try {
             js= JSON.parse(args.substring(args.indexOf('{'), args.lastIndexOf('}') + 1));
-            console.log(time + ": " + args); 
+            //console.log(time + ": " + args); 
         } catch (error) {
             return;
         }  
