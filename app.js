@@ -93,8 +93,9 @@ r_client.on("monitor", function (time, args, raw_reply) {
         let command = arr[0];
         let key = arr[1];
         console.log(_current_system);
-        console.log(key+'-----'+key.indexOf(_current_system));
+        console.log(key+'-----......'+key.indexOf(_current_system));
         if(key.indexOf(_current_system)<0){
+            console.log('wrong system');
             return;
         }
         let js ;
