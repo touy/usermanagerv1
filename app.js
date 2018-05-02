@@ -87,17 +87,23 @@ r_client.on("monitor", function (time, args, raw_reply) {
         if (args.indexOf('set') != 0) //capture the set command only
             return;
         //args=args.replace('\\','');
+              
+        let arr = args.split(',');
+        //console.log(arr);
+        let command = arr[0];
+        let key = arr[1];
+        if(key.indexOf(_current_system)<0){
+            return;
+        }
         let js ;
         try {
             js= JSON.parse(args.substring(args.indexOf('{'), args.lastIndexOf('}') + 1));
             console.log(time + ": " + args); 
         } catch (error) {
             return;
-        }        
-        let arr = args.split(',');
-        //console.log(arr);
-        let command = arr[0];
-        let key = arr[1];
+        }  
+
+
         let mode = '';
         let timout = 0;
         if (arr[arr.length - 1].indexOf('}') < 0) {
