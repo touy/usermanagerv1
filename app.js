@@ -541,7 +541,7 @@ function commandReader(js) {
                     break;
             }
         }).catch(err => {
-            throw new Error('Error no authorize');
+            throw new Error('ERROR no authorize');
         });
     } catch (error) {
         js = {};
@@ -2668,16 +2668,16 @@ function get_user_details_ws(js) {
                 gui = c.gui;
                 displayUserDetails(gui).then(function (res) {
                     js.client.data.user = res;
-                    console.log(` user photo `+JSON.stringify(res.photo));
+                    //console.log(` user photo `+JSON.stringify(res.photo));
                     if(js.client.data.user.photo === undefined || !js.client.data.user.photo){
                         js.client.data.user.photo=[];
                     }
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
                         const element = js.client.data.user.photo[index];      
-                        console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
+                       // console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
                         element.arraybuffer=fs.readFileSync(__dirname+'/public/profiles/'+element.name, "binary");           
                     }
-                    console.log(js.client.data.user.photo.length)
+                    //console.log(js.client.data.user.photo.length)
                     js.client.data.message = 'OK';
                     deferred.resolve(js);
                 }).catch(function (err) {
@@ -2685,7 +2685,7 @@ function get_user_details_ws(js) {
                     deferred.reject(js);
                 });
             } else {
-                js.client.data.message = new Error('gui not found');
+                js.client.data.message = new Error('ERROR gui not found');
                 deferred.reject(js);
             }
         }
@@ -2718,11 +2718,11 @@ function filterObject(obj) {
         //console.log(obj[i]);
         for (x = 0; x < need.length; x++) {
             let key = need[x];
-            // if (!obj.hasOwnProperty(i)) {} else if (Array.isArray(obj[i])) {
-            //     obj[i] = '';
-            // } else 
-            if (typeof obj[i] === 'object') {
-                filterObject(obj[i], need);
+            if (!obj.hasOwnProperty(i)) {} else if (Array.isArray(obj[i])) {
+                if(i.toLowerCase().indexOf(key) > -1)
+                    obj[i] = [];
+            } else if (typeof obj[i] === 'object') {
+                filterObject(obj[i]);
             } else if (i.indexOf(key) > -1) {
                 obj[i] = '';
             }
@@ -3330,7 +3330,7 @@ function change_password_ws(js) {
                         deferred.reject(js);
                     });
                 } else {
-                    js.client.data.message = new Error('gui not found');
+                    js.client.data.message = new Error('ERROR gui not found');
                     deferred.reject(js);
                 }
             }
