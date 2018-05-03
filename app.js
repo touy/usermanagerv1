@@ -290,7 +290,6 @@ function commandReader(js) {
                         // console.log('writing');
                         // console.log(element.arraybuffer);
                         // console.log(__dirname+'\\'+element.name);
-                        // let buff= new Buffer(element.arraybuffer,'base64');
                         let buff = element.arraybuffer;
                         // console.log(buff);
                         // fs.writeFile(__dirname+'\\'+element.name,buff,'binary', function (err) {
@@ -2175,35 +2174,12 @@ function validatePhoneInfo(p) {
     });
 }
 
-app.all('/update_user', function (req, res) {
-    let js = {};
-    js.client = req.body; //client.data.device
-    js.resp = res;
-    findUserByUsername(client.data.user.username).then(function (res) {
-        if (res) {
-
-            js.client.data.user.password = res.password;
-            js.cient.data.user.phonenumber = res.phonenumber;
-            js.client.data.user._rev = res._rev;
-            js.client.data.user._id = res._id;
-            updateUser(client.data.user).then(function (res) {
-                js.client.data.message = 'OK updated';
-                console.log('updating');
-                if (fs.existsSync(__dirname + "/temp/" + client.data.user.photo)) {
-                    fs.rename(__dirname + "/temp/" + client.data.user.photo, __dirname + '/photo/' + client.data.user.photo);
-                }
-                js.resp.send(js.client);
-            });
-        } else {
-            throw new Error('ERROR user not found');
-        }
-    }).catch(function (err) {
-        console.log(err);
-        js.client.data.message = err;
-        js.resp.send(js.client);
-    });
-});
-
+function saveAttachementsToFiles(array){
+    for (let index = 0; index < array.length; index++) {
+        const element = array[index];
+        fs.writeFileSync(__dirname+'/public/'+element.name,element.data,'binary');
+    }
+}
 function update_user_ws(js) {
     let deferred = Q.defer();
     try {
@@ -2221,19 +2197,27 @@ function update_user_ws(js) {
                         res.lastupdate = convertTZ(new Date());
                         res.photo = js.client.data.user.photo;
                         res.note = js.client.data.user.note;
-                        res.description = js.client.data.user.description;
-                        if(js.client.data.user.photo.length>1){
-                            throw new Error('ERROR too many photo');                                                            
-                        }else{
-                            console.log('updating ......');
-                            updateUser(res).then(function (res) {
-                                console.log('update ok');
-                                js.client.data.message = 'OK updated';                                
-                                deferred.resolve(js);
-                            }).catch(err=>{
-                                console.log(err);
-                            });
-                        }                        
+                        res.description = js.client.data.user.description;                         
+                        console.log('updating ......');
+                        let attach = [];
+                        for (let index = 0; index < userinfo.photo.length; index++) {
+                            const element = userinfo.photo[index];
+                            attach.push( {
+                                name: element.name, 
+                                data: new Buffer(element.arraybuffer),
+                                content_type: element.type
+                              });
+                            element.arraybuffer='';
+                            element.url='';
+                        } 
+                        updateUser(res).then(function (res) {
+                            saveAttachementsToFiles(attach);
+                            console.log('update ok');
+                            js.client.data.message = 'OK updated';                                
+                            deferred.resolve(js);
+                        }).catch(err=>{
+                            console.log(err);
+                        });                      
                     } else {
                         //throw new Error('ERROR user not found');
                         throw  new Error('ERROR user not found');                        
@@ -2644,7 +2628,23 @@ app.all('/display_user_details', function (req, res) {
     });
 
 });
-
+function getAttachements(id){
+    let deferred=Q.defer();
+    let db=create_db('gijusers');
+    try {
+        // db.multipart.get(id,(err,res)=>{
+        //     if(err)throw err;
+        //     else{
+        //         deferred.resolve(res);
+        //     }
+        // });
+        
+        deferred.resolve(fs.readFileSync(__dirname+'/public/'+name, "utf8"));
+    } catch (error) {
+        deferred.reject(error);
+    }
+    return deferred.promise;
+}
 function get_user_details_ws(js) {
     let deferred = Q.defer();
     r_client.get(_current_system + '_usergui_' + js.client.logintoken, function (err, gui) {
@@ -2657,6 +2657,13 @@ function get_user_details_ws(js) {
                 gui = c.gui;
                 displayUserDetails(gui).then(function (res) {
                     js.client.data.user = res;
+                    if(js.client.data.user.photo === undefined || !js.client.data.user.photo){
+                        js.client.data.user.photo=[];
+                    }
+                    for (let index = 0; index < js.client.data.user.photo.length; index++) {
+                        const element = js.client.data.user.photo[index];       
+                        element.arraybuffer=fs.readFileSync(__dirname+'/public/'+element.name, "binary");           
+                    }
                     js.client.data.message = 'OK';
                     deferred.resolve(js);
                 }).catch(function (err) {
@@ -3362,14 +3369,30 @@ function validatePassword(pass) {
 function updateUser(userinfo) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
-    console.log(userinfo);
-    // let id = ((userinfo.gui !== userinfo._id) userinfo._id : userinfo.gui);
-    db.insert(userinfo, userinfo._id, function (err, res) {
-        if (err) deferred.reject(err);
-        else {
-            deferred.resolve('OK ' + JSON.stringify(res));
+    try {
+        if(userinfo.photo.length>1){
+            throw new Error('ERROR too many photo');                                                            
         }
-    });
+        if(!userinfo._rev){
+            userinfo.gui=uuidV4();
+        }       
+        db.insert(userinfo, userinfo.gui, function(err, body) {
+            if (err) throw err;
+            else{
+                deferred.resolve('OK update');
+            }
+            
+        });
+        // db.insert(userinfo, userinfo._id, function (err, res) {
+        //     if (err) deferred.reject(err);
+        //     else {
+        //         deferred.resolve('OK ' + JSON.stringify(res));
+        //     }
+        // });    
+    } catch (error) {
+        deferred.reject(error);
+    }
+    
     return deferred.promise;
 }
 
