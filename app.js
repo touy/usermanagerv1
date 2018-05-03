@@ -3366,8 +3366,9 @@ function updateUser(userinfo) {
         }
         if(!userinfo._rev){
             userinfo.gui=uuidV4();
+            userinfo._id=userinfo.gui;
         }       
-        db.insert(userinfo, userinfo.gui, function(err, body) {
+        db.insert(userinfo, userinfo._id, function(err, body) {
             if (err) throw err;
             else{
                 deferred.resolve('OK update');
