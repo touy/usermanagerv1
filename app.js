@@ -2225,9 +2225,13 @@ function update_user_ws(js) {
                         if(js.client.data.user.photo.length>1){
                             throw new Error('ERROR too many photo');                                                            
                         }else{
+                            console.log('updating ......');
                             updateUser(res).then(function (res) {
+                                console.log('update ok');
                                 js.client.data.message = 'OK updated';                                
                                 deferred.resolve(js);
+                            }).catch(err=>{
+                                console.log(err);
                             });
                         }                        
                     } else {
