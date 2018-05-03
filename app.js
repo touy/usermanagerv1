@@ -2734,7 +2734,7 @@ function findUserByGUI(gui) {
                 arr.push(element);
             }
             console.log('FOUND ' + gui);
-
+            console.log('length: '+ arr.length);
             if (arr.length<1)
                 deferred.resolve(arr[0]);
             else
