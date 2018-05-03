@@ -87,24 +87,24 @@ r_client.on("monitor", function (time, args, raw_reply) {
         if (args.indexOf('set') != 0) //capture the set command only
             return;
         //args=args.replace('\\','');
-              
+
         let arr = args.split(',');
         //console.log(arr);
         let command = arr[0];
         let key = arr[1];
         // console.log(_current_system);
         // console.log(key+'-----......'+key.indexOf(_current_system));
-        if(key.indexOf(_current_system)<0){
+        if (key.indexOf(_current_system) < 0) {
             //console.log('wrong system');
             return;
         }
-        let js ;
+        let js;
         try {
-            js= JSON.parse(args.substring(args.indexOf('{'), args.lastIndexOf('}') + 1));
+            js = JSON.parse(args.substring(args.indexOf('{'), args.lastIndexOf('}') + 1));
             //console.log(time + ": " + args); 
         } catch (error) {
             return;
-        }  
+        }
 
 
         let mode = '';
@@ -137,50 +137,77 @@ r_client.on("monitor", function (time, args, raw_reply) {
                     if (_current_system + "_login_" + element.client.logintoken === key) {
                         console.log('login-changed');
                         element.send(JSON.stringify(js));
-                    }
-                    if (_current_system + "_usergui_" + element.client.logintoken === key) {
+                    } else if (_current_system + "_usergui_" + element.client.logintoken === key) {
                         console.log('usergui-changed');
                         if (_system_prefix.indexOf(element.client.prefix) > -1)
                             element.send(JSON.stringify(js));
-                    }
-                    if (_current_system + "_forgot_" + element.client.gui === key) {
+                    } else if (_current_system + "_forgot_" + element.client.gui === key) {
 
                         console.log('forgot-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
-                    }
-                    if (_current_system + "_phone_" + element.client.logintoken === key) {
+                    } else if (_current_system + "_phone_" + element.client.logintoken === key) {
 
                         console.log('phone-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
-                    }
-                    if (_current_system + "_secret_" + element.client.gui === key) {
+                    } else if (_current_system + "_secret_" + element.client.gui === key) {
 
                         console.log('secret-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
-                    }
-                    if (_current_system + "_message_" + element.client.logintoken === key) {
+                    } else if (_current_system + "_message_" + element.client.logintoken === key) {
                         console.log('message-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
-                    }
-                    if ("_online_" + element.client.username === key) {
+                    } else if ("_online_" + element.client.username === key) {
                         console.log('online-changed');
                         // broad cast to all or goup ;
                         element.send(JSON.stringify(js));
-                    }
-                    if (_current_system + "_notification_" + element.client.logintoken === key) {
+                    } else if (_current_system + "_notification_" + element.client.logintoken === key) {
                         console.log('notification-changed');
                         //console.log(js);
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
                     }
-                    if ("_msg_" + element.client.data.user.gui === key) {
-                        console.log('msg-changed');
-                        element.send(JSON.stringify(js));
-                    }
+                    r_client.get(_current_system + '_usergui_' + element.client.logintoken, function (err, res) {
+                        if (res) {
+                            let gui = JSON.parse(res);
+                            if (_current_system + '_msg_' + gui.gui === key) {
+                                console.log('msg-changed');
+                                let sent_o = js.client.data.msg.sent;
+                                if (sent_o === undefined) {
+                                    sent_o = js.client.data.msg.sent = [];
+
+                                }
+                                let is_sent = false;
+                                for (let index = 0; index < sent_o.length; index++) {
+                                    const element = sent_o[index];
+                                    if (element.username === element.client.username) {
+                                        is_sent = true;
+                                        break;
+                                    }
+                                }
+                                if (!is_sent) {
+                                    //let js_c=JSON.parse(JSON.stringify(js));
+                                    js.client.data.msg.sent.push({
+                                        username: element.client.username,
+                                        sent: convertTZ(new Date())
+                                    });
+                                    element.send(JSON.stringify(js));
+                                    r_client.set(_current_system + '_msg_' + gui.gui, JSON.stringify({
+                                        command: 'msg-changed',
+                                        client: js.client
+                                    }), (err, res) => {
+                                        if (err) throw err;
+                                        else {
+                                            console.log('OK sent msg to ' + client.username);
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -1164,25 +1191,25 @@ data = {
     usergui: '',
     memberusername: [''],
     membergui: [''],
-    exmember:[],
-    pendingmemberapproval:[],
-    deniedapprovlalist:[],                        
-    pendinginvited:[],
-    refusedinvited:[],  
+    exmember: [],
+    pendingmemberapproval: [],
+    deniedapprovlalist: [],
+    pendinginvited: [],
+    refusedinvited: [],
     createdata: convertTZ(new Date()),
     msg: [] /// 10 ms earlier
 }
 
-var __design_targemsg = {
+var __design_targetmsg = {
     "_id": "_design/objectList",
     "views": {
-        "findByUsergui": {
-            "map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],doc);\r\n    }\r\n}"
+        "findByUserGui": {
+            "map": "function(doc) {\r\n    if(doc.usergui) {\r\n        emit(doc.usergui,doc);\r\n    }\r\n}"
         },
         "findByTargetId": {
-            "map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],doc);\r\n    }\r\n}"
-        },
-    },    
+            "map": "function(doc) {\r\n    if(doc.targetid) {\r\n        emit(doc.targetid,doc);\r\n    }\r\n}"
+        }
+    },
     "language": "javascript"
 }
 
@@ -1418,74 +1445,115 @@ function checkCurrentClient(client) {
             }
         });
     } catch (error) {
-        js.client.data.message=error;
+        js.client.data.message = error;
         deferred.reject(js);
     }
     return deferred.promise;
 }
-function findTagetByTargetId(targetid){
+
+function findTagetByTargetId(targetid) {
     let deferred = Q.defer();
     try {
-        let db=create_db('targetmsg');
-        db.view(__design_view,'findByTargetID',(err,res)=>{
-            if(err)throw err;
-            else{
-                let arr=[];
+        let db = create_db('targetmsg');
+        db.view(__design_view, 'findByTargetID',{key:targetid}, (err, res) => {
+            if (err) throw err;
+            else {
+                let arr = [];
                 for (let index = 0; index < res.rows.length; index++) {
                     const element = res.rows[index].value;
                     arr.push(element);
                 }
                 deferred.resolve(arr);
             }
-        });   
-    } catch (error) {
-        js.client.data.message=error;
-        deferred.reject(js);
-    }
-    return deferred.promise;
-}
-function subscribe_online_chat(js){
-    try {
-        let deferred = Q.defer();
-        let sub=js.client.data.sub;
-        r_client.get('_targetmsg_'+sub.targetid,(err,res)=>{
-            findTagetByTargetId(sub.targetid).then(res=>{
-                if(res.length){
-                    if(res){
-                        let target=js=JSON.parse(res);
-                        if(target.pendingmemberapproval===undefined)
-                            target.pendingmemberapproval = [];
-                        target.pendingmemberapproval.push(js.client.user.gui);
-                        r_client.set('_targetmsg_'+sub.targetid,JSON.stringify(target),(err,res)=>{
-                            if(err) throw err;
-                            else{
-                                js.client.data.message='OK subscribe!';
-                                deferred.resolve(js);
-                            }
-                        });
-                    }else{
-                        throw new Error('ERROR target not found');
-                    }
-                }else{
-
-                }
-            });
         });
     } catch (error) {
-        js.client.data.message=error;
+        js.client.data.message = error;
         deferred.reject(js);
     }
     return deferred.promise;
 }
-function leave_online_chat(js){
+function findTagetByUserGui(usergui) {
+    let deferred = Q.defer();
+    try {
+        let db = create_db('targetmsg');
+        db.view(__design_view, 'findByUserGui',{key:usergui}, (err, res) => {
+            if (err) throw err;
+            else {
+                let arr = [];
+                for (let index = 0; index < res.rows.length; index++) {
+                    const element = res.rows[index].value;
+                    arr.push(element);
+                }
+                deferred.resolve(arr);
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+    return deferred.promise;
+}
+function updateTarget(t) {
+    let deferred = Q.defer();
+    try {
+        if (t._rev === undefined) {
+            t.gui = uuidV4();
+        }
+        let db = create_db('targetmsg');
+        db.inset(t, t.gui, (err, res) => {
+            if (err) throw err;
+            else {
+                deferred.resolve('OK added targetmsg');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+    return deferred.promise;
+}
+
+function subscribe_online_chat(js) {
+    try {
+        let deferred = Q.defer();
+        let sub = js.client.data.sub;
+        findTagetByTargetId(sub.targetid).then(res => {
+            if (res.length) {
+                if (res) {
+                    let target = res;
+                    if (target.pendingmemberapproval === undefined)
+                        target.pendingmemberapproval = [];
+                    target.pendingmemberapproval.push(js.client.user.gui);
+                    updateTarget(target).then(res=>{
+                        js.client.data.message = 'OK subscribe!';
+                        deferred.resolve(js);
+                    });
+                } else {
+                    throw new Error('ERROR target not found');
+                }
+            } else {
+
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+    return deferred.promise;
+}
+
+function leave_online_chat(js) {
 
 }
-function invite_online_chat(js){
+
+function invite_online_chat(js) {
 
 }
-function approve_online_chat(js){
+
+function approve_online_chat(js) {
 
 }
+
 function register_online_chat(js) {
     let deferred = Q.defer();
     try {
@@ -1493,11 +1561,9 @@ function register_online_chat(js) {
             js.client.data.msg = {};
             js.client.data.msg.targetid = js.client.username;
         }
-        r_client.get('_targetmsg_' + js.client.data.msg.targetid, (err, res) => {
-            if (err) throw err;
-            else {
-                if (res) {
-                    let data = JSON.parse(res);
+        findTagetByTargetId(js.client.data.msg.targetid).then(res=> {
+                if (res.length) {
+                    let data = res;
                     if (data.membergui.indexOf(js.client.data.user.gui) < 0) {
                         data.membergui.push(js.client.data.user.gui);
                         data.memberusername.push(js.client.username);
@@ -1510,7 +1576,11 @@ function register_online_chat(js) {
                         content: '@hello@',
                         msgtype: 'text', // photo , sound, video, text, typing, misc
                         attached: [],
-                        senttime: convertTZ(new Date()),
+                        // senttime: convertTZ(new Date()),
+                        sent: [{
+                            username: '',
+                            sent: convertTZ(new Date())
+                        }],
                         received: [{
                             user: '',
                             received: convertTZ(new Date())
@@ -1528,7 +1598,7 @@ function register_online_chat(js) {
                     for (let index = 0; index < data.membergui.length; index++) {
                         const element = data.membergui[index];
                         client.data.msg = data.msg;
-                        r_client.set('_msg_' + element.usergui, JSON.stringify({
+                        r_client.set(_current_system + '_msg_' + element.usergui, JSON.stringify({
                             command: 'msg-changed',
                             client: client
                         }), (err, res) => {
@@ -1538,17 +1608,21 @@ function register_online_chat(js) {
                             }
                         });
                     }
-                    r_client.set('_targetmsg_' + data.targetid, JSON.stringify({
-                        command: 'targetmsg-changed',
-                        data: data
-                    }), (err, res) => {
-                        if (err) {
-                            js.client.data.message = err;
-                            deferred.reject(js);
-                        } else {
-                            js.client.data.message = 'OK register exist online chat';
-                            deferred.resolve(js);
-                        }
+                    // r_client.set(_current_system+'_targetmsg_' + data.targetid, JSON.stringify({
+                    //     command: 'targetmsg-changed',
+                    //     data: data
+                    // }), (err, res) => {
+                    //     if (err) {
+                    //         js.client.data.message = err;
+                    //         deferred.reject(js);
+                    //     } else {
+                    //         js.client.data.message = 'OK register exist online chat';
+                    //         deferred.resolve(js);
+                    //     }
+                    // });
+                    updateTarget(data).then(res => {
+                        js.client.data.message = 'OK register exist online chat';
+                        deferred.resolve(js);
                     });
                 } else {
                     let data = {
@@ -1559,11 +1633,11 @@ function register_online_chat(js) {
                         usergui: js.client.data.user.gui,
                         memberusername: [js.client.username],
                         membergui: [js.client.data.user.gui],
-                        exmember:[],
-                        pendingmemberapproval:[],
-                        deniedapprovlalist:[],                        
-                        pendinginvited:[],
-                        refusedinvited:[],
+                        exmember: [],
+                        pendingmemberapproval: [],
+                        deniedapprovlalist: [],
+                        pendinginvited: [],
+                        refusedinvited: [],
                         createdata: convertTZ(new Date()),
                         msg: [] /// 10 ms earlier
                     }
@@ -1574,7 +1648,10 @@ function register_online_chat(js) {
                         content: '@hello@',
                         msgtype: 'text', // photo , sound, video, text, typing, misc
                         attached: [],
-                        senttime: convertTZ(new Date()),
+                        sent: [{
+                            username: '',
+                            sent: convertTZ(new Date())
+                        }],
                         received: [{
                             user: '',
                             received: convertTZ(new Date())
@@ -1592,7 +1669,7 @@ function register_online_chat(js) {
                     for (let index = 0; index < data.membergui.length; index++) {
                         const element = data.membergui[index];
                         client.data.msg = data.msg;
-                        r_client.set('_msg_' + element.usergui, JSON.stringify({
+                        r_client.set(_current_system + '_msg_' + element.usergui, JSON.stringify({
                             command: 'msg-changed',
                             client: client
                         }), (err, res) => {
@@ -1602,19 +1679,23 @@ function register_online_chat(js) {
                             }
                         });
                     }
-                    r_client.set('_targetmsg_' + data.targetid, JSON.stringify({
-                        command: 'targetmsg-changed',
-                        data: data
-                    }), (err, res) => {
-                        if (err) {
-                            js.client.data.message = err;
-                            deferred.reject(js);
-                        } else {
-                            js.client.data.message = 'OK register new online chat';
-                            deferred.resolve(js);
-                        }
+                    // r_client.set(_current_system+'_targetmsg_' + data.targetid, JSON.stringify({
+                    //     command: 'targetmsg-changed',
+                    //     data: data
+                    // }), (err, res) => {
+                    //     if (err) {
+                    //         js.client.data.message = err;
+                    //         deferred.reject(js);
+                    //     } else {
+                    //         js.client.data.message = 'OK register new online chat';
+                    //         deferred.resolve(js);
+                    //     }
+                    // });
+                    updateTarget(data).then(res => {
+                        js.client.data.message = 'OK register new online chat';
+                        deferred.resolve(js);
                     });
-                }
+                
             }
         }).catch(err => {
             throw err;
@@ -1629,69 +1710,70 @@ function register_online_chat(js) {
 function send_message(js) {
     let deferred = Q.defer();
     try {
-        r_client.get('_targetmsg_' + js.client.data.msg.targetid, (err, res) => {
-            if (err) throw err;
-            else {
-                if (res) {
-                    let data = JSON.parse(res);
-                    if (res.membergui.indexOf(js.client.data.user.gui) < 0) {
-                        throw new Error('ERROR you are not a memember')
-                    }
-                    let msg = {
-                        gui: uuidV4(),
-                        // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
-                        // sendergui: js.client.data.user.gui,
-                        sender: js.client.username,
-                        content: js.client.data.msg.content,
-                        msgtype: js.client.data.msg.msgtype, // photo , sound, video, text, typing, misc
-                        attached: js.client.data.msg.attached,
-                        senttime: convertTZ(new Date()),
-                        received: [{
-                            user: '',
-                            received: convertTZ(new Date())
-                        }], //
-                        read: [{
-                            user: '',
-                            read: convertTZ(new Date())
-                        }] // 
-                    }
-                    if (data.msg.length > 10) {
-                        data.msg.shift();
-                    }
-                    data.msg.push(msg);
-                    let client = JSON.parse(JSON.stringify(js.client));
-                    for (let index = 0; index < data.membergui.length; index++) {
-                        const element = data.membergui[index];
-                        client.data.msg = data.msg;
-                        r_client.set('_msg_' + element.usergui, JSON.stringify({
-                            command: 'msg-changed',
-                            client: client
-                        }), (err, res) => {
-                            if (err) {
-                                js.client.data.message = err;
-                                deferred.reject(js);
-                            } else {
-                                r_client.set('_targetmsg_' + data.targetid, JSON.stringify({
-                                    command: 'targetmsg-changed',
-                                    data: data
-                                }), (err, res) => {
-                                    if (err) {
-                                        js.client.data.message = err;
-                                        deferred.reject(js);
-                                    }
-                                });
+        findByTargetId(js.client.data.msg.targetid).then(res => {
+            if (res) {
+                let data = res;
+                if (res.membergui.indexOf(js.client.data.user.gui) < 0) {
+                    throw new Error('ERROR you are not a memember')
+                }
+                let msg = {
+                    gui: uuidV4(),
+                    // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
+                    // sendergui: js.client.data.user.gui,
+                    sender: js.client.username,
+                    content: js.client.data.msg.content,
+                    msgtype: js.client.data.msg.msgtype, // photo , sound, video, text, typing, misc
+                    attached: js.client.data.msg.attached,
+                    sent: [{
+                        username: '',
+                        sent: convertTZ(new Date())
+                    }],
+                    received: [{
+                        user: '',
+                        received: convertTZ(new Date())
+                    }], //
+                    read: [{
+                        user: '',
+                        read: convertTZ(new Date())
+                    }] // 
+                }
+                if (data.msg.length > 10) {
+                    data.msg.shift();
+                }
+                data.msg.push(msg);
+                let client = JSON.parse(JSON.stringify(js.client));
+                for (let index = 0; index < data.membergui.length; index++) {
+                    const element = data.membergui[index];
+                    client.data.msg = data.msg;
+                    r_client.set(_current_system + '_msg_' + element.usergui, JSON.stringify({
+                        command: 'msg-changed',
+                        client: client
+                    }), (err, res) => {
+                        if (err) {
+                            js.client.data.message = err;
+                            deferred.reject(js);
+                        } else {
+                            // r_client.set(_current_system+'_targetmsg_' + data.targetid, JSON.stringify({
+                            //     command: 'targetmsg-changed',
+                            //     data: data
+                            // }), (err, res) => {
+                            //     if (err) {
+                            //         js.client.data.message = err;
+                            //         deferred.reject(js);
+                            //     }
+                            // });
+                            updateTarget(data).then(res => {
                                 js.client.data.message = 'OK updated a msg';
                                 deferred.resolve(js);
-                            }
-                        });
-                    }
-                } else {
-                    throw new Error('ERROR target not found');
+                            });
+                        }
+                    });
                 }
+            } else {
+                throw new Error('ERROR target not found');
             }
-        }).catch(err => {
-            throw err;
         });
+
     } catch (error) {
         js.client.data.message = error;
         deferred.reject(js);
@@ -1809,7 +1891,7 @@ function login_ws(js) {
         authentication(js.client.data.user).then(function (user) {
             console.log('authen res');
             //console.log(res);
-            r_client.get('_online_' + user.username, (err, res) => {
+            r_client.get(_current_system + '_online_' + user.username, (err, res) => {
                 let online = JSON.parse(res);
                 if (err) {
                     js.client.data.message = err;
@@ -1863,7 +1945,7 @@ function login_ws(js) {
                         setLoginStatus(js.client);
                         setUserGUIStatus(js.client, user.gui);
                         setOnlineStatus(js.client);
-                        setTargetMsg(js.client, user.gui);
+                        // setTargetMsg(js.client, user.gui);
                         register_online_chat(js);
                         //setTimeout(() => {
                         deferred.resolve(js);
@@ -2851,7 +2933,7 @@ function setClientStatus(client) {
 
 function setOnlineStatus(client) {
     try {
-        r_client.get('_online_' + client.username, (err, res) => {
+        r_client.get(_current_system + '_online_' + client.username, (err, res) => {
             if (err) {
                 client.data.message = err;
                 setErrorStatus(client);
@@ -2881,7 +2963,7 @@ function setOnlineStatus(client) {
                         }
                     }
                 }
-                r_client.set('_online_' + client.username, JSON.stringify({
+                r_client.set(_current_system + '_online_' + client.username, JSON.stringify({
                     command: 'online-changed',
                     client: {
                         username: client.username,
@@ -3358,7 +3440,7 @@ __design_view = "objectList";
 function initDB() {
 
     init_db('gijusers', __design_users);
-
+    init_db('targetmsg', __design_targetmsg);
 }
 
 function create_db(dbname) {
@@ -3382,11 +3464,12 @@ function init_db(dbname, design) {
         db = nano.use(dbname),
         db.insert(design, function (err, res) {
             if (err) {
-                // console.log(design);
+                //console.log(design);
                 //console.log(err);
                 db.get('_design/objectList', function (err, res) {
-                    if (err) console.log('could not find design ' + err);
-                    else {
+                    if (err) {
+                        console.log('could not find design ' + err);
+                    } else {
                         if (res) {
                             var d = res;
                             //console.log("d:"+JSON.stringify(d));
@@ -3461,7 +3544,7 @@ function errorLogging(log) {
 }
 
 /****** INIT DB */
-//initDB();
+initDB();
 
 
 Array.prototype.match = function (arr2) {
