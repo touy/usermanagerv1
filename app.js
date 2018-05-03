@@ -2697,9 +2697,9 @@ function displayUserDetails(gui) {
     let deferred = Q.defer();
     findUserByGUI(gui).then(function (res) {
         if (res) {
-            console.log(res.photo);
+            console.log(res);
             filterObject(res);
-            console.log(res.photo);
+            console.log(res);
             deferred.resolve(res);
         } else {
             deferred.reject(new Error('ERROR no user profile'));
