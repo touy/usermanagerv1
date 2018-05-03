@@ -2684,9 +2684,11 @@ function get_user_details_ws(js) {
                         js.client.data.user.photo=[];
                     }
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
-                        const element = js.client.data.user.photo[index];       
+                        const element = js.client.data.user.photo[index];      
+                        console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
                         element.arraybuffer=fs.readFileSync(__dirname+'/public/profiles/'+element.name, "binary");           
                     }
+                    console.log(js.client.data.user.photo.length)
                     js.client.data.message = 'OK';
                     deferred.resolve(js);
                 }).catch(function (err) {
