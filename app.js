@@ -2735,7 +2735,7 @@ function findUserByGUI(gui) {
             }
             console.log('FOUND ' + gui);
             console.log('length: '+ arr.length);
-            if (arr.length<1)
+            if (arr.length<2)
                 deferred.resolve(arr[0]);
             else
                 deferred.reject(new Error('ERROR system found more record please contact admin'));
