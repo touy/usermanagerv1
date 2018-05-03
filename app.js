@@ -2233,7 +2233,7 @@ function update_user_ws(js) {
                             element.arraybuffer='';
                             element.url='';
                         } 
-                        console.log(`update user profile : JSON.stringify(res.photo)`);
+                        console.log(`update user profile : `+JSON.stringify(res.photo));
                         updateUser(res).then(function (res) {
                             saveAttachementsToFiles(attach);
                             console.log('update ok');
@@ -2681,7 +2681,7 @@ function get_user_details_ws(js) {
                 gui = c.gui;
                 displayUserDetails(gui).then(function (res) {
                     js.client.data.user = res;
-                    console.log(` user photo JSON.stringify(res.photo)`);
+                    console.log(` user photo `+JSON.stringify(res.photo));
                     if(js.client.data.user.photo === undefined || !js.client.data.user.photo){
                         js.client.data.user.photo=[];
                     }
