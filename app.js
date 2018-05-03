@@ -2191,9 +2191,9 @@ function saveAttachementsToFiles(array){
     try {
         for (let index = 0; index < array.length; index++) {
             const element = array[index];
-            console.log('saving file '+element.name);
-            console.log('to '+__dirname+'/public/profiles/');
-            fs.writeFileSync(__dirname+'/public/profiles/'+element.name,element.data,'binary');
+            fs.writeFileSync(__dirname+'/public/profiles/'+element.name,element.data,'binary',err=>{
+                if(err) throw err;
+            });
         }
     } catch (error) {
         throw error;
@@ -2227,7 +2227,7 @@ function update_user_ws(js) {
                             const element = res.photo[index];
                             attach.push( {
                                 name: element.name, 
-                                data: new Buffer(element.arraybuffer),
+                                data: element.arraybuffer,
                                 content_type: element.type
                               });
                             element.arraybuffer='';
@@ -2697,9 +2697,9 @@ function displayUserDetails(gui) {
     let deferred = Q.defer();
     findUserByGUI(gui).then(function (res) {
         if (res) {
-            console.log(res);
+            //console.log(res);
             filterObject(res);
-            console.log(res);
+            //console.log(res);
             deferred.resolve(res);
         } else {
             deferred.reject(new Error('ERROR no user profile'));
