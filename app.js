@@ -2233,7 +2233,7 @@ function update_user_ws(js) {
                             element.arraybuffer='';
                             element.url='';
                         } 
-                        console.log(`update user profile : `+JSON.stringify(res.photo));
+                        //console.log(`update user profile : `+JSON.stringify(res.photo));
                         updateUser(res).then(function (res) {
                             saveAttachementsToFiles(attach);
                             console.log('update ok');
@@ -2638,20 +2638,7 @@ function get_user_info_ws(js) {
     return deferred.promise;
 }
 
-app.all('/display_user_details', function (req, res) {
-    let js = {};
-    js.client = req.body; //client.data.device
-    js.resp = res;
-    displayUserDetails(js.client.data.user.gui).then(function (res) {
-        js.client.data.user = res;
-        js.client.data.message = 'OK';
-        js.resp.send(js.client);
-    }).catch(function (err) {
-        js.client.data.message = err;
-        js.resp.send(js.client);
-    });
 
-});
 function getAttachements(id){
     let deferred=Q.defer();
     let db=create_db('gijusers');
@@ -2710,7 +2697,9 @@ function displayUserDetails(gui) {
     let deferred = Q.defer();
     findUserByGUI(gui).then(function (res) {
         if (res) {
+            console.log(res.photo);
             filterObject(res);
+            console.log(res.photo);
             deferred.resolve(res);
         } else {
             deferred.reject(new Error('ERROR no user profile'));
