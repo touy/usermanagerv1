@@ -2188,10 +2188,16 @@ function validatePhoneInfo(p) {
 }
 
 function saveAttachementsToFiles(array){
-    for (let index = 0; index < array.length; index++) {
-        const element = array[index];
-        fs.writeFileSync(__dirname+'\\public\\profiles\\'+element.name,element.data,'binary');
+    try {
+        for (let index = 0; index < array.length; index++) {
+            const element = array[index];
+            console.log('saving file '+element.name);
+            fs.writeFileSync(__dirname+'\\public\\profiles\\'+element.name,element.data,'binary');
+        }
+    } catch (error) {
+        throw error;
     }
+
 }
 function update_user_ws(js) {
     let deferred = Q.defer();
@@ -3361,9 +3367,6 @@ function updateUser(userinfo) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     try {
-        if(userinfo.photo.length>1){
-            throw new Error('ERROR too many photo');                                                            
-        }
         if(!userinfo._rev){
             userinfo.gui=uuidV4();
             userinfo._id=userinfo.gui;
