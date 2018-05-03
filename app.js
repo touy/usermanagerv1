@@ -2718,9 +2718,10 @@ function filterObject(obj) {
         //console.log(obj[i]);
         for (x = 0; x < need.length; x++) {
             let key = need[x];
-            if (!obj.hasOwnProperty(i)) {} else if (Array.isArray(obj[i])) {
-                obj[i] = '';
-            } else if (typeof obj[i] === 'object') {
+            // if (!obj.hasOwnProperty(i)) {} else if (Array.isArray(obj[i])) {
+            //     obj[i] = '';
+            // } else 
+            if (typeof obj[i] === 'object') {
                 filterObject(obj[i], need);
             } else if (i.indexOf(key) > -1) {
                 obj[i] = '';
