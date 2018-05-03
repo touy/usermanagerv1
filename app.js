@@ -2206,51 +2206,46 @@ app.all('/update_user', function (req, res) {
 
 function update_user_ws(js) {
     let deferred = Q.defer();
-    r_client.get(_current_system + '_usergui_' + js.client.logintoken, function (err, gui) {
-        if (err) {
-            js.client.data.message = err;
-            deferred.reject(js);
-        } else if (gui) {
-            let c = JSON.parse(gui);
-            gui = c.gui;
-            findUserByGUI(gui).then(function (res) {
-                if (res) {
-                    // console.log('TEST');
-                    // console.log(res);
-                    res.lastupdate = convertTZ(new Date());
-                    res.photo = js.client.data.user.photo;
-                    res.note = js.client.data.user.note;
-                    res.description = js.client.data.user.description;
-                    updateUser(res).then(function (res) {
-                        js.client.data.message = 'OK updated';
-                        try {
-                            if (js.client.data.user.photo)
-                                if (fs.existsSync(__dirname + "/temp/" + js.client.data.user.photo)) {
-                                    fs.rename(__dirname + "/temp/" + js.client.data.user.photo, __dirname + '/photo/' + js.client.data.user.photo);
-                                }
-                        } catch (error) {
-                            console.log(error);
-                        }
-                        deferred.resolve(js);
-                    }).catch(function (err) {
-                        js.client.data.message = err;
-                        console.log(err);
-                        deferred.reject(js);
-                    });
-                } else {
-                    //throw new Error('ERROR user not found');
-                    js.client.data.message = new Error('ERROR user not found');
-                    deferred.reject(js);
-                }
-            }).catch(function (err) {
+    try {
+        r_client.get(_current_system + '_usergui_' + js.client.logintoken, function (err, gui) {
+            if (err) {
                 js.client.data.message = err;
                 deferred.reject(js);
-            });
-        } else {
-            js.client.data.message = new Error('ERROR key not found');
-            deferred.reject(js);
-        }
-    });
+            } else if (gui) {
+                let c = JSON.parse(gui);
+                gui = c.gui;
+                findUserByGUI(gui).then(function (res) {
+                    if (res) {
+                        // console.log('TEST');
+                        // console.log(res);
+                        res.lastupdate = convertTZ(new Date());
+                        res.photo = js.client.data.user.photo;
+                        res.note = js.client.data.user.note;
+                        res.description = js.client.data.user.description;
+                        if(js.client.data.user.photo.length>1){
+                            throw new Error('ERROR too many photo');                                                            
+                        }else{
+                            updateUser(res).then(function (res) {
+                                js.client.data.message = 'OK updated';                                
+                                deferred.resolve(js);
+                            });
+                        }                        
+                    } else {
+                        //throw new Error('ERROR user not found');
+                        throw  new Error('ERROR user not found');                        
+                    }
+                }).catch(function (err) {
+                    throw err;
+                });
+            } else {
+                throw new Error('ERROR key not found');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+
 
 
     return deferred.promise;
