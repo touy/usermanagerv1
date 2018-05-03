@@ -2192,6 +2192,7 @@ function saveAttachementsToFiles(array){
         for (let index = 0; index < array.length; index++) {
             const element = array[index];
             console.log('saving file '+element.name);
+            console.log('to '+__dirname+'\\public\\profiles\\');
             fs.writeFileSync(__dirname+'\\public\\profiles\\'+element.name,element.data,'binary');
         }
     } catch (error) {
