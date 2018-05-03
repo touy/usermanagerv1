@@ -86,7 +86,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
         args = args.toString();
         if (args.indexOf('set') != 0) //capture the set command only
             return;
-        //args=args.replace('\\','');
+        //args=args.replace('/','');
 
         let arr = args.split(',');
         //console.log(arr);
@@ -277,7 +277,7 @@ function commandReader(js) {
                     break;
                 case 'get-upload':
                     try {
-                        let fpath=__dirname+'\\public\\profiles\\'+js.client.data.user.photo[0].name;
+                        let fpath=__dirname+'/public/profiles/'+js.client.data.user.photo[0].name;
                     //console.log(fpath);
                     js.client.data.user.photo[0].arraybuffer=fs.readFileSync(fpath,'binary');
                     //console.log(js.client.data.user.photo);
@@ -302,17 +302,17 @@ function commandReader(js) {
                         const element = ps[index];
                         // console.log('writing');
                         // console.log(element.arraybuffer);
-                        // console.log(__dirname+'\\'+element.name);
+                        // console.log(__dirname+'/'+element.name);
                         let buff = element.arraybuffer;
                         // console.log(buff);
-                        fs.writeFile(__dirname+'\\public\\profiles\\'+element.name,buff,'binary', function (err) {
+                        fs.writeFile(__dirname+'/public/profiles/'+element.name,buff,'binary', function (err) {
                             if (err) {
                                 js.client.data.message=err;
                                 console.log(err);
                                 deferred.reject(js);
                             } else {
                                 console.log('OK');
-                                console.log(__dirname+'\\'+element.name);
+                                console.log(__dirname+'/'+element.name);
                                 js.client.data.message='OK upload'
                                 deferred.resolve(js);
                             }
@@ -2192,8 +2192,8 @@ function saveAttachementsToFiles(array){
         for (let index = 0; index < array.length; index++) {
             const element = array[index];
             console.log('saving file '+element.name);
-            console.log('to '+__dirname+'\\public\\profiles\\');
-            fs.writeFileSync(__dirname+'\\public\\profiles\\'+element.name,element.data,'binary');
+            console.log('to '+__dirname+'/public/profiles/');
+            fs.writeFileSync(__dirname+'/public/profiles/'+element.name,element.data,'binary');
         }
     } catch (error) {
         throw error;
@@ -2662,7 +2662,7 @@ function getAttachements(id){
         //     }
         // });
         
-        deferred.resolve(fs.readFileSync(__dirname+'\\public\\profiles\\'+name, "utf8"));
+        deferred.resolve(fs.readFileSync(__dirname+'/public/profiles/'+name, "utf8"));
     } catch (error) {
         deferred.reject(error);
     }
@@ -2685,7 +2685,7 @@ function get_user_details_ws(js) {
                     }
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
                         const element = js.client.data.user.photo[index];       
-                        element.arraybuffer=fs.readFileSync(__dirname+'\\public\\profiles\\'+element.name, "binary");           
+                        element.arraybuffer=fs.readFileSync(__dirname+'/public/profiles/'+element.name, "binary");           
                     }
                     js.client.data.message = 'OK';
                     deferred.resolve(js);
@@ -2776,7 +2776,7 @@ function findUserByGUI(gui) {
 
 var storage = multer.diskStorage({
     destination: function (req, file, callback) {
-        callback(null, __dirname + '\\temp');
+        callback(null, __dirname + '/temp');
     },
     filename: function (req, file, callback) {
         console.log(file)
