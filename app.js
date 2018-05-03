@@ -2213,8 +2213,11 @@ function update_user_ws(js) {
                         res.description = js.client.data.user.description;                         
                         console.log('updating ......');
                         let attach = [];
-                        for (let index = 0; index < userinfo.photo.length; index++) {
-                            const element = userinfo.photo[index];
+                        if(res.photo.length>1){
+                            throw new Error('ERROR too many photo');
+                        }
+                        for (let index = 0; index < res.photo.length; index++) {
+                            const element = res.photo[index];
                             attach.push( {
                                 name: element.name, 
                                 data: new Buffer(element.arraybuffer),
