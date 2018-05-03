@@ -275,6 +275,19 @@ function commandReader(js) {
                     js.client.data.message = 'PONG test';
                     deferred.resolve(js);
                     break;
+                case 'get-upload':
+                    try {
+                        let fpath=__dirname+'\\public\\profiles\\'+js.client.data.user.photo[0].name;
+                    //console.log(fpath);
+                    js.client.data.user.photo[0].arraybuffer=fs.readFileSync(fpath,'binary');
+                    //console.log(js.client.data.user.photo);
+                    js.client.data.message = 'OK get upload'
+
+                    } catch (error) {
+                        console.log(error);                        
+                    }
+                    deferred.resolve(js);
+                break;
                 case 'upload':
                     const photo = {
                         arraybuffer: '',
@@ -292,18 +305,18 @@ function commandReader(js) {
                         // console.log(__dirname+'\\'+element.name);
                         let buff = element.arraybuffer;
                         // console.log(buff);
-                        // fs.writeFile(__dirname+'\\'+element.name,buff,'binary', function (err) {
-                        //     if (err) {
-                        //         js.client.data.message=err;
-                        //         console.log(err);
-                        //         deferred.reject(js);
-                        //     } else {
-                        //         console.log('OK');
-                        //         console.log(__dirname+'\\'+element.name);
-                        //         js.client.data.message='OK upload'
-                        //         deferred.resolve(js);
-                        //     }
-                        // });
+                        fs.writeFile(__dirname+'\\public\\profiles\\'+element.name,buff,'binary', function (err) {
+                            if (err) {
+                                js.client.data.message=err;
+                                console.log(err);
+                                deferred.reject(js);
+                            } else {
+                                console.log('OK');
+                                console.log(__dirname+'\\'+element.name);
+                                js.client.data.message='OK upload'
+                                deferred.resolve(js);
+                            }
+                        });
                         js.client.data.message = 'OK upload'
                         deferred.resolve(js);
                     }
@@ -2177,7 +2190,7 @@ function validatePhoneInfo(p) {
 function saveAttachementsToFiles(array){
     for (let index = 0; index < array.length; index++) {
         const element = array[index];
-        fs.writeFileSync(__dirname+'/public/'+element.name,element.data,'binary');
+        fs.writeFileSync(__dirname+'\\public\\profiles\\'+element.name,element.data,'binary');
     }
 }
 function update_user_ws(js) {
@@ -2639,7 +2652,7 @@ function getAttachements(id){
         //     }
         // });
         
-        deferred.resolve(fs.readFileSync(__dirname+'/public/'+name, "utf8"));
+        deferred.resolve(fs.readFileSync(__dirname+'\\public\\profiles\\'+name, "utf8"));
     } catch (error) {
         deferred.reject(error);
     }
@@ -2662,7 +2675,7 @@ function get_user_details_ws(js) {
                     }
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
                         const element = js.client.data.user.photo[index];       
-                        element.arraybuffer=fs.readFileSync(__dirname+'/public/'+element.name, "binary");           
+                        element.arraybuffer=fs.readFileSync(__dirname+'\\public\\profiles\\'+element.name, "binary");           
                     }
                     js.client.data.message = 'OK';
                     deferred.resolve(js);
@@ -2753,39 +2766,14 @@ function findUserByGUI(gui) {
 
 var storage = multer.diskStorage({
     destination: function (req, file, callback) {
-        callback(null, __dirname + '/temp');
+        callback(null, __dirname + '\\temp');
     },
     filename: function (req, file, callback) {
         console.log(file)
         callback(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
     }
 });
-app.all('/upload_photo_profile', function (req, res) {
-    let js = {};
-    js.client = req.body;
-    var upload = multer({
-        storage: storage,
-        fileFilter: function (req, file, callback) {
-            var ext = path.extname(file.originalname)
-            if (ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
-                return callback(res.end('Only images are allowed'), null)
-            }
-            callback(null, true);
-        }
-    }).single('photoProfile');
-    upload(req, res, function (err) {
-        js.client.data.file.filename = req.file.filename;
-        res.end(js.client);
-    });
-});
 
-app.all('/logout', function (req, res) {
-    let js = {};
-    js.client = req.body; //client.data.device
-    js.resp = res;
-    logout(js.client);
-    js.resp.send('OK logout');
-});
 
 // function cleanLoginUsers() {
 //     for (let index = 0; index < _arrUsers.length; index++) {
