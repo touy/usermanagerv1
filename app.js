@@ -1764,7 +1764,7 @@ function register_online_chat(js) {
                     for (let index = 0; index < data.membergui.length; index++) {
                         const element = data.membergui[index];
                         client.data.msg = data.msg;
-                        r_client.set(_current_system + '_msg_' + element.usergui, JSON.stringify({
+                        r_client.set(_current_system + '_msg_' + element, JSON.stringify({
                             command: 'msg-changed',
                             client: client
                         }), (err, res) => {
@@ -1914,7 +1914,7 @@ function send_message(js) {
                 for (let index = 0; index < data.membergui.length; index++) {
                     const element = data.membergui[index];
                     client.data.msg = data.msg;
-                    r_client.set(_current_system + '_msg_' + element.usergui, JSON.stringify({
+                    r_client.set(_current_system + '_msg_' + element, JSON.stringify({
                         command: 'msg-changed',
                         client: client
                     }), (err, res) => {
