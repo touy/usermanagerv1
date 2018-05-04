@@ -1518,9 +1518,8 @@ function updateTarget(t) {
                 deferred.resolve('OK added targetmsg');
             }
         });
-    } catch (error) {
-        js.client.data.message = error;
-        deferred.reject(js);
+    } catch (error) {        
+        deferred.reject(error);
     }
     return deferred.promise;
 }
