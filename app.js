@@ -1467,7 +1467,7 @@ function findTagetByTargetId(targetid) {
     let deferred = Q.defer();
     try {
         let db = create_db('targetmsg');
-        db.view(__design_view, 'findByTargetID',{key:targetid}, (err, res) => {
+        db.view(__design_view, 'findByTargetId',{key:targetid}, (err, res) => {
             if (err) throw err;
             else {
                 let arr = [];
@@ -1528,23 +1528,24 @@ function updateTarget(t) {
 function subscribe_online_chat(js) {
     try {
         let deferred = Q.defer();
-        let sub = js.client.data.sub;
-        findTagetByTargetId(sub.targetid).then(res => {
+        let msg = js.client.data.msg;
+        findTagetByTargetId(msg.targetid).then(res => {
             if (res.length) {
-                if (res) {
-                    let target = res;
-                    if (target.pendingmemberapproval === undefined)
-                        target.pendingmemberapproval = [];
+                let target = res[0];
+                if (target.pendingmemberapproval === undefined)
+                    target.pendingmemberapproval = [];
+                if(target.blacklist.indexOf(js.client.user.gui)>-1){
+                    throw new Error('ERROR you have no permission');
+                }else{
                     target.pendingmemberapproval.push(js.client.user.gui);
                     updateTarget(target).then(res=>{
                         js.client.data.message = 'OK subscribe!';
                         deferred.resolve(js);
                     });
-                } else {
-                    throw new Error('ERROR target not found');
                 }
-            } else {
 
+            } else {
+                    throw new Error('ERROR targetid now found');
             }
         });
     } catch (error) {
@@ -1555,16 +1556,170 @@ function subscribe_online_chat(js) {
 }
 
 function leave_online_chat(js) {
+    let deferred = Q.defer();
+    let msg = js.client.data.msg;
+    try {
+        findTagetByTargetId(msg.targetid).then(res => {
+            if (res.length) {
+                let target = res[0];
+                if(target.usergui===js.client.data.user.gui)
+                    target._deleted=true;
+                if (target.membergui === undefined && !target._deleted){
+                    target.membergui.splice(target.membergui.indexOf(js.client.data.user.gui),1);
+                    target.memberusername.splice(target.memberusername.indexOf(js.client.username),1);  
+                    target.exmember.push(js.client.data.user.username);
+                    target.pendingmemberapproval.splice(target.pendingmemberapproval.indexOf(js.client.username),1);  
+                    target.deniedapprovlalist.splice(target.deniedapprovlalist.indexOf(js.client.username),1);  
+                    target.pendinginvited.splice(target.pendinginvited.indexOf(js.client.username),1);  
+                    target.refusedinvited.splice(target.refusedinvited.indexOf(js.client.username),1);               
+                }
+                updateTarget(target).then(res=>{
+                    js.client.data.message = 'OK subscribe!';
+                    deferred.resolve(js);
+                });
 
+            } else {
+                    throw new Error('ERROR targetid now found');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+    return deferred.promise;
 }
 
 function invite_online_chat(js) {
-
+    let deferred = Q.defer();
+    let msg = js.client.data.msg;
+    try {
+        findTagetByTargetId(msg.targetid).then(res => {
+            if (res.length) {
+                let s_target = res[0];
+                findUserByUsername(js.client.data.user.username).then(res=>{
+                    if(res){
+                        let u=res;
+                        if(s_target.membergui.indexOf(u.gui)>-1){
+                            throw new Error('ERROR exist member');
+                        }
+                        if(s_target.pendinginvited.indexOf(u.username)>-1){
+                            throw new Error('ERROR exist invited');
+                        } 
+                        if(s_target.blacklist.indexOf(u.username)>-1){
+                            throw new Error('ERROR exist invited');
+                        } 
+                        s_target.pendinginvited.push(u.username);
+                        if(target.usergui===js.client.data.user.gui){
+                            updateTarget(s_target).then(res=>{
+                                js.client.data.message = 'OK update invited!';
+                                deferred.resolve(js);
+                            });
+                        }else{
+                            throw new Error('ERROR you have no right to invite!');
+                        }
+                    }
+                    else{
+                        throw new Error('ERROR not found invited user');
+                    }
+                });
+            } else {
+                    throw new Error('ERROR targetid now found');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+    return deferred.promise;
 }
 
-function approve_online_chat(js) {
-
+function approve_member_online_chat(js) {
+    let deferred = Q.defer();
+    let msg = js.client.data.msg;
+    try {
+        findTagetByTargetId(msg.targetid).then(res => {
+            if (res.length) {
+                let s_target = res[0];
+                findUserByUsername(js.client.data.user.username).then(res=>{
+                    if(res){
+                        let u=res;
+                        if(s_target.membergui.indexOf(u.gui)>-1){
+                            throw new Error('ERROR exist member');
+                        }
+                        if(s_target.pendingmemberapproval.indexOf(u.username)>-1){
+                            s_target.membergui.push(u.gui);
+                            s_target.memberusername.push(u.username);                            
+                                updateTarget(s_target).then(res=>{
+                                    js.client.data.message = 'OK update approved member joining request!';
+                                    deferred.resolve(js);
+                                });
+                        }else if(s_target.deniedapprovlalist.indexOf(u.username)>-1){
+                                updateTarget(s_target).then(res=>{
+                                    js.client.data.message = 'OK update deny member joining request!';
+                                    deferred.resolve(js);
+                                });
+                        }
+                        else{
+                            throw new Error('ERROR please subscribe first');
+                        }
+                    }
+                    else{
+                        throw new Error('ERROR not found invited user');
+                    }
+                });
+            } else {
+                    throw new Error('ERROR targetid now found');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
 }
+function accpet_invite_online_chat(js) {
+    let deferred = Q.defer();
+    let msg = js.client.data.msg;
+    try {
+        findTagetByTargetId(msg.targetid).then(res => {
+            if (res.length) {
+                let s_target = res[0];
+                findUserByUsername(js.client.data.user.username).then(res=>{
+                    if(res){
+                        let u=res;
+                        if(s_target.membergui.indexOf(u.gui)>-1){
+                            throw new Error('ERROR exist member');
+                        }
+                        if(s_target.pendinginvited.indexOf(u.username)>-1){
+                            s_target.membergui.push(u.gui);
+                            s_target.memberusername.push(u.username);                            
+                                updateTarget(s_target).then(res=>{
+                                    js.client.data.message = 'OK update accept an invitation!';
+                                    deferred.resolve(js);
+                                });
+                        } else if(s_target.refusedinvited.indexOf(u.username)>-1){
+                            updateTarget(s_target).then(res=>{
+                                js.client.data.message = 'OK update refused an invitation!';
+                                deferred.resolve(js);
+                            });
+                        }
+                         else{
+                            throw new Error('ERROR you have not an invitation')
+                        }
+                    }
+                    else{
+                        throw new Error('ERROR not found invited user');
+                    }
+                });
+            } else {
+                    throw new Error('ERROR targetid now found');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+}
+
 
 function register_online_chat(js) {
     let deferred = Q.defer();
@@ -1575,7 +1730,7 @@ function register_online_chat(js) {
         }
         findTagetByTargetId(js.client.data.msg.targetid).then(res=> {
                 if (res.length) {
-                    let data = res;
+                    let data = res[0];
                     if (data.membergui.indexOf(js.client.data.user.gui) < 0) {
                         data.membergui.push(js.client.data.user.gui);
                         data.memberusername.push(js.client.username);
@@ -1650,11 +1805,13 @@ function register_online_chat(js) {
                         deniedapprovlalist: [],
                         pendinginvited: [],
                         refusedinvited: [],
+                        blacklist:[],
                         createdata: convertTZ(new Date()),
                         msg: [] /// 10 ms earlier
                     }
                     let msg = {
                         gui: uuidV4(),
+                        targetid:'',
                         // sendergui: js.client.data.user.gui,
                         sender: js.client.username,
                         content: '@hello@',
@@ -1722,9 +1879,9 @@ function register_online_chat(js) {
 function send_message(js) {
     let deferred = Q.defer();
     try {
-        findByTargetId(js.client.data.msg.targetid).then(res => {
-            if (res) {
-                let data = res;
+        findTagetByTargetId(js.client.data.msg.targetid).then(res => {
+            if (res.length) {
+                let data = res[0];
                 if (res.membergui.indexOf(js.client.data.user.gui) < 0) {
                     throw new Error('ERROR you are not a memember')
                 }
@@ -1732,6 +1889,7 @@ function send_message(js) {
                     gui: uuidV4(),
                     // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
                     // sendergui: js.client.data.user.gui,
+                    targetid:js.client.data.msg.targetid,
                     sender: js.client.username,
                     content: js.client.data.msg.content,
                     msgtype: js.client.data.msg.msgtype, // photo , sound, video, text, typing, misc
