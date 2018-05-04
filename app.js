@@ -1512,7 +1512,7 @@ function updateTarget(t) {
             t.gui = uuidV4();
         }
         let db = create_db('targetmsg');
-        db.inset(t, t.gui, (err, res) => {
+        db.insert(t, t.gui, (err, res) => {
             if (err) throw err;
             else {
                 deferred.resolve('OK added targetmsg');
@@ -1972,7 +1972,7 @@ function get_client_ws(js) {
                 js.client.logintime = '';
                 //js.client.gui=uuidV4();        
                 js.client.data.message = 'OK new client';
-                if (!js.client.prefix)
+                if (!js.client.pre  )
                     js.client.prefix = 'GUEST-' + uuidV4();
                 //_client_prefix.push(js.client.prefix);
                 //console.log('before send '+JSON.stringify(js.client));
