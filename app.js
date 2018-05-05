@@ -118,6 +118,10 @@ r_client.on("monitor", function (time, args, raw_reply) {
             wss.clients.forEach(function each(ws) {
                 const element = ws;
                 //console.log(element);
+                if(element.readyState !== element.OPEN){
+                    console.error('Client state is ' + this.clients[i].readyState);
+                    return;
+                }
                 if (_current_system + "_client_" + element.gui === key) {
                     console.log('client-changed');
                     element.send(JSON.stringify(js));
@@ -320,6 +324,55 @@ function commandReader(js) {
                         js.client.data.message = 'OK upload'
                         deferred.resolve(js);
                     }
+                    break;
+                    case 'register-conversation':
+                    register_online_chat(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                    case 'update-blacklist':
+                    black_list_online_chat(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                    case 'invite':
+                    invite_online_chat(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                    case 'accept-invitation':
+                    accpet_invite_online_chat(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                    case 'arpprove-member':
+                    approve_member_online_chat(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                    case 'leave-conversation':
+                    leave_online_chat(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                    break;
+                    case 'ubscribe-conversation':
+                    subscribe_online_chat(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
                     break;
                 case 'send-message':
                     send_message(js).then(res => {
@@ -1718,8 +1771,43 @@ function accpet_invite_online_chat(js) {
         deferred.reject(js);
     }
 }
-
-
+function black_list_online_chat(js) {
+    let deferred = Q.defer();
+    let msg = js.client.data.msg;
+    try {
+        findTagetByTargetId(msg.targetid).then(res => {
+            if (res.length) {
+                let s_target = res[0];
+                findUserByUsername(js.client.data.user.username).then(res=>{
+                    if(res){
+                        let u=res;
+                        if(s_target.membergui.indexOf(u.gui)>-1){
+                            s_target.membergui.splice(s_target.membergui.indexOf(u.gui),1);
+                            s_target.memberusername.splice(s_target.memberusername.indexOf(u.username),1);
+                        }
+                        if(s_target.blacklist.indexOf(u.username)<0){
+                            s_target.blacklist.push(u.username);                            
+                                updateTarget(s_target).then(res=>{
+                                    js.client.data.message = 'OK update accept an invitation!';
+                                    deferred.resolve(js);
+                                });
+                        } else {
+                            throw new Error('ERROR exist in black list');
+                        }
+                    }
+                    else{
+                        throw new Error('ERROR not found user');
+                    }
+                });
+            } else {
+                    throw new Error('ERROR targetid now found');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+}
 function register_online_chat(js) {
     let deferred = Q.defer();
     try {
