@@ -624,7 +624,7 @@ wss.on('connection', function connection(ws, req) {
     //const ip = req.headers['x-forwarded-for'];
     ws.isAlive = true;
     ws.binaryType = 'arraybuffer';
-    // ws.on('pong', heartbeat);
+    ws.on('pong', heartbeat);
     ws.on('error', function (err) {
         //js.client.data.message=JSON.stringify(err);
         var l = {
@@ -982,7 +982,7 @@ const interval = setInterval(function ping() {
             if (ws.isAlive === false) return ws.terminate();
             console.log('TIME INTERVAL');
             ws.isAlive = false;
-            // ws.ping(noop);   
+            ws.ping(noop);   
         } catch (error) {
             console.log(error);
         }
