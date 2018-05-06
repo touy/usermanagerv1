@@ -119,7 +119,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 const element = ws;
                 //console.log(element);
                 if(element.readyState !== element.OPEN){
-                    console.error('Client state is ' + this.clients[i].readyState);
+                    console.error('Client state is ' + element.readyState);
                     return;
                 }
                 if (_current_system + "_client_" + element.gui === key) {
@@ -610,11 +610,20 @@ function commandReader(js) {
 function ab2str(buf) {
     return String.fromCharCode.apply(null, new Uint8Array(buf));
   }
+  function str2ab(str) {
+    var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+    var bufView = new Uint8Array(buf);
+    for (var i=0, strLen=str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+  }
 wss.on('connection', function connection(ws, req) {
     const ip = req.connection.remoteAddress;
     console.log('connection from ' + ip);
     //const ip = req.headers['x-forwarded-for'];
     ws.isAlive = true;
+    ws.binaryType = 'arraybuffer';
     // ws.on('pong', heartbeat);
     ws.on('error', function (err) {
         //js.client.data.message=JSON.stringify(err);
@@ -661,10 +670,11 @@ wss.on('connection', function connection(ws, req) {
                 //console.log(res.client);
                 // if(res.client.data.command=="system-prefix")
                 //         ws.send(JSON.stringify(res));
-                // else     
-                ws.binaryType='arraybuffer';
-                //console.log(Buffer.from(JSON.stringify(js.client)));         
-                ws.send(Buffer.from(JSON.stringify(js.client)));
+                // else                     
+                //console.log(Buffer.from(JSON.stringify(js.client)));  
+                console.log('ws sending');     
+                console.log(Buffer.from(JSON.stringify(js.client)));  
+                ws.send(Buffer.from(JSON.stringify(js.client)),{binary:true});
                 //}, 500);
             }).catch(err => {
                 js = err;
@@ -676,19 +686,19 @@ wss.on('connection', function connection(ws, req) {
                 };
                 //console.log(err);
                 errorLogging(l);
-                console.log('ws sending');
-                ws.binaryType='arraybuffer';
+                console.log('ws sending error');            
                 js.client.data.message = js.client.data.message.message;
                 // ws.send(JSON.stringify(js.client));
-                ws.send(Buffer.from(JSON.stringify(js.client)));
+                console.log(Buffer.from(JSON.stringify(js.client)));
+                ws.send(Buffer.from(JSON.stringify(js.client)),{binary:true});
             });
         } catch (error) {
             js.client = {};
             js.client.data = {};
-            js.client.data.message = error;
-            ws.binaryType='arraybuffer';
-            // ws.send(JSON.stringify(js.client));
-            ws.send(Buffer.from(JSON.stringify(js.client)));
+            js.client.data.message = error;  
+            console.log('ws sending error');          
+            console.log(Buffer.from(JSON.stringify(js.client)));
+            ws.send(Buffer.from(JSON.stringify(js.client)),{binary:true});
         }
 
     });
