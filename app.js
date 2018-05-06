@@ -1576,7 +1576,7 @@ function updateTarget(t) {
     }
     return deferred.promise;
 }
-
+// subscribe to a conversation
 function subscribe_online_chat(js) {
     try {
         let deferred = Q.defer();
@@ -1606,7 +1606,7 @@ function subscribe_online_chat(js) {
     }
     return deferred.promise;
 }
-
+// leave conversation
 function leave_online_chat(js) {
     let deferred = Q.defer();
     let msg = js.client.data.msg;
@@ -1640,7 +1640,7 @@ function leave_online_chat(js) {
     }
     return deferred.promise;
 }
-
+// invite to conversation
 function invite_online_chat(js) {
     let deferred = Q.defer();
     let msg = js.client.data.msg;
@@ -1684,7 +1684,7 @@ function invite_online_chat(js) {
     }
     return deferred.promise;
 }
-
+// approve subscribed to a conversation
 function approve_member_online_chat(js) {
     let deferred = Q.defer();
     let msg = js.client.data.msg;
@@ -1728,6 +1728,7 @@ function approve_member_online_chat(js) {
         deferred.reject(js);
     }
 }
+// accept invited
 function accpet_invite_online_chat(js) {
     let deferred = Q.defer();
     let msg = js.client.data.msg;
@@ -1771,6 +1772,7 @@ function accpet_invite_online_chat(js) {
         deferred.reject(js);
     }
 }
+// add / remove the black list
 function black_list_online_chat(js) {
     let deferred = Q.defer();
     let msg = js.client.data.msg;
@@ -1808,6 +1810,7 @@ function black_list_online_chat(js) {
         deferred.reject(js);
     }
 }
+// create a new conversation 
 function register_online_chat(js) {
     let deferred = Q.defer();
     try {
@@ -1818,140 +1821,131 @@ function register_online_chat(js) {
         findTagetByTargetId(js.client.data.msg.targetid).then(res=> {
                 if (res.length) {
                     let data = res[0];
-                    if (data.membergui.indexOf(js.client.data.user.gui) < 0) {
-                        data.membergui.push(js.client.data.user.gui);
-                        data.memberusername.push(js.client.username);
-                    }
-                    let msg = {
-                        gui: uuidV4(),
-                        // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
-                        // sendergui: js.client.data.user.gui,
-                        sender: js.client.username,
-                        content: '@hello@',
-                        msgtype: 'text', // photo , sound, video, text, typing, misc
-                        attached: [],
-                        // senttime: convertTZ(new Date()),
-                        sent: [{
-                            username: '',
-                            sent: convertTZ(new Date())
-                        }],
-                        received: [{
-                            user: '',
-                            received: convertTZ(new Date())
-                        }], //
-                        read: [{
-                            user: '',
-                            read: convertTZ(new Date())
-                        }] // 
-                    }
-                    if (data.msg.length > 10) {
-                        data.msg.shift();
-                    }
-                    data.msg.push(msg);
-                    let client = JSON.parse(JSON.stringify(js.client));
-                    for (let index = 0; index < data.membergui.length; index++) {
-                        const element = data.membergui[index];
-                        client.data.msg = data.msg;
-                        r_client.set(_current_system + '_msg_' + element, JSON.stringify({
-                            command: 'msg-changed',
-                            client: client
-                        }), (err, res) => {
-                            if (err) {
-                                js.client.data.message = err;
-                                deferred.reject(js);
-                            }
+                    if(data.usergui === js.client.data.user.gui){
+                        if (data.membergui.indexOf(js.client.data.user.gui) < 0) {
+                            data.membergui.push(js.client.data.user.gui);
+                            data.memberusername.push(js.client.username);
+                        } 
+                        let msg = {
+                            gui: uuidV4(),
+                            // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
+                            // sendergui: js.client.data.user.gui,
+                            sender: js.client.username,
+                            content: '@hello@',
+                            msgtype: 'text', // photo , sound, video, text, typing, misc
+                            attached: [],
+                            // senttime: convertTZ(new Date()),
+                            sent: [{
+                                username: '',
+                                sent: convertTZ(new Date())
+                            }],
+                            received: [{
+                                user: '',
+                                received: convertTZ(new Date())
+                            }], //
+                            read: [{
+                                user: '',
+                                read: convertTZ(new Date())
+                            }] // 
+                        }
+                        if (data.msg.length > 10) {
+                            data.msg.shift();
+                        }
+                        data.msg.push(msg);
+                        let client = JSON.parse(JSON.stringify(js.client));
+                        for (let index = 0; index < data.membergui.length; index++) {
+                            const element = data.membergui[index];
+                            client.data.msg = data.msg;
+                            r_client.set(_current_system + '_msg_' + element, JSON.stringify({
+                                command: 'msg-changed',
+                                client: client
+                            }), (err, res) => {
+                                if (err) {
+                                    js.client.data.message = err;
+                                    deferred.reject(js);
+                                }
+                            });
+                        }
+                        updateTarget(data).then(res => {
+                            js.client.data.message = 'OK register exist online chat';
+                            deferred.resolve(js);
                         });
-                    }
-                    // r_client.set(_current_system+'_targetmsg_' + data.targetid, JSON.stringify({
-                    //     command: 'targetmsg-changed',
-                    //     data: data
-                    // }), (err, res) => {
-                    //     if (err) {
-                    //         js.client.data.message = err;
-                    //         deferred.reject(js);
-                    //     } else {
-                    //         js.client.data.message = 'OK register exist online chat';
-                    //         deferred.resolve(js);
-                    //     }
-                    // });
-                    updateTarget(data).then(res => {
-                        js.client.data.message = 'OK register exist online chat';
+                    }else{
+                        console.log('Registeration for the owner only');
                         deferred.resolve(js);
-                    });
+                    }
                 } else {
-                    let data = {
-                        gui: uuidV4(),
-                        // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:..... // default is 0
-                        targetid: js.client.data.msg.targetid,
-                        username: js.client.data.username,
-                        usergui: js.client.data.user.gui,
-                        memberusername: [js.client.username],
-                        membergui: [js.client.data.user.gui],
-                        exmember: [],
-                        pendingmemberapproval: [],
-                        deniedapprovlalist: [],
-                        pendinginvited: [],
-                        refusedinvited: [],
-                        blacklist:[],
-                        createdata: convertTZ(new Date()),
-                        msg: [] /// 10 ms earlier
-                    }
-                    let msg = {
-                        gui: uuidV4(),
-                        targetid:'',
-                        // sendergui: js.client.data.user.gui,
-                        sender: js.client.username,
-                        content: '@hello@',
-                        msgtype: 'text', // photo , sound, video, text, typing, misc
-                        attached: [],
-                        sent: [{
-                            username: '',
-                            sent: convertTZ(new Date())
-                        }],
-                        received: [{
-                            user: '',
-                            received: convertTZ(new Date())
-                        }], //
-                        read: [{
-                            user: '',
-                            read: convertTZ(new Date())
-                        }] // 
-                    }
-                    if (data.msg.length > 10) {
-                        data.msg.shift();
-                    }
-                    data.msg.push(msg);
-                    let client = JSON.parse(JSON.stringify(js.client));
-                    for (let index = 0; index < data.membergui.length; index++) {
-                        const element = data.membergui[index];
-                        client.data.msg = data.msg;
-                        r_client.set(_current_system + '_msg_' + element, JSON.stringify({
-                            command: 'msg-changed',
-                            client: client
-                        }), (err, res) => {
-                            if (err) {
-                                js.client.data.message = err;
-                                deferred.reject(js);
-                            }
+                   
+                   findUserByGUI(js.client.data.user.gui).then(res=>{
+                       if(res){
+                        js.client.data.msg.targetid=js.client.username=res.username;
+                        let data = {
+                            gui: uuidV4(),
+                            // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:..... // default is 0
+                            targetid: js.client.data.msg.targetid,
+                            username: js.client.data.username,
+                            usergui: js.client.data.user.gui,
+                            memberusername: [js.client.username],
+                            membergui: [js.client.data.user.gui],
+                            exmember: [],
+                            pendingmemberapproval: [],
+                            deniedapprovlalist: [],
+                            pendinginvited: [],
+                            refusedinvited: [],
+                            blacklist:[],
+                            createdata: convertTZ(new Date()),
+                            msg: [] /// 10 ms earlier
+                        }
+                        let msg = {
+                            gui: uuidV4(),
+                            targetid:'',
+                            // sendergui: js.client.data.user.gui,
+                            sender: js.client.username,
+                            content: '@hello@',
+                            msgtype: 'text', // photo , sound, video, text, typing, misc
+                            attached: [],
+                            sent: [{
+                                username: '',
+                                sent: convertTZ(new Date())
+                            }],
+                            received: [{
+                                user: '',
+                                received: convertTZ(new Date())
+                            }], //
+                            read: [{
+                                user: '',
+                                read: convertTZ(new Date())
+                            }] // 
+                        }
+                        if (data.msg.length > 10) {
+                            data.msg.shift();
+                        }
+                        data.msg.push(msg);
+                        let client = JSON.parse(JSON.stringify(js.client));
+                        for (let index = 0; index < data.membergui.length; index++) {
+                            const element = data.membergui[index];
+                            client.data.msg = data.msg;
+                            r_client.set(_current_system + '_msg_' + element, JSON.stringify({
+                                command: 'msg-changed',
+                                client: client
+                            }), (err, res) => {
+                                if (err) {
+                                    js.client.data.message = err;
+                                    deferred.reject(js);
+                                }
+                            });
+                        }
+    
+                        updateTarget(data).then(res => {
+                            js.client.data.message = 'OK register new online chat';
+                            deferred.resolve(js);
                         });
-                    }
-                    // r_client.set(_current_system+'_targetmsg_' + data.targetid, JSON.stringify({
-                    //     command: 'targetmsg-changed',
-                    //     data: data
-                    // }), (err, res) => {
-                    //     if (err) {
-                    //         js.client.data.message = err;
-                    //         deferred.reject(js);
-                    //     } else {
-                    //         js.client.data.message = 'OK register new online chat';
-                    //         deferred.resolve(js);
-                    //     }
-                    // });
-                    updateTarget(data).then(res => {
-                        js.client.data.message = 'OK register new online chat';
-                        deferred.resolve(js);
-                    });
-                
+                    
+                       }else{
+                           console.log('ERROR this gui not found ');
+                       }
+                   })
+
             }
         }).catch(err => {
             throw err;
