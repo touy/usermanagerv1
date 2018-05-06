@@ -164,7 +164,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                         console.log('message-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
-                    } else if ("_online_" + element.client.username === key) {
+                    } else if (_current_system+"_online_" + element.client.username === key) {
                         console.log('online-changed');
                         // broad cast to all or goup ;
                         element.send(JSON.stringify(js));
