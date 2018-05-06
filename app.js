@@ -625,6 +625,7 @@ wss.on('connection', function connection(ws, req) {
     })
     ws.on('message', function incoming(data) {
         let js = {};
+        console.log(data);
         if (data instanceof String) {
             ws.send(`Error incorrect string
             ` + data);
@@ -632,7 +633,7 @@ wss.on('connection', function connection(ws, req) {
         } else if (data instanceof Buffer)
             js.client = data = JSON.parse(data.toString());
         // console.log(data.type);
-        // console.log(data);
+        console.log(data);
         js.ws = ws;
         ws.client = data;
         try {
@@ -658,7 +659,7 @@ wss.on('connection', function connection(ws, req) {
                 // if(res.client.data.command=="system-prefix")
                 //         ws.send(JSON.stringify(res));
                 // else              
-                ws.send(JSON.stringify(res.client));
+                ws.send(Buffer.from(JSON.stringify(js.client)));
                 //}, 500);
             }).catch(err => {
                 js = err;
