@@ -326,7 +326,7 @@ function commandReader(js) {
                     }
                     break;
                     case 'register-conversation':
-                    register_online_chat(js).then(res => {
+                    register_online_chat(js,js.client.data.user.gui).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
@@ -607,6 +607,9 @@ function commandReader(js) {
 
     return deferred.promise;
 }
+function ab2str(buf) {
+    return String.fromCharCode.apply(null, new Uint8Array(buf));
+  }
 wss.on('connection', function connection(ws, req) {
     const ip = req.connection.remoteAddress;
     console.log('connection from ' + ip);
@@ -625,18 +628,18 @@ wss.on('connection', function connection(ws, req) {
     })
     ws.on('message', function incoming(data) {
         let js = {};
-        console.log(data);
-        if (data instanceof String) {
-            ws.send(`Error incorrect string
-            ` + data);
-            ws.terminate();
-        } else if (data instanceof Buffer)
-            js.client = data = JSON.parse(data.toString());
-        // console.log(data.type);
-        console.log(data);
-        js.ws = ws;
-        ws.client = data;
         try {
+            console.log(data);
+            // if (data instanceof String) {
+            //     ws.send(`Error incorrect string
+            //     ` + data);
+            //     ws.terminate();
+            // } else if (data instanceof Buffer)
+                js.client = data = JSON.parse(ab2str(data));
+            // console.log(data.type);
+            console.log(data);
+            js.ws = ws;
+            ws.client = data;
             commandReader(js).then(res => {
                 //setTimeout(function timeout() {
                 // if(!data.client)  data.client={};
@@ -658,7 +661,9 @@ wss.on('connection', function connection(ws, req) {
                 //console.log(res.client);
                 // if(res.client.data.command=="system-prefix")
                 //         ws.send(JSON.stringify(res));
-                // else              
+                // else     
+                ws.binaryType='arraybuffer';
+                //console.log(Buffer.from(JSON.stringify(js.client)));         
                 ws.send(Buffer.from(JSON.stringify(js.client)));
                 //}, 500);
             }).catch(err => {
@@ -672,6 +677,7 @@ wss.on('connection', function connection(ws, req) {
                 //console.log(err);
                 errorLogging(l);
                 console.log('ws sending');
+                ws.binaryType='arraybuffer';
                 js.client.data.message = js.client.data.message.message;
                 // ws.send(JSON.stringify(js.client));
                 ws.send(Buffer.from(JSON.stringify(js.client)));
@@ -680,6 +686,7 @@ wss.on('connection', function connection(ws, req) {
             js.client = {};
             js.client.data = {};
             js.client.data.message = error;
+            ws.binaryType='arraybuffer';
             // ws.send(JSON.stringify(js.client));
             ws.send(Buffer.from(JSON.stringify(js.client)));
         }
@@ -1812,7 +1819,7 @@ function black_list_online_chat(js) {
     }
 }
 // create a new conversation 
-function register_online_chat(js) {
+function register_online_chat(js,gui) {
     let deferred = Q.defer();
     try {
         if (js.client.data.msg === undefined || js.client.data.msg.targetid === undefined) {
@@ -1875,9 +1882,8 @@ function register_online_chat(js) {
                         console.log('Registeration for the owner only');
                         deferred.resolve(js);
                     }
-                } else {
-                   
-                   findUserByGUI(js.client.data.user.gui).then(res=>{
+                } else {                   
+                   findUserByGUI(gui).then(res=>{
                        if(res){
                         js.client.data.msg.targetid=js.client.username=res.username;
                         let data = {
@@ -2198,7 +2204,7 @@ function login_ws(js) {
                         setUserGUIStatus(js.client, user.gui);
                         setOnlineStatus(js.client);
                         // setTargetMsg(js.client, user.gui);
-                        register_online_chat(js);
+                        register_online_chat(js,user.gui);
                         //setTimeout(() => {
                         deferred.resolve(js);
                         //}, 1000 * 3);
