@@ -3160,7 +3160,7 @@ function get_user_details_ws(js) {
                         const element = js.client.data.user.photo[index];
                         // console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
                         //element.arraybuffer=fs.readFileSync(__dirname+'/public/profiles/'+element.name, "binary");           
-                        element.arraybuffer = currenthost+'/public/profiles/' + element.name;
+                        element.arraybuffer = '/public/profiles/' + element.name;
                     }
                     //console.log(js.client.data.user.photo.length)
                     js.client.data.message = 'OK';
