@@ -254,7 +254,9 @@ function commandReader(js) {
                     try {
                         let fpath = __dirname + '/public/profiles/' + js.client.data.user.photo[0].name;
                         //console.log(fpath);
-                        js.client.data.user.photo[0].arraybuffer = fs.readFileSync(fpath, 'binary');
+                        let buff=fs.readFileSync(fpath,'binary');
+                        console.log(buff);
+                        js.client.data.user.photo[0].arraybuffer =  '/public/profiles/' + js.client.data.user.photo[0].name;
                         //console.log(js.client.data.user.photo);
                         js.client.data.message = 'OK get upload'
 
@@ -275,12 +277,13 @@ function commandReader(js) {
                     let ps = js.client.data.user.photo;
                     for (let index = 0; index < ps.length; index++) {
                         const element = ps[index];
-                        // console.log('writing');
-                        // console.log(element.arraybuffer);
+                         console.log('writing');
+                         //console.log(element.arraybuffer);
                         // console.log(__dirname+'/'+element.name);
-                        let buff = element.arraybuffer;
-                        // console.log(buff);
-                        fs.writeFile(__dirname + '/public/profiles/' + element.name, buff, 'binary', function (err) {
+                        let buff =element.arraybuffer.replace(/^data:image\/\w+;base64,/, '');
+                       // let buff=new Buffer(element.arraybuffer);
+                        //console.log(buff);
+                        fs.writeFile(__dirname + '/public/profiles/' + element.name, buff, {encoding: 'base64'}, function (err) {
                             if (err) {
                                 js.client.data.message = err;
                                 console.log(err);
@@ -683,7 +686,7 @@ wss.on('connection', function connection(ws, req) {
                 //console.log(err);
                 errorLogging(l);
                 console.log('ws sending error 1');
-                js.client.data.message = js.client.data.message.message;
+                // js.client.data.message = ;
                 // ws.send(JSON.stringify(js.client));
                 //console.log(Buffer.from(JSON.stringify(js.client)));
                 console.log(JSON.stringify(err));
@@ -2668,8 +2671,8 @@ function saveAttachementsToFiles(array) {
     try {
         for (let index = 0; index < array.length; index++) {
             const element = array[index];
-            console.log(element.data)
-            fs.writeFileSync(__dirname + '/public/profiles/' + element.name, element.data, 'binary', err => {
+            //console.log(element.data)
+            fs.writeFileSync(__dirname + '/public/profiles/' + element.name, element.data,'utf8', err => {
                 if (err) throw err;
             });
         }
