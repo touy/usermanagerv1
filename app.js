@@ -578,7 +578,17 @@ function commandReader(js) {
 
     return deferred.promise;
 }
-
+function readBinaryStringFromArrayBuffer (arrayBuffer, onSuccess, onFail) {
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      onSuccess(event.target.result);
+    };
+    reader.onerror = function (event) {
+      onFail(event.target.error);
+    };
+    reader.readAsBinaryString(new Blob([ arrayBuffer ],
+      { type: 'application/octet-stream' }));
+  }
 function ab2str(buf) {
     return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
@@ -611,23 +621,13 @@ wss.on('connection', function connection(ws, req) {
     ws.on('message', function incoming(data) {
         let js = {};
         try {
-            //console.log(data);
-            // if (data instanceof String) {
-            //     ws.send(`Error incorrect string
-            //     ` + data);
-            //     ws.terminate();
-            // } else if (data instanceof Buffer)
-            js.client = data = JSON.parse(ab2str(data));
-            // js.client = data = JSON.parse(data);
-            // console.log(data.type);
-            //console.log(data);
-            js.ws = ws;
-            ws.client = data;
+            readBinaryStringFromArrayBuffer(data,res=>{
+                js.ws = ws;
+            
+            ws.client = res;
+            console.log(res);
             commandReader(js).then(res => {
-                //setTimeout(function timeout() {
-                // if(!data.client)  data.client={};
-                // if(!data.client.gui||data.client.gui==undefined){
-                //data.client.gui=uuidV4();
+
                 if (res.client.data.command === 'logout') {
                     ws.gui = '';
                     ws.lastupdate = 0;
@@ -671,6 +671,10 @@ wss.on('connection', function connection(ws, req) {
                     binary: true
                 });
             });
+            },err=>{
+                throw err;
+            });
+            
         } catch (error) {
             js.client = {};
             js.client.data = {};
