@@ -578,19 +578,29 @@ function commandReader(js) {
 
     return deferred.promise;
 }
-function readBinaryStringFromArrayBuffer (arrayBuffer, onSuccess, onFail) {
+
+function readBinaryStringFromArrayBuffer(arrayBuffer, onSuccess, onFail) {
     var reader = new FileReader();
     reader.onload = function (event) {
-      onSuccess(event.target.result);
+        onSuccess(event.target.result);
     };
     reader.onerror = function (event) {
-      onFail(event.target.error);
+        onFail(event.target.error);
     };
-    reader.readAsBinaryString(new Blob([ arrayBuffer ],
-      { type: 'application/octet-stream' }));
-  }
+    reader.readAsBinaryString(new Blob([arrayBuffer], {
+        type: 'application/octet-stream'
+    }));
+}
+
 function ab2str(buf) {
-    return String.fromCharCode.apply(null, new Uint8Array(buf));
+    var
+        binaryString = '',
+        bytes = new Uint8Array(arrayBuffer),
+        length = bytes.length;
+    for (var i = 0; i < length; i++) {
+        binaryString += String.fromCharCode(bytes[i]);
+    }
+    return binaryString;
 }
 
 function str2ab(str) {
@@ -621,13 +631,23 @@ wss.on('connection', function connection(ws, req) {
     ws.on('message', function incoming(data) {
         let js = {};
         try {
-            readBinaryStringFromArrayBuffer(data,res=>{
-                js.ws = ws;
-            
-            ws.client = res;
-            console.log(res);
+            //console.log(data);
+            // if (data instanceof String) {
+            //     ws.send(`Error incorrect string
+            //     ` + data);
+            //     ws.terminate();
+            // } else if (data instanceof Buffer)
+            js.client = data = JSON.parse(ab2str(data));
+            // js.client = data = JSON.parse(data);
+            // console.log(data.type);
+            //console.log(data);
+            js.ws = ws;
+            ws.client = data;
             commandReader(js).then(res => {
-
+                //setTimeout(function timeout() {
+                // if(!data.client)  data.client={};
+                // if(!data.client.gui||data.client.gui==undefined){
+                //data.client.gui=uuidV4();
                 if (res.client.data.command === 'logout') {
                     ws.gui = '';
                     ws.lastupdate = 0;
@@ -671,10 +691,6 @@ wss.on('connection', function connection(ws, req) {
                     binary: true
                 });
             });
-            },err=>{
-                throw err;
-            });
-            
         } catch (error) {
             js.client = {};
             js.client.data = {};
@@ -1607,7 +1623,7 @@ function find_targetid_ws(js) {
             } else if (res.membergui.indexOf(js.client.data.user.gui) > -1) {
                 js.client.data.targetid = [{
                     gui: res.gui,
-                    memberusername : res.memberusername,
+                    memberusername: res.memberusername,
                     username: res.username,
                     createddate: res.createddate
                 }];
@@ -1747,11 +1763,11 @@ function subscribe_online_chat(js) {
                             gui: uuidV4(),
                             usergui: target.usergui,
                             createdtime: convertTZ(new Date()),
-                            requesttype : 'subscribe',
-                            requestto : u.res.targetid,
+                            requesttype: 'subscribe',
+                            requestto: u.res.targetid,
                             isdone: false,
                             result: 'requesting subscribe',
-                        };                        
+                        };
                         updatePendingRequest(pendingrequest).then(res => {
                             deferred.resolve(js);
                         });
@@ -1832,11 +1848,11 @@ function invite_online_chat(js) {
                                     gui: uuidV4(),
                                     usergui: target.usergui,
                                     createdtime: convertTZ(new Date()),
-                                    requesttype : 'invite',
-                                    requestto : target.targetid,
+                                    requesttype: 'invite',
+                                    requestto: target.targetid,
                                     isdone: false,
                                     result: 'requesting invite',
-                                };                                
+                                };
                                 updatePendingRequest(pendingrequestjs).then(res => {
                                     deferred.resolve(js);
                                 });
@@ -1894,8 +1910,8 @@ function approve_member_online_chat(js) {
                                     gui: uuidV4(),
                                     usergui: target.usergui,
                                     createdtime: convertTZ(new Date()),
-                                    requesttype : 'arppove',
-                                    requestto : u.username,
+                                    requesttype: 'arppove',
+                                    requestto: u.username,
                                     isdone: true,
                                     result: 'deny member joining',
                                 };
