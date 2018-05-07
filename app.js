@@ -118,7 +118,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
             wss.clients.forEach(function each(ws) {
                 const element = ws;
                 //console.log(element);
-                if(element.readyState !== element.OPEN){
+                if (element.readyState !== element.OPEN) {
                     console.error('Client state is ' + element.readyState);
                     return;
                 }
@@ -164,7 +164,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                         console.log('message-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
                         element.send(JSON.stringify(js));
-                    } else if (_current_system+"_online_" + element.client.username === key) {
+                    } else if (_current_system + "_online_" + element.client.username === key) {
                         console.log('online-changed');
                         // broad cast to all or goup ;
                         element.send(JSON.stringify(js));
@@ -179,36 +179,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
                             let gui = JSON.parse(res);
                             if (_current_system + '_msg_' + gui.gui === key) {
                                 console.log('msg-changed');
-                                let sent_o = js.client.data.msg.sent;
-                                if (sent_o === undefined) {
-                                    sent_o = js.client.data.msg.sent = [];
-
-                                }
-                                let is_sent = false;
-                                for (let index = 0; index < sent_o.length; index++) {
-                                    const element = sent_o[index];
-                                    if (element.username === element.client.username) {
-                                        is_sent = true;
-                                        break;
-                                    }
-                                }
-                                if (!is_sent) {
-                                    //let js_c=JSON.parse(JSON.stringify(js));
-                                    js.client.data.msg.sent.push({
-                                        username: element.client.username,
-                                        sent: convertTZ(new Date())
-                                    });
-                                    element.send(JSON.stringify(js));
-                                    r_client.set(_current_system + '_msg_' + gui.gui, JSON.stringify({
-                                        command: 'msg-changed',
-                                        client: js.client
-                                    }), (err, res) => {
-                                        if (err) throw err;
-                                        else {
-                                            console.log('OK sent msg to ' + client.username);
-                                        }
-                                    })
-                                }
+                                element.send(JSON.stringify(js));
                             }
                         }
                     });
@@ -281,17 +252,17 @@ function commandReader(js) {
                     break;
                 case 'get-upload':
                     try {
-                        let fpath=__dirname+'/public/profiles/'+js.client.data.user.photo[0].name;
-                    //console.log(fpath);
-                    js.client.data.user.photo[0].arraybuffer=fs.readFileSync(fpath,'binary');
-                    //console.log(js.client.data.user.photo);
-                    js.client.data.message = 'OK get upload'
+                        let fpath = __dirname + '/public/profiles/' + js.client.data.user.photo[0].name;
+                        //console.log(fpath);
+                        js.client.data.user.photo[0].arraybuffer = fs.readFileSync(fpath, 'binary');
+                        //console.log(js.client.data.user.photo);
+                        js.client.data.message = 'OK get upload'
 
                     } catch (error) {
-                        console.log(error);                        
+                        console.log(error);
                     }
                     deferred.resolve(js);
-                break;
+                    break;
                 case 'upload':
                     const photo = {
                         arraybuffer: '',
@@ -309,15 +280,15 @@ function commandReader(js) {
                         // console.log(__dirname+'/'+element.name);
                         let buff = element.arraybuffer;
                         // console.log(buff);
-                        fs.writeFile(__dirname+'/public/profiles/'+element.name,buff,'binary', function (err) {
+                        fs.writeFile(__dirname + '/public/profiles/' + element.name, buff, 'binary', function (err) {
                             if (err) {
-                                js.client.data.message=err;
+                                js.client.data.message = err;
                                 console.log(err);
                                 deferred.reject(js);
                             } else {
                                 console.log('OK');
-                                console.log(__dirname+'/'+element.name);
-                                js.client.data.message='OK upload'
+                                console.log(__dirname + '/' + element.name);
+                                js.client.data.message = 'OK upload'
                                 deferred.resolve(js);
                             }
                         });
@@ -325,49 +296,49 @@ function commandReader(js) {
                         deferred.resolve(js);
                     }
                     break;
-                    case 'register-conversation':
-                    register_online_chat(js,js.client.data.user.gui).then(res => {
+                case 'register-conversation':
+                    register_online_chat(js, js.client.data.user.gui).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
                     break;
-                    case 'update-blacklist':
+                case 'update-blacklist':
                     black_list_online_chat(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
                     break;
-                    case 'invite':
+                case 'invite':
                     invite_online_chat(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
                     break;
-                    case 'accept-invitation':
+                case 'accept-invitation':
                     accpet_invite_online_chat(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
                     break;
-                    case 'arpprove-member':
+                case 'arpprove-member':
                     approve_member_online_chat(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
                     break;
-                    case 'leave-conversation':
+                case 'leave-conversation':
                     leave_online_chat(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
                     break;
-                    case 'ubscribe-conversation':
+                case 'ubscribe-conversation':
                     subscribe_online_chat(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
@@ -607,17 +578,19 @@ function commandReader(js) {
 
     return deferred.promise;
 }
+
 function ab2str(buf) {
     return String.fromCharCode.apply(null, new Uint8Array(buf));
-  }
-  function str2ab(str) {
-    var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+}
+
+function str2ab(str) {
+    var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
     var bufView = new Uint8Array(buf);
-    for (var i=0, strLen=str.length; i < strLen; i++) {
-      bufView[i] = str.charCodeAt(i);
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
     }
     return buf;
-  }
+}
 wss.on('connection', function connection(ws, req) {
     const ip = req.connection.remoteAddress;
     console.log('connection from ' + ip);
@@ -644,7 +617,7 @@ wss.on('connection', function connection(ws, req) {
             //     ` + data);
             //     ws.terminate();
             // } else if (data instanceof Buffer)
-                js.client = data = JSON.parse(ab2str(data));
+            js.client = data = JSON.parse(ab2str(data));
             // console.log(data.type);
             console.log(data);
             js.ws = ws;
@@ -672,9 +645,11 @@ wss.on('connection', function connection(ws, req) {
                 //         ws.send(JSON.stringify(res));
                 // else                     
                 //console.log(Buffer.from(JSON.stringify(js.client)));  
-                console.log('ws sending');     
-                console.log(Buffer.from(JSON.stringify(js.client)));  
-                ws.send(Buffer.from(JSON.stringify(js.client)),{binary:true});
+                console.log('ws sending');
+                //console.log(Buffer.from(JSON.stringify(js.client)));
+                ws.send(Buffer.from(JSON.stringify(js.client)), {
+                    binary: true
+                });
                 //}, 500);
             }).catch(err => {
                 js = err;
@@ -686,19 +661,23 @@ wss.on('connection', function connection(ws, req) {
                 };
                 //console.log(err);
                 errorLogging(l);
-                console.log('ws sending error');            
+                console.log('ws sending error');
                 js.client.data.message = js.client.data.message.message;
                 // ws.send(JSON.stringify(js.client));
-                console.log(Buffer.from(JSON.stringify(js.client)));
-                ws.send(Buffer.from(JSON.stringify(js.client)),{binary:true});
+                //console.log(Buffer.from(JSON.stringify(js.client)));
+                ws.send(Buffer.from(JSON.stringify(js.client)), {
+                    binary: true
+                });
             });
         } catch (error) {
             js.client = {};
             js.client.data = {};
-            js.client.data.message = error;  
-            console.log('ws sending error');          
-            console.log(Buffer.from(JSON.stringify(js.client)));
-            ws.send(Buffer.from(JSON.stringify(js.client)),{binary:true});
+            js.client.data.message = error;
+            console.log('ws sending error');
+            //console.log(Buffer.from(JSON.stringify(js.client)));
+            ws.send(Buffer.from(JSON.stringify(js.client)), {
+                binary: true
+            });
         }
 
     });
@@ -982,7 +961,7 @@ const interval = setInterval(function ping() {
             if (ws.isAlive === false) return ws.terminate();
             console.log('TIME INTERVAL');
             ws.isAlive = false;
-            ws.ping(noop);   
+            ws.ping(noop);
         } catch (error) {
             console.log(error);
         }
@@ -1295,6 +1274,15 @@ var __design_targetmsg = {
     },
     "language": "javascript"
 }
+var __design_pendingrequest = {
+    "_id": "_design/objectList",
+    "views": {
+        "findByUserGui": {
+            "map": "function(doc) {\r\n    if(doc.usergui) {\r\n        emit(doc.usergui,doc);\r\n    }\r\n}"
+        }
+    },
+    "language": "javascript"
+}
 
 
 var __design_users = {
@@ -1538,7 +1526,9 @@ function findTagetByTargetId(targetid) {
     let deferred = Q.defer();
     try {
         let db = create_db('targetmsg');
-        db.view(__design_view, 'findByTargetId',{key:targetid}, (err, res) => {
+        db.view(__design_view, 'findByTargetId', {
+            key: targetid
+        }, (err, res) => {
             if (err) throw err;
             else {
                 let arr = [];
@@ -1555,11 +1545,14 @@ function findTagetByTargetId(targetid) {
     }
     return deferred.promise;
 }
+
 function findTagetByUserGui(usergui) {
     let deferred = Q.defer();
     try {
         let db = create_db('targetmsg');
-        db.view(__design_view, 'findByUserGui',{key:usergui}, (err, res) => {
+        db.view(__design_view, 'findByUserGui', {
+            key: usergui
+        }, (err, res) => {
             if (err) throw err;
             else {
                 let arr = [];
@@ -1576,6 +1569,7 @@ function findTagetByUserGui(usergui) {
     }
     return deferred.promise;
 }
+
 function updateTarget(t) {
     let deferred = Q.defer();
     try {
@@ -1589,11 +1583,143 @@ function updateTarget(t) {
                 deferred.resolve('OK added targetmsg');
             }
         });
-    } catch (error) {        
+    } catch (error) {
         deferred.reject(error);
     }
     return deferred.promise;
 }
+
+function find_targetid_ws(js) {
+    let deferred = Q.defer();
+    getTargetId(js).then(res => {
+        if (res.length) {
+            if (js.client.data.user.gui === res.usergui) {
+                js.client.data.targetid = res;
+                js.clinet.data.message = 'OK get targetid ';
+                deferred.resolve(js);
+            } else if (res.membergui.indexOf(js.client.data.user.gui) > -1) {
+                js.client.data.targetid = [{
+                    gui: res.gui,
+                    memberusername = res.memberusername,
+                    username: res.username,
+                    createddate: res.createddate
+                }];
+                js.clinet.data.message = 'OK get targetid ';
+                deferred.resolve(js);
+            } else {
+                js.client.data.targetid = [];
+                js.clinet.data.message = new Error('ERROR not a member');
+                deferred.reject(js);
+            }
+
+        } else {
+            js.client.data.targetid = [];
+            js.clinet.data.message = new Error('ERROR found targetid');
+            deferred.reject(js);
+        }
+
+
+    }).catch(err => {
+        js.client.data.message = err;
+        deferred.reject(js);
+    });
+    return deferred.promise;
+}
+
+function getTargetId(js) {
+    let deferred = Q.defer();
+    let db = create_db('targetmsg');
+    db.view(__design_view, 'findByUserGui', {
+        key: js.client.data.user.gui
+    }, (err, res) => {
+        if (err) deferred.reject(err);
+        else {
+            let arr = [];
+            for (let index = 0; index < res.rows.length; index++) {
+                const element = res.rows[index].value;
+                arr.push(arr);
+            }
+            deferred.resolve(arr);
+        }
+    });
+    return deferred.promise;
+}
+
+function find_pending_reques_ws(js) {
+    let deferred = Q.defer();
+    getPendingRequestByUserGui(js).then(res => {
+        js.client.data.message = 'OK find pending request';
+        deferred.resolve(js);
+    }).catch(err => {
+        js.client.data.message = err;
+        deferred.reject(js);
+    });
+    return deferred.promise;
+}
+
+function getPendingRequestByUserGui(js) {
+    let deferred = Q.defer();
+    let db = create_db('pendingrequest');
+    db.view(__design_view, 'findByUserGui', {
+        key: js.client.data.user.gui
+    }, (err, res) => {
+        if (err) deferred.reject(err);
+        else {
+            let arr = [];
+            for (let index = 0; index < res.rows.length; index++) {
+                const element = res.rows[index].value;
+                arr.push(arr);
+            }
+            deferred.resolve(arr);
+        }
+    });
+    return deferred.promise;
+}
+var pendingrequest = {
+    gui: '',
+    usergui: '',
+    createdtime: '',
+    requesttype: '',
+    requestto: '',
+    isdone: '',
+    result: ''
+
+}
+
+function update_pending_request_ws(js) {
+    let deferred = Q.defer();
+    js.client.data.pendingrequest.usergui = js.client.data.user.gui;
+    updatePendingRequest(js.client.data.pendingrequest).then(res => {
+        js.client.data.message = 'OK update request';
+        deferred.resolve(js);
+    }).catch(err => {
+        js.client.data.message = err;
+        deferred.reject(js);
+    });
+    return deferred.promise;
+}
+
+function updatePendingRequest(p) {
+    let deferred = Q.defer();
+    let db = create_db('pendingrequest');
+    if (!p._rev) {
+        p._id = uuidV4();
+        p.gui = p._id;
+    }
+    db.insert(p, p._id, (err, res) => {
+        if (err) deferred.reject(err);
+        else {
+            let arr = [];
+            for (let index = 0; index < res.rows.length; index++) {
+                const element = res.rows[index].value;
+                arr.push(arr);
+            }
+            deferred.resolve(arr);
+        }
+    });
+    return deferred.promise;
+}
+
 // subscribe to a conversation
 function subscribe_online_chat(js) {
     try {
@@ -1604,18 +1730,29 @@ function subscribe_online_chat(js) {
                 let target = res[0];
                 if (target.pendingmemberapproval === undefined)
                     target.pendingmemberapproval = [];
-                if(target.blacklist.indexOf(js.client.user.gui)>-1){
+                if (target.blacklist.indexOf(js.client.user.gui) > -1) {
                     throw new Error('ERROR you have no permission');
-                }else{
+                } else {
                     target.pendingmemberapproval.push(js.client.user.gui);
-                    updateTarget(target).then(res=>{
+                    updateTarget(target).then(res => {
                         js.client.data.message = 'OK subscribe!';
-                        deferred.resolve(js);
+                        let pendingrequest = {
+                            gui: uuidV4(),
+                            usergui: target.usergui,
+                            createdtime: convertTZ(new Date()),
+                            requesttype = 'subscribe',
+                            requestto = u.res.targetid,
+                            isdone: false,
+                            result: 'requesting subscribe',
+                        };                        
+                        updatePendingRequest(pendingrequest).then(res => {
+                            deferred.resolve(js);
+                        });
                     });
                 }
 
             } else {
-                    throw new Error('ERROR targetid now found');
+                throw new Error('ERROR targetid now found');
             }
         });
     } catch (error) {
@@ -1632,24 +1769,24 @@ function leave_online_chat(js) {
         findTagetByTargetId(msg.targetid).then(res => {
             if (res.length) {
                 let target = res[0];
-                if(target.usergui===js.client.data.user.gui)
-                    target._deleted=true;
-                if (target.membergui === undefined && !target._deleted){
-                    target.membergui.splice(target.membergui.indexOf(js.client.data.user.gui),1);
-                    target.memberusername.splice(target.memberusername.indexOf(js.client.username),1);  
+                if (target.usergui === js.client.data.user.gui)
+                    target._deleted = true;
+                if (target.membergui === undefined && !target._deleted) {
+                    target.membergui.splice(target.membergui.indexOf(js.client.data.user.gui), 1);
+                    target.memberusername.splice(target.memberusername.indexOf(js.client.username), 1);
                     target.exmember.push(js.client.data.user.username);
-                    target.pendingmemberapproval.splice(target.pendingmemberapproval.indexOf(js.client.username),1);  
-                    target.deniedapprovlalist.splice(target.deniedapprovlalist.indexOf(js.client.username),1);  
-                    target.pendinginvited.splice(target.pendinginvited.indexOf(js.client.username),1);  
-                    target.refusedinvited.splice(target.refusedinvited.indexOf(js.client.username),1);               
+                    target.pendingmemberapproval.splice(target.pendingmemberapproval.indexOf(js.client.username), 1);
+                    target.deniedapprovlalist.splice(target.deniedapprovlalist.indexOf(js.client.username), 1);
+                    target.pendinginvited.splice(target.pendinginvited.indexOf(js.client.username), 1);
+                    target.refusedinvited.splice(target.refusedinvited.indexOf(js.client.username), 1);
                 }
-                updateTarget(target).then(res=>{
+                updateTarget(target).then(res => {
                     js.client.data.message = 'OK subscribe!';
                     deferred.resolve(js);
                 });
 
             } else {
-                    throw new Error('ERROR targetid now found');
+                throw new Error('ERROR targetid now found');
             }
         });
     } catch (error) {
@@ -1666,34 +1803,47 @@ function invite_online_chat(js) {
         findTagetByTargetId(msg.targetid).then(res => {
             if (res.length) {
                 let s_target = res[0];
-                findUserByUsername(js.client.data.user.username).then(res=>{
-                    if(res){
-                        let u=res;
-                        if(s_target.membergui.indexOf(u.gui)>-1){
+                findUserByUsername(js.client.data.user.username).then(res => {
+                    if (res) {
+                        let u = res;
+                        if (s_target.membergui.indexOf(u.gui) > -1) {
                             throw new Error('ERROR exist member');
                         }
-                        if(s_target.pendinginvited.indexOf(u.username)>-1){
+                        if (s_target.pendinginvited.indexOf(u.username) > -1) {
                             throw new Error('ERROR exist invited');
-                        } 
-                        if(s_target.blacklist.indexOf(u.username)>-1){
-                            throw new Error('ERROR exist invited');
-                        } 
+                        }
+                        if (s_target.blacklist.indexOf(u.username) > -1) {
+                            throw new Error('ERROR blacklist');
+                        }
+                        if (js.client.data.user.gui !== s_target.usergui)
+                            throw new Error('ERROR you have no permissiont to add blacklist');
                         s_target.pendinginvited.push(u.username);
-                        if(target.usergui===js.client.data.user.gui){
-                            updateTarget(s_target).then(res=>{
+                        if (target.usergui === js.client.data.user.gui) {
+                            updateTarget(s_target).then(res => {
                                 js.client.data.message = 'OK update invited!';
-                                deferred.resolve(js);
+                                let pendingrequest = {
+                                    gui: uuidV4(),
+                                    usergui: target.usergui,
+                                    createdtime: convertTZ(new Date()),
+                                    requesttype = 'invite',
+                                    requestto = target.targetid,
+                                    isdone: false,
+                                    result: 'requesting invite',
+                                };                                
+                                updatePendingRequest(pendingrequestjs).then(res => {
+                                    deferred.resolve(js);
+                                });
+
                             });
-                        }else{
+                        } else {
                             throw new Error('ERROR you have no right to invite!');
                         }
-                    }
-                    else{
+                    } else {
                         throw new Error('ERROR not found invited user');
                     }
                 });
             } else {
-                    throw new Error('ERROR targetid now found');
+                throw new Error('ERROR targetid now found');
             }
         });
     } catch (error) {
@@ -1710,41 +1860,59 @@ function approve_member_online_chat(js) {
         findTagetByTargetId(msg.targetid).then(res => {
             if (res.length) {
                 let s_target = res[0];
-                findUserByUsername(js.client.data.user.username).then(res=>{
-                    if(res){
-                        let u=res;
-                        if(s_target.membergui.indexOf(u.gui)>-1){
+                findUserByUsername(js.client.data.user.username).then(res => {
+                    if (res) {
+                        let u = res;
+                        if (s_target.membergui.indexOf(u.gui) > -1) {
                             throw new Error('ERROR exist member');
                         }
-                        if(s_target.pendingmemberapproval.indexOf(u.username)>-1){
+                        if (js.client.data.user.gui !== s_target.usergui)
+                            throw new Error('ERROR you have no permission to add this user');
+                        if (s_target.pendingmemberapproval.indexOf(u.username) > -1) {
                             s_target.membergui.push(u.gui);
-                            s_target.memberusername.push(u.username);                            
-                                updateTarget(s_target).then(res=>{
-                                    js.client.data.message = 'OK update approved member joining request!';
+                            s_target.memberusername.push(u.username);
+                            updateTarget(s_target).then(res => {
+                                js.client.data.message = 'OK update approved member joining request!';
+                                // getPendingRequestByUserGui(js).then(res=>{
+                                //     if(res)
+                                // })
+                                updatePendingRequest(js).then(res => {
                                     deferred.resolve(js);
                                 });
-                        }else if(s_target.deniedapprovlalist.indexOf(u.username)>-1){
-                                updateTarget(s_target).then(res=>{
-                                    js.client.data.message = 'OK update deny member joining request!';
+                            });
+                        } else if (s_target.deniedapprovlalist.indexOf(u.username) > -1) {
+                            updateTarget(s_target).then(res => {
+                                js.client.data.message = 'OK update deny member joining request!';
+                                let pendingrequest = {
+                                    gui: uuidV4(),
+                                    usergui: target.usergui,
+                                    createdtime: convertTZ(new Date()),
+                                    requesttype = 'arppove',
+                                    requestto = u.username,
+                                    isdone: true,
+                                    result: 'deny member joining',
+                                };
+                                js.client.data.pendingrequest = pendingrequest;
+                                updatePendingRequest(js).then(res => {
                                     deferred.resolve(js);
                                 });
-                        }
-                        else{
+                            });
+                        } else {
                             throw new Error('ERROR please subscribe first');
                         }
-                    }
-                    else{
+                    } else {
                         throw new Error('ERROR not found invited user');
                     }
                 });
             } else {
-                    throw new Error('ERROR targetid now found');
+                throw new Error('ERROR targetid now found');
             }
         });
     } catch (error) {
         js.client.data.message = error;
         deferred.reject(js);
     }
+    return deferred.promise;
 }
 // accept invited
 function accpet_invite_online_chat(js) {
@@ -1754,41 +1922,41 @@ function accpet_invite_online_chat(js) {
         findTagetByTargetId(msg.targetid).then(res => {
             if (res.length) {
                 let s_target = res[0];
-                findUserByUsername(js.client.data.user.username).then(res=>{
-                    if(res){
-                        let u=res;
-                        if(s_target.membergui.indexOf(u.gui)>-1){
+                findUserByUsername(js.client.username).then(res => {
+                    if (res) {
+                        let u = res;
+
+                        if (s_target.membergui.indexOf(u.gui) > -1) {
                             throw new Error('ERROR exist member');
                         }
-                        if(s_target.pendinginvited.indexOf(u.username)>-1){
+                        if (s_target.pendinginvited.indexOf(u.username) > -1) {
                             s_target.membergui.push(u.gui);
-                            s_target.memberusername.push(u.username);                            
-                                updateTarget(s_target).then(res=>{
-                                    js.client.data.message = 'OK update accept an invitation!';
-                                    deferred.resolve(js);
-                                });
-                        } else if(s_target.refusedinvited.indexOf(u.username)>-1){
-                            updateTarget(s_target).then(res=>{
+                            s_target.memberusername.push(u.username);
+                            updateTarget(s_target).then(res => {
+                                js.client.data.message = 'OK update accept an invitation!';
+                                deferred.resolve(js);
+                            });
+                        } else if (s_target.refusedinvited.indexOf(u.username) > -1) {
+                            updateTarget(s_target).then(res => {
                                 js.client.data.message = 'OK update refused an invitation!';
                                 deferred.resolve(js);
                             });
-                        }
-                         else{
+                        } else {
                             throw new Error('ERROR you have not an invitation')
                         }
-                    }
-                    else{
+                    } else {
                         throw new Error('ERROR not found invited user');
                     }
                 });
             } else {
-                    throw new Error('ERROR targetid now found');
+                throw new Error('ERROR targetid now found');
             }
         });
     } catch (error) {
         js.client.data.message = error;
         deferred.reject(js);
     }
+    return deferred.promise;
 }
 // add / remove the black list
 function black_list_online_chat(js) {
@@ -1798,104 +1966,144 @@ function black_list_online_chat(js) {
         findTagetByTargetId(msg.targetid).then(res => {
             if (res.length) {
                 let s_target = res[0];
-                findUserByUsername(js.client.data.user.username).then(res=>{
-                    if(res){
-                        let u=res;
-                        if(s_target.membergui.indexOf(u.gui)>-1){
-                            s_target.membergui.splice(s_target.membergui.indexOf(u.gui),1);
-                            s_target.memberusername.splice(s_target.memberusername.indexOf(u.username),1);
+                findUserByUsername(js.client.data.user.username).then(res => {
+                    if (res) {
+                        let u = res;
+                        if (s_target.membergui.indexOf(u.gui) > -1) {
+                            s_target.membergui.splice(s_target.membergui.indexOf(u.gui), 1);
+                            s_target.memberusername.splice(s_target.memberusername.indexOf(u.username), 1);
                         }
-                        if(s_target.blacklist.indexOf(u.username)<0){
-                            s_target.blacklist.push(u.username);                            
-                                updateTarget(s_target).then(res=>{
-                                    js.client.data.message = 'OK update accept an invitation!';
-                                    deferred.resolve(js);
-                                });
+                        if (js.client.data.user.gui !== s_target.usergui)
+                            throw new Error('ERROR you have no permissiont to add blacklist');
+                        if (s_target.blacklist.indexOf(u.username) < 0) {
+                            s_target.blacklist.push(u.username);
+                            updateTarget(s_target).then(res => {
+                                js.client.data.message = 'OK update added to black list!';
+                                deferred.resolve(js);
+                            });
                         } else {
                             throw new Error('ERROR exist in black list');
                         }
-                    }
-                    else{
+                    } else {
                         throw new Error('ERROR not found user');
                     }
                 });
             } else {
-                    throw new Error('ERROR targetid now found');
+                throw new Error('ERROR targetid now found');
             }
         });
     } catch (error) {
         js.client.data.message = error;
         deferred.reject(js);
     }
+    return deferred.promise;
 }
+// syncing msg
+function sync_msg_online(js) {
+    let deferred = Q.defer();
+    let msg = js.client.data.msg;
+    try {
+        // find conversation 
+        findTagetByTargetId(msg.targetid).then(res => {
+            if (res.length) {
+                let s_target = res[0];
+                // identify current user
+                findUserByUsername(js.client.username).then(res => {
+                    if (res) {
+                        let u = res;
+                        if (s_target.blacklist.indexOf(u.username) < 0) {
+                            if (s_target.membergui.indexOf(u.gui) > -1) {
+
+
+                            }
+                        } else {
+                            throw new Error('ERROR exist in black list');
+                        }
+
+
+                    } else {
+                        throw new Error('ERROR not found user');
+                    }
+                });
+            } else {
+                throw new Error('ERROR targetid now found');
+            }
+        });
+    } catch (error) {
+        js.client.data.message = error;
+        deferred.reject(js);
+    }
+    return deferred.promise;
+}
+
 // create a new conversation 
-function register_online_chat(js,gui) {
+function register_online_chat(js, gui) {
     let deferred = Q.defer();
     try {
         if (js.client.data.msg === undefined || js.client.data.msg.targetid === undefined) {
             js.client.data.msg = {};
             js.client.data.msg.targetid = js.client.username;
         }
-        findTagetByTargetId(js.client.data.msg.targetid).then(res=> {
-                if (res.length) {
-                    let data = res[0];
-                    if(data.usergui === js.client.data.user.gui){
-                        if (data.membergui.indexOf(js.client.data.user.gui) < 0) {
-                            data.membergui.push(js.client.data.user.gui);
-                            data.memberusername.push(js.client.username);
-                        } 
-                        let msg = {
-                            gui: uuidV4(),
-                            // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
-                            // sendergui: js.client.data.user.gui,
-                            sender: js.client.username,
-                            content: '@hello@',
-                            msgtype: 'text', // photo , sound, video, text, typing, misc
-                            attached: [],
-                            // senttime: convertTZ(new Date()),
-                            sent: [{
-                                username: '',
-                                sent: convertTZ(new Date())
-                            }],
-                            received: [{
-                                user: '',
-                                received: convertTZ(new Date())
-                            }], //
-                            read: [{
-                                user: '',
-                                read: convertTZ(new Date())
-                            }] // 
-                        }
-                        if (data.msg.length > 10) {
-                            data.msg.shift();
-                        }
-                        data.msg.push(msg);
-                        let client = JSON.parse(JSON.stringify(js.client));
-                        for (let index = 0; index < data.membergui.length; index++) {
-                            const element = data.membergui[index];
-                            client.data.msg = data.msg;
-                            r_client.set(_current_system + '_msg_' + element, JSON.stringify({
-                                command: 'msg-changed',
-                                client: client
-                            }), (err, res) => {
-                                if (err) {
-                                    js.client.data.message = err;
-                                    deferred.reject(js);
-                                }
-                            });
-                        }
-                        updateTarget(data).then(res => {
-                            js.client.data.message = 'OK register exist online chat';
-                            deferred.resolve(js);
-                        });
-                    }else{
-                        console.log('Registeration for the owner only');
-                        deferred.resolve(js);
+        findTagetByTargetId(js.client.data.msg.targetid).then(res => {
+            if (res.length) {
+                let data = res[0];
+                if (data.usergui === js.client.data.user.gui) {
+                    if (data.membergui.indexOf(js.client.data.user.gui) < 0) {
+                        data.membergui.push(js.client.data.user.gui);
+                        data.memberusername.push(js.client.username);
                     }
-                } else {                   
-                   findUserByGUI(gui).then(res=>{
-                       if(res){
-                        js.client.data.msg.targetid=js.client.username=res.username;
+                    let msg = {
+                        gui: uuidV4(),
+                        // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
+                        // sendergui: js.client.data.user.gui,
+                        sender: js.client.username,
+                        content: '@hello@',
+                        msgtype: 'text', // photo , sound, video, text, typing, misc
+                        attached: [],
+                        sent: convertTZ(new Date()),
+                        // sent: [{
+                        //     username: '',
+                        //     sent: convertTZ(new Date())
+                        // }],
+                        received: [{
+                            username: '',
+                            received: convertTZ(new Date())
+                        }], //
+                        read: [{
+                            username: '',
+                            read: convertTZ(new Date())
+                        }] // 
+                    }
+                    if (data.msg.length > 10) {
+                        data.msg.shift();
+                    }
+                    data.msg.push(msg);
+                    let client = JSON.parse(JSON.stringify(js.client));
+                    for (let index = 0; index < data.membergui.length; index++) {
+                        const element = data.membergui[index];
+                        client.data.msg = data.msg;
+                        r_client.set(_current_system + '_msg_' + element, JSON.stringify({
+                            command: 'msg-changed',
+                            msg: msg
+                        }), (err, res) => {
+                            if (err) {
+                                js.client.data.message = err;
+                                deferred.reject(js);
+                            }
+                        });
+                    }
+                    updateTarget(data).then(res => {
+                        js.client.data.message = 'OK register exist online chat';
+                        deferred.resolve(js);
+                    });
+                } else {
+                    console.log('Registeration for the owner only');
+                    deferred.resolve(js);
+                }
+            } else {
+                findUserByGUI(gui).then(res => {
+                    if (res) {
+                        js.client.data.msg.targetid = js.client.username = res.username;
                         let data = {
                             gui: uuidV4(),
                             // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:..... // default is 0
@@ -1909,28 +2117,29 @@ function register_online_chat(js,gui) {
                             deniedapprovlalist: [],
                             pendinginvited: [],
                             refusedinvited: [],
-                            blacklist:[],
+                            blacklist: [],
                             createdata: convertTZ(new Date()),
                             msg: [] /// 10 ms earlier
                         }
                         let msg = {
                             gui: uuidV4(),
-                            targetid:'',
+                            targetid: '',
                             // sendergui: js.client.data.user.gui,
                             sender: js.client.username,
                             content: '@hello@',
                             msgtype: 'text', // photo , sound, video, text, typing, misc
                             attached: [],
-                            sent: [{
-                                username: '',
-                                sent: convertTZ(new Date())
-                            }],
+                            sent: convertTZ(new Date()),
+                            // sent: [{
+                            //     username: '',
+                            //     sent: convertTZ(new Date())
+                            // }],
                             received: [{
-                                user: '',
+                                username: '',
                                 received: convertTZ(new Date())
                             }], //
                             read: [{
-                                user: '',
+                                username: '',
                                 read: convertTZ(new Date())
                             }] // 
                         }
@@ -1938,13 +2147,13 @@ function register_online_chat(js,gui) {
                             data.msg.shift();
                         }
                         data.msg.push(msg);
-                        let client = JSON.parse(JSON.stringify(js.client));
+                        //let client = JSON.parse(JSON.stringify(js.client));
                         for (let index = 0; index < data.membergui.length; index++) {
                             const element = data.membergui[index];
-                            client.data.msg = data.msg;
+                            // client.data.msg = data.msg;
                             r_client.set(_current_system + '_msg_' + element, JSON.stringify({
                                 command: 'msg-changed',
-                                client: client
+                                msg: msg
                             }), (err, res) => {
                                 if (err) {
                                     js.client.data.message = err;
@@ -1952,16 +2161,16 @@ function register_online_chat(js,gui) {
                                 }
                             });
                         }
-    
+
                         updateTarget(data).then(res => {
                             js.client.data.message = 'OK register new online chat';
                             deferred.resolve(js);
                         });
-                    
-                       }else{
-                           console.log('ERROR this gui not found ');
-                       }
-                   })
+
+                    } else {
+                        console.log('ERROR this gui not found ');
+                    }
+                })
 
             }
         }).catch(err => {
@@ -1987,21 +2196,18 @@ function send_message(js) {
                     gui: uuidV4(),
                     // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
                     // sendergui: js.client.data.user.gui,
-                    targetid:js.client.data.msg.targetid,
+                    targetid: js.client.data.msg.targetid,
                     sender: js.client.username,
                     content: js.client.data.msg.content,
                     msgtype: js.client.data.msg.msgtype, // photo , sound, video, text, typing, misc
                     attached: js.client.data.msg.attached,
-                    sent: [{
-                        username: '',
-                        sent: convertTZ(new Date())
-                    }],
+                    sent: convertTZ(new Date()),
                     received: [{
-                        user: '',
+                        username: '',
                         received: convertTZ(new Date())
                     }], //
                     read: [{
-                        user: '',
+                        username: '',
                         read: convertTZ(new Date())
                     }] // 
                 }
@@ -2009,27 +2215,18 @@ function send_message(js) {
                     data.msg.shift();
                 }
                 data.msg.push(msg);
-                let client = JSON.parse(JSON.stringify(js.client));
+                //let client = JSON.parse(JSON.stringify(js.client));
                 for (let index = 0; index < data.membergui.length; index++) {
                     const element = data.membergui[index];
-                    client.data.msg = data.msg;
+                    // client.data.msg = data.msg;
                     r_client.set(_current_system + '_msg_' + element, JSON.stringify({
                         command: 'msg-changed',
-                        client: client
+                        msg: msg
                     }), (err, res) => {
                         if (err) {
                             js.client.data.message = err;
                             deferred.reject(js);
                         } else {
-                            // r_client.set(_current_system+'_targetmsg_' + data.targetid, JSON.stringify({
-                            //     command: 'targetmsg-changed',
-                            //     data: data
-                            // }), (err, res) => {
-                            //     if (err) {
-                            //         js.client.data.message = err;
-                            //         deferred.reject(js);
-                            //     }
-                            // });
                             updateTarget(data).then(res => {
                                 js.client.data.message = 'OK updated a msg';
                                 deferred.resolve(js);
@@ -2071,7 +2268,7 @@ function get_client_ws(js) {
                 js.client.logintime = '';
                 //js.client.gui=uuidV4();        
                 js.client.data.message = 'OK new client';
-                if (!js.client.pre  )
+                if (!js.client.pre)
                     js.client.prefix = 'GUEST-' + uuidV4();
                 //_client_prefix.push(js.client.prefix);
                 //console.log('before send '+JSON.stringify(js.client));
@@ -2210,11 +2407,12 @@ function login_ws(js) {
                         //js.resp.send(js.client);
                         //_arrUsers.push(js.client);
                         js.client.data.user = {};
+                        register_online_chat(js, user.gui);
                         setLoginStatus(js.client);
                         setUserGUIStatus(js.client, user.gui);
                         setOnlineStatus(js.client);
                         // setTargetMsg(js.client, user.gui);
-                        register_online_chat(js,user.gui);
+
                         //setTimeout(() => {
                         deferred.resolve(js);
                         //}, 1000 * 3);
@@ -2443,12 +2641,12 @@ function validatePhoneInfo(p) {
     });
 }
 
-function saveAttachementsToFiles(array){
+function saveAttachementsToFiles(array) {
     try {
         for (let index = 0; index < array.length; index++) {
             const element = array[index];
-            fs.writeFileSync(__dirname+'/public/profiles/'+element.name,element.data,'binary',err=>{
-                if(err) throw err;
+            fs.writeFileSync(__dirname + '/public/profiles/' + element.name, element.data, 'binary', err => {
+                if (err) throw err;
             });
         }
     } catch (error) {
@@ -2456,6 +2654,7 @@ function saveAttachementsToFiles(array){
     }
 
 }
+
 function update_user_ws(js) {
     let deferred = Q.defer();
     try {
@@ -2473,34 +2672,34 @@ function update_user_ws(js) {
                         res.lastupdate = convertTZ(new Date());
                         res.photo = js.client.data.user.photo;
                         res.note = js.client.data.user.note;
-                        res.description = js.client.data.user.description;                         
+                        res.description = js.client.data.user.description;
                         console.log('updating ......');
                         let attach = [];
-                        if(res.photo.length>1){
+                        if (res.photo.length > 1) {
                             throw new Error('ERROR too many photo');
                         }
                         for (let index = 0; index < res.photo.length; index++) {
                             const element = res.photo[index];
-                            attach.push( {
-                                name: element.name, 
+                            attach.push({
+                                name: element.name,
                                 data: element.arraybuffer,
                                 content_type: element.type
-                              });
-                            element.arraybuffer='';
-                            element.url='';
-                        } 
+                            });
+                            element.arraybuffer = '';
+                            element.url = '';
+                        }
                         //console.log(`update user profile : `+JSON.stringify(res.photo));
                         updateUser(res).then(function (res) {
                             saveAttachementsToFiles(attach);
                             console.log('update ok');
-                            js.client.data.message = 'OK updated';                                
+                            js.client.data.message = 'OK updated';
                             deferred.resolve(js);
-                        }).catch(err=>{
+                        }).catch(err => {
                             console.log(err);
-                        });                      
+                        });
                     } else {
                         //throw new Error('ERROR user not found');
-                        throw  new Error('ERROR user not found');                        
+                        throw new Error('ERROR user not found');
                     }
                 }).catch(function (err) {
                     throw err;
@@ -2895,9 +3094,9 @@ function get_user_info_ws(js) {
 }
 
 
-function getAttachements(id){
-    let deferred=Q.defer();
-    let db=create_db('gijusers');
+function getAttachements(id) {
+    let deferred = Q.defer();
+    let db = create_db('gijusers');
     try {
         // db.multipart.get(id,(err,res)=>{
         //     if(err)throw err;
@@ -2905,13 +3104,14 @@ function getAttachements(id){
         //         deferred.resolve(res);
         //     }
         // });
-        
-        deferred.resolve(fs.readFileSync(__dirname+'/public/profiles/'+name, "utf8"));
+
+        deferred.resolve(fs.readFileSync(__dirname + '/public/profiles/' + name, "utf8"));
     } catch (error) {
         deferred.reject(error);
     }
     return deferred.promise;
 }
+
 function get_user_details_ws(js) {
     let deferred = Q.defer();
     r_client.get(_current_system + '_usergui_' + js.client.logintoken, function (err, gui) {
@@ -2925,13 +3125,14 @@ function get_user_details_ws(js) {
                 displayUserDetails(gui).then(function (res) {
                     js.client.data.user = res;
                     //console.log(` user photo `+JSON.stringify(res.photo));
-                    if(js.client.data.user.photo === undefined || !js.client.data.user.photo){
-                        js.client.data.user.photo=[];
+                    if (js.client.data.user.photo === undefined || !js.client.data.user.photo) {
+                        js.client.data.user.photo = [];
                     }
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
-                        const element = js.client.data.user.photo[index];      
-                       // console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
-                        element.arraybuffer=fs.readFileSync(__dirname+'/public/profiles/'+element.name, "binary");           
+                        const element = js.client.data.user.photo[index];
+                        // console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
+                        //element.arraybuffer=fs.readFileSync(__dirname+'/public/profiles/'+element.name, "binary");           
+                        element.arraybuffer = __dirname + '/public/profiles/' + element.name;
                     }
                     //console.log(js.client.data.user.photo.length)
                     js.client.data.message = 'OK';
@@ -2975,7 +3176,7 @@ function filterObject(obj) {
         for (x = 0; x < need.length; x++) {
             let key = need[x];
             if (!obj.hasOwnProperty(i)) {} else if (Array.isArray(obj[i])) {
-                if(i.toLowerCase().indexOf(key) > -1)
+                if (i.toLowerCase().indexOf(key) > -1)
                     obj[i] = [];
             } else if (typeof obj[i] === 'object') {
                 filterObject(obj[i]);
@@ -3014,8 +3215,8 @@ function findUserByGUI(gui) {
                 arr.push(element);
             }
             console.log('FOUND ' + gui);
-            console.log('length: '+ arr.length);
-            if (arr.length<2)
+            console.log('length: ' + arr.length);
+            if (arr.length < 2)
                 deferred.resolve(arr[0]);
             else
                 deferred.reject(new Error('ERROR system found more record please contact admin'));
@@ -3257,6 +3458,7 @@ function LTCserviceSMS(c) {
         client.data.command = 'send-sms'
         client.prefix = 'user-management';
         let ws_client = new WebSocket('ws://nonav.net:8081/'); //ltcservice
+        ws_client.binaryType = 'arraybuffer';
         ws_client.on('open', function open() {
             ws_client.send(JSON.stringify(client), function (err) {
                 if (err) {
@@ -3618,16 +3820,16 @@ function updateUser(userinfo) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
     try {
-        if(!userinfo._rev){
-            userinfo.gui=uuidV4();
-            userinfo._id=userinfo.gui;
-        }       
-        db.insert(userinfo, userinfo._id, function(err, body) {
+        if (!userinfo._rev) {
+            userinfo.gui = uuidV4();
+            userinfo._id = userinfo.gui;
+        }
+        db.insert(userinfo, userinfo._id, function (err, body) {
             if (err) throw err;
-            else{
+            else {
                 deferred.resolve('OK update');
             }
-            
+
         });
         // db.insert(userinfo, userinfo._id, function (err, res) {
         //     if (err) deferred.reject(err);
@@ -3638,7 +3840,7 @@ function updateUser(userinfo) {
     } catch (error) {
         deferred.reject(error);
     }
-    
+
     return deferred.promise;
 }
 
@@ -3710,6 +3912,7 @@ function initDB() {
 
     init_db('gijusers', __design_users);
     init_db('targetmsg', __design_targetmsg);
+    init_db('pendingrequest', __design_pendingrequest);
 }
 
 function create_db(dbname) {
