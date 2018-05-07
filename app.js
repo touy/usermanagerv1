@@ -611,13 +611,14 @@ wss.on('connection', function connection(ws, req) {
     ws.on('message', function incoming(data) {
         let js = {};
         try {
-            console.log(data);
+            //console.log(data);
             // if (data instanceof String) {
             //     ws.send(`Error incorrect string
             //     ` + data);
             //     ws.terminate();
             // } else if (data instanceof Buffer)
-            js.client = data = JSON.parse(ab2str(data));
+            //js.client = data = JSON.parse(ab2str(data));
+            js.client = data = JSON.parse(data);
             // console.log(data.type);
             console.log(data);
             js.ws = ws;
