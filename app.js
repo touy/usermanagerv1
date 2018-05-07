@@ -661,10 +661,11 @@ wss.on('connection', function connection(ws, req) {
                 };
                 //console.log(err);
                 errorLogging(l);
-                console.log('ws sending error');
+                console.log('ws sending error 1');
                 js.client.data.message = js.client.data.message.message;
                 // ws.send(JSON.stringify(js.client));
                 //console.log(Buffer.from(JSON.stringify(js.client)));
+                console.log(JSON.stringify(err));
                 ws.send(Buffer.from(JSON.stringify(js.client)), {
                     binary: true
                 });
@@ -673,8 +674,9 @@ wss.on('connection', function connection(ws, req) {
             js.client = {};
             js.client.data = {};
             js.client.data.message = error;
-            console.log('ws sending error');
+            console.log('ws sending error 2');
             //console.log(Buffer.from(JSON.stringify(js.client)));
+            console.log(error);
             ws.send(Buffer.from(JSON.stringify(js.client)), {
                 binary: true
             });
