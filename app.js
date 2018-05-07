@@ -3151,11 +3151,12 @@ function get_user_details_ws(js) {
                     if (js.client.data.user.photo === undefined || !js.client.data.user.photo) {
                         js.client.data.user.photo = [];
                     }
+                    let currenthost='http://nonav.net:8899';
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
                         const element = js.client.data.user.photo[index];
                         // console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
                         //element.arraybuffer=fs.readFileSync(__dirname+'/public/profiles/'+element.name, "binary");           
-                        element.arraybuffer = __dirname + '/public/profiles/' + element.name;
+                        element.arraybuffer = currenthost+'/public/profiles/' + element.name;
                     }
                     //console.log(js.client.data.user.photo.length)
                     js.client.data.message = 'OK';
