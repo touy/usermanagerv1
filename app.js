@@ -1740,8 +1740,8 @@ function subscribe_online_chat(js) {
                             gui: uuidV4(),
                             usergui: target.usergui,
                             createdtime: convertTZ(new Date()),
-                            requesttype = 'subscribe',
-                            requestto = u.res.targetid,
+                            requesttype : 'subscribe',
+                            requestto : u.res.targetid,
                             isdone: false,
                             result: 'requesting subscribe',
                         };                        
@@ -1825,8 +1825,8 @@ function invite_online_chat(js) {
                                     gui: uuidV4(),
                                     usergui: target.usergui,
                                     createdtime: convertTZ(new Date()),
-                                    requesttype = 'invite',
-                                    requestto = target.targetid,
+                                    requesttype : 'invite',
+                                    requestto : target.targetid,
                                     isdone: false,
                                     result: 'requesting invite',
                                 };                                
@@ -1887,8 +1887,8 @@ function approve_member_online_chat(js) {
                                     gui: uuidV4(),
                                     usergui: target.usergui,
                                     createdtime: convertTZ(new Date()),
-                                    requesttype = 'arppove',
-                                    requestto = u.username,
+                                    requesttype : 'arppove',
+                                    requestto : u.username,
                                     isdone: true,
                                     result: 'deny member joining',
                                 };
