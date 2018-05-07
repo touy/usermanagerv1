@@ -592,7 +592,7 @@ function readBinaryStringFromArrayBuffer(arrayBuffer, onSuccess, onFail) {
     }));
 }
 
-function ab2str(buf) {
+function ab2str(arrayBuffer) {
     var
         binaryString = '',
         bytes = new Uint8Array(arrayBuffer),
