@@ -617,10 +617,10 @@ wss.on('connection', function connection(ws, req) {
             //     ` + data);
             //     ws.terminate();
             // } else if (data instanceof Buffer)
-            //js.client = data = JSON.parse(ab2str(data));
-            js.client = data = JSON.parse(data);
+            js.client = data = JSON.parse(ab2str(data));
+            // js.client = data = JSON.parse(data);
             // console.log(data.type);
-            console.log(data);
+            //console.log(data);
             js.ws = ws;
             ws.client = data;
             commandReader(js).then(res => {
