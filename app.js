@@ -2668,6 +2668,7 @@ function saveAttachementsToFiles(array) {
     try {
         for (let index = 0; index < array.length; index++) {
             const element = array[index];
+            console.log(element.data)
             fs.writeFileSync(__dirname + '/public/profiles/' + element.name, element.data, 'binary', err => {
                 if (err) throw err;
             });
@@ -3151,7 +3152,7 @@ function get_user_details_ws(js) {
                     if (js.client.data.user.photo === undefined || !js.client.data.user.photo) {
                         js.client.data.user.photo = [];
                     }
-                    let currenthost='http://nonav.net:8899';
+                    let currenthost='http://nonav.net:6688';
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
                         const element = js.client.data.user.photo[index];
                         // console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
