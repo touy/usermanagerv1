@@ -1600,7 +1600,7 @@ function find_targetid_ws(js) {
             } else if (res.membergui.indexOf(js.client.data.user.gui) > -1) {
                 js.client.data.targetid = [{
                     gui: res.gui,
-                    memberusername = res.memberusername,
+                    memberusername : res.memberusername,
                     username: res.username,
                     createddate: res.createddate
                 }];
