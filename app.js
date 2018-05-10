@@ -497,12 +497,19 @@ function commandReader(js) {
                     });
                     break;
                 case 'find-by-username':
-                    findUserByUsername(js).then(res => {
+                    find_username_ws(js).then(res => {
+                        deferred.resolve(res);
+                    }).catch(err => {                        
+                        deferred.reject(err);
+                    });
+                    break;
+                case 'find-by-many-usernames':                    
+                    find_many_username_ws(js).then(res => {                        
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
-                    break;
+                    break;                
                 case 'check-password':
                     check_password_ws(js).then(res => {
                         deferred.resolve(res);
@@ -855,7 +862,7 @@ function check_password_ws(js) {
 function check_username_ws(js) {
     let deferred = Q.defer();
     findUserByUsername(js.client.data.user.username).then(function (res) {
-        if (res) {
+        if (res.length) {
             js.client.data.message = new Error('ERROR username exist');
             deferred.reject(js);
         } else {
@@ -1830,8 +1837,8 @@ function invite_online_chat(js) {
             if (res.length) {
                 let s_target = res[0];
                 findUserByUsername(js.client.data.user.username).then(res => {
-                    if (res) {
-                        let u = res;
+                    if (res.length) {
+                        let u = res[0];
                         if (s_target.membergui.indexOf(u.gui) > -1) {
                             throw new Error('ERROR exist member');
                         }
@@ -1887,8 +1894,8 @@ function approve_member_online_chat(js) {
             if (res.length) {
                 let s_target = res[0];
                 findUserByUsername(js.client.data.user.username).then(res => {
-                    if (res) {
-                        let u = res;
+                    if (res.length) {
+                        let u = res[0];
                         if (s_target.membergui.indexOf(u.gui) > -1) {
                             throw new Error('ERROR exist member');
                         }
@@ -1949,8 +1956,8 @@ function accpet_invite_online_chat(js) {
             if (res.length) {
                 let s_target = res[0];
                 findUserByUsername(js.client.username).then(res => {
-                    if (res) {
-                        let u = res;
+                    if (res.length) {
+                        let u = res[0];
 
                         if (s_target.membergui.indexOf(u.gui) > -1) {
                             throw new Error('ERROR exist member');
@@ -1993,8 +2000,8 @@ function black_list_online_chat(js) {
             if (res.length) {
                 let s_target = res[0];
                 findUserByUsername(js.client.data.user.username).then(res => {
-                    if (res) {
-                        let u = res;
+                    if (res.length) {
+                        let u = res[0];
                         if (s_target.membergui.indexOf(u.gui) > -1) {
                             s_target.membergui.splice(s_target.membergui.indexOf(u.gui), 1);
                             s_target.memberusername.splice(s_target.memberusername.indexOf(u.username), 1);
@@ -2035,8 +2042,8 @@ function sync_msg_online(js) {
                 let s_target = res[0];
                 // identify current user
                 findUserByUsername(js.client.username).then(res => {
-                    if (res) {
-                        let u = res;
+                    if (res.length) {
+                        let u = res[0];
                         if (s_target.blacklist.indexOf(u.username) < 0) {
                             if (s_target.membergui.indexOf(u.gui) > -1) {
 
@@ -2603,11 +2610,11 @@ function addNewUser(userinfo) {
                 deferred.reject(new Error('ERROR you could not use this phonenumber'));
             } else {
                 findUserByUsername(userinfo.username).then(function (res) {
-                    if (res) {
+                    if (res.length) {
                         deferred.reject(new Error('ERROR this user exist'));
                     } else {
                         findUserByUsername(parents[0]).then(function (res) {
-                            if (!res) {
+                            if (!res.length) {
                                 userinfo.parents.push(defaultUser.username);
                             }
                             userinfo.username = userinfo.username.trim().toLowerCase();
@@ -3754,43 +3761,62 @@ function searchUserByUsername(username) {
 
     return deferred.promise;
 }
-
+function find_username_ws(js){
+    let deferred = Q.defer();
+    let name=js.client.data.user.username;
+    findUserByUsername(name).then(res=>{     
+        js.client.data.message='OK find  username';
+        js.client.data.user=res;   
+        deferred.resolve(js);        
+    }).catch(err=>{
+        js.client.data.message=err;
+        deferred.reject(js);
+    });
+    return deferred.promise;
+}
+function find_many_username_ws(js) {
+    let deferred = Q.defer();
+    let names=js.client.data.usernames;
+    findUserByUsername(names).then(res=>{   
+        js.client.data.message='OK find many usernames';
+        js.client.data.user=res;     
+        deferred.resolve(js);        
+    }).catch(err=>{
+        js.client.data.message=err;
+        deferred.reject(js);
+    });
+    return deferred.promise;
+}
 function findUserByUsername(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
+    if(username===undefined)
+        username='';
+    else if(typeof(username)==='string'){
+        username=[username];
+    }
     db.view(__design_view, 'findByUsername', {
-        key: username + ''
+        keys: username 
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
             //console.log(res);
-            if (res.rows.length) {
-                console.log('here ' + res.rows[0].value);
+            if (res.rows.length==1) {                
                 deferred.resolve(res.rows[0].value);
+            }else if(res.rows.length>1){
+                let arr=[];
+                for (let index = 0; index < res.rows.length; index++) {
+                    const element = res.rows[index].value;
+                    arr.push(element);
+                }
+                deferred.resolve(arr);
             } else {
-                // console.log('here err');
-                // deferred.reject(new Error('ERROR user not found'));
                 deferred.resolve('');
             }
         }
     })
     return deferred.promise;
 }
-app.all('/change_password', function (req, res) {
-    let js = {};
-    js.client = req.body; //client.data.device
-    js.resp = res;
-    // if (checkUserPermission(js.client.data.user.username))
-    change_password(js, js.client.data.user.phonenumber, js.client.data.user.oldpassword, js.client.data.user.newpassword).then(function (res) {
-        js.client.data.message = 'OK changed password';
-        js.resp.send(js.client);
-    }).catch(function (err) {
-        js.client.data.message = err;
-        js.resp.send(js.client);
-    });
-    // else
-    //     js.resp.send('Error this username has no permission');
-});
 
 function change_password_ws(js) {
     let deferred = Q.defer();
@@ -3827,7 +3853,7 @@ function change_password_ws(js) {
 function checkUserPermission(username) {
     findUserByUsername(username).then(function (res) {
         // console.log(res);
-        if (res)
+        if (res.length)
             return true;
         return false;
     }).catch(function (err) {
