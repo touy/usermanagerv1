@@ -1009,6 +1009,7 @@ function heartbeat_ws(js) {
             js.client.data.message = err;
             setErrorStatus(js.client);
             deferred.reject(js);
+            
         } else if (res) {
             js.client.data.message = 'heart beat with login';
             r_client.get(_current_system + '_usergui_' + js.client.logintoken, (err, res) => {
