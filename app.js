@@ -124,11 +124,17 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 }
                 if (_current_system + "_client_" + element.gui === key) {
                     console.log('client-changed');
-                    element.send(JSON.stringify(js));
+                    element.send(Buffer.from(JSON.stringify(js.client)), {
+                        binary: true
+                    });
+                   
                 }
                 if (_current_system + "_error_" + element.gui === key) {
                     console.log('error-changed');
-                    element.send(JSON.stringify(js));
+                    element.send(Buffer.from(JSON.stringify(js.client)), {
+                        binary: true
+                    });
+                   
                     var l = {
                         log: JSON.stringify(js),
                         logdate: convertTZ(new Date()),
@@ -140,46 +146,73 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 if (element['client'] !== undefined) {
                     if (_current_system + "_login_" + element.client.logintoken === key) {
                         console.log('login-changed');
-                        element.send(JSON.stringify(js));
+                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                            binary: true
+                        });
+                       
                     } else if (_current_system + "_usergui_" + element.client.logintoken === key) {
                         console.log('usergui-changed');
                         if (_system_prefix.indexOf(element.client.prefix) > -1)
-                            element.send(JSON.stringify(js));
+                            element.send(Buffer.from(JSON.stringify(js.client)), {
+                                binary: true
+                            });
+                       
                     } else if (_current_system + "_forgot_" + element.client.gui === key) {
 
                         console.log('forgot-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                            binary: true
+                        });
+                       
                     } else if (_current_system + "_phone_" + element.client.logintoken === key) {
 
                         console.log('phone-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                            binary: true
+                        });
+                       
                     } else if (_current_system + "_secret_" + element.client.gui === key) {
 
                         console.log('secret-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                            binary: true
+                        });
+                       
                     } else if (_current_system + "_message_" + element.client.logintoken === key) {
                         console.log('message-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                            binary: true
+                        });
+                       
                     } else if (_current_system + "_online_" + element.client.username === key) {
                         console.log('online-changed');
                         // broad cast to all or goup ;
-                        element.send(JSON.stringify(js));
+                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                            binary: true
+                        });
+                       
                     } else if (_current_system + "_notification_" + element.client.logintoken === key) {
                         console.log('notification-changed');
                         //console.log(js);
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(JSON.stringify(js));
+                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                            binary: true
+                        });
+                       
                     }
                     r_client.get(_current_system + '_usergui_' + element.client.logintoken, function (err, res) {
                         if (res) {
                             let gui = JSON.parse(res);
                             if (_current_system + '_msg_' + gui.gui === key) {
                                 console.log('msg-changed');
-                                element.send(JSON.stringify(js));
+                                element.send(Buffer.from(JSON.stringify(js.client)), {
+                                    binary: true
+                                });
+                               
                             }
                         }
                     });
@@ -194,7 +227,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
             gui: uuidV4()
         };
         errorLogging(l);
-        console.log(error);
+        console.log(l);
     }
 
 
@@ -254,9 +287,9 @@ function commandReader(js) {
                     try {
                         let fpath = __dirname + '/public/profiles/' + js.client.data.user.photo[0].name;
                         //console.log(fpath);
-                        let buff=fs.readFileSync(fpath,'binary');
+                        let buff = fs.readFileSync(fpath, 'binary');
                         console.log(buff);
-                        js.client.data.user.photo[0].arraybuffer =  '/public/profiles/' + js.client.data.user.photo[0].name;
+                        js.client.data.user.photo[0].arraybuffer = '/public/profiles/' + js.client.data.user.photo[0].name;
                         //console.log(js.client.data.user.photo);
                         js.client.data.message = 'OK get upload'
 
@@ -277,13 +310,15 @@ function commandReader(js) {
                     let ps = js.client.data.user.photo;
                     for (let index = 0; index < ps.length; index++) {
                         const element = ps[index];
-                         console.log('writing');
-                         //console.log(element.arraybuffer);
+                        console.log('writing');
+                        //console.log(element.arraybuffer);
                         // console.log(__dirname+'/'+element.name);
-                        let buff =element.arraybuffer.replace(/^data:image\/\w+;base64,/, '');
-                       // let buff=new Buffer(element.arraybuffer);
+                        let buff = element.arraybuffer.replace(/^data:image\/\w+;base64,/, '');
+                        // let buff=new Buffer(element.arraybuffer);
                         //console.log(buff);
-                        fs.writeFile(__dirname + '/public/profiles/' + element.name, buff, {encoding: 'base64'}, function (err) {
+                        fs.writeFile(__dirname + '/public/profiles/' + element.name, buff, {
+                            encoding: 'base64'
+                        }, function (err) {
                             if (err) {
                                 js.client.data.message = err;
                                 console.log(err);
@@ -499,17 +534,17 @@ function commandReader(js) {
                 case 'find-by-username':
                     find_username_ws(js).then(res => {
                         deferred.resolve(res);
-                    }).catch(err => {                        
+                    }).catch(err => {
                         deferred.reject(err);
                     });
                     break;
-                case 'find-by-many-usernames':                    
-                    find_many_username_ws(js).then(res => {                        
+                case 'find-by-many-usernames':
+                    find_many_username_ws(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
                     });
-                    break;                
+                    break;
                 case 'check-password':
                     check_password_ws(js).then(res => {
                         deferred.resolve(res);
@@ -2679,7 +2714,7 @@ function saveAttachementsToFiles(array) {
         for (let index = 0; index < array.length; index++) {
             const element = array[index];
             //console.log(element.data)
-            fs.writeFileSync(__dirname + '/public/profiles/' + element.name, element.data,'utf8', err => {
+            fs.writeFileSync(__dirname + '/public/profiles/' + element.name, element.data, 'utf8', err => {
                 if (err) throw err;
             });
         }
@@ -3162,7 +3197,7 @@ function get_user_details_ws(js) {
                     if (js.client.data.user.photo === undefined || !js.client.data.user.photo) {
                         js.client.data.user.photo = [];
                     }
-                    let currenthost='http://nonav.net:6688';
+                    let currenthost = 'http://nonav.net:6688';
                     for (let index = 0; index < js.client.data.user.photo.length; index++) {
                         const element = js.client.data.user.photo[index];
                         // console.log(`reading file __dirname+'/public/profiles/'+element.name`); 
@@ -3761,50 +3796,53 @@ function searchUserByUsername(username) {
 
     return deferred.promise;
 }
-function find_username_ws(js){
+
+function find_username_ws(js) {
     let deferred = Q.defer();
-    let name=js.client.data.user.username;
-    findUserByUsername(name).then(res=>{     
-        js.client.data.message='OK find  username';
-        js.client.data.user=res;   
-        deferred.resolve(js);        
-    }).catch(err=>{
-        js.client.data.message=err;
+    let name = js.client.data.user.username;
+    findUserByUsername(name).then(res => {
+        js.client.data.message = 'OK find  username';
+        js.client.data.user = res;
+        deferred.resolve(js);
+    }).catch(err => {
+        js.client.data.message = err;
         deferred.reject(js);
     });
     return deferred.promise;
 }
+
 function find_many_username_ws(js) {
     let deferred = Q.defer();
-    let names=js.client.data.usernames;
-    findUserByUsername(names).then(res=>{   
-        js.client.data.message='OK find many usernames';
-        js.client.data.user=res;     
-        deferred.resolve(js);        
-    }).catch(err=>{
-        js.client.data.message=err;
+    let names = js.client.data.usernames;
+    findUserByUsername(names).then(res => {
+        js.client.data.message = 'OK find many usernames';
+        js.client.data.user = res;
+        deferred.resolve(js);
+    }).catch(err => {
+        js.client.data.message = err;
         deferred.reject(js);
     });
     return deferred.promise;
 }
+
 function findUserByUsername(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
-    if(username===undefined)
-        username='';
-    else if(typeof(username)==='string'){
-        username=[username];
+    if (username === undefined)
+        username = '';
+    else if (typeof (username) === 'string') {
+        username = [username];
     }
     db.view(__design_view, 'findByUsername', {
-        keys: username 
+        keys: username
     }, function (err, res) {
         if (err) deferred.reject(err);
         else {
             //console.log(res);
-            if (res.rows.length==1) {                
+            if (res.rows.length == 1) {
                 deferred.resolve(res.rows[0].value);
-            }else if(res.rows.length>1){
-                let arr=[];
+            } else if (res.rows.length > 1) {
+                let arr = [];
                 for (let index = 0; index < res.rows.length; index++) {
                     const element = res.rows[index].value;
                     arr.push(element);
