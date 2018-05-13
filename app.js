@@ -103,6 +103,9 @@ r_client.on("monitor", function (time, args, raw_reply) {
             js = JSON.parse(args.substring(args.indexOf('{'), args.lastIndexOf('}') + 1));
             //console.log(time + ": " + args); 
         } catch (error) {
+            console.log(time + ": " + args); 
+            console.log(error); 
+
             return;
         }
 
@@ -146,22 +149,22 @@ r_client.on("monitor", function (time, args, raw_reply) {
                 if (element['client'] !== undefined) {
                     if (_current_system + "_login_" + element.client.logintoken === key) {
                         console.log('login-changed');
-                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                        element.send(Buffer.from(JSON.stringify(js)), {
                             binary: true
-                        });
+                        }); 
                        
                     } else if (_current_system + "_usergui_" + element.client.logintoken === key) {
-                        console.log('usergui-changed');
-                        if (_system_prefix.indexOf(element.client.prefix) > -1)
-                            element.send(Buffer.from(JSON.stringify(js.client)), {
-                                binary: true
-                            });
+                        // console.log('usergui-changed');
+                        // if (_system_prefix.indexOf(element.client.prefix) > -1)                        
+                        //     element.send(Buffer.from(JSON.stringify(js.gui)), {
+                        //         binary: true
+                        //     });
                        
                     } else if (_current_system + "_forgot_" + element.client.gui === key) {
 
                         console.log('forgot-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                        element.send(Buffer.from(JSON.stringify(js)), {
                             binary: true
                         });
                        
@@ -169,7 +172,7 @@ r_client.on("monitor", function (time, args, raw_reply) {
 
                         console.log('phone-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                        element.send(Buffer.from(JSON.stringify(js)), {
                             binary: true
                         });
                        
@@ -177,45 +180,54 @@ r_client.on("monitor", function (time, args, raw_reply) {
 
                         console.log('secret-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                        element.send(Buffer.from(JSON.stringify(js)), {
                             binary: true
                         });
                        
                     } else if (_current_system + "_message_" + element.client.logintoken === key) {
                         console.log('message-changed');
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                        element.send(Buffer.from(JSON.stringify(js)), {
                             binary: true
                         });
                        
                     } else if (_current_system + "_online_" + element.client.username === key) {
                         console.log('online-changed');
                         // broad cast to all or goup ;
-                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                        // console.log(js);
+                        // console.log(time + ": " + args);
+                        element.send(Buffer.from(JSON.stringify(js)), {
                             binary: true
                         });
                        
-                    } else if (_current_system + "_notification_" + element.client.logintoken === key) {
+                    } else if (_current_system + "_notification_" + element.client.gui === key) {
                         console.log('notification-changed');
                         //console.log(js);
                         //if (_system_prefix.indexOf(element.client.prefix) > -1)
-                        element.send(Buffer.from(JSON.stringify(js.client)), {
+                        element.send(Buffer.from(JSON.stringify(js)), {
                             binary: true
                         });
                        
                     }
-                    r_client.get(_current_system + '_usergui_' + element.client.logintoken, function (err, res) {
-                        if (res) {
-                            let gui = JSON.parse(res);
-                            if (_current_system + '_msg_' + gui.gui === key) {
-                                console.log('msg-changed');
-                                element.send(Buffer.from(JSON.stringify(js.client)), {
-                                    binary: true
-                                });
+                    // r_client.get(_current_system + '_online_' + element.client.username, function (err, res) {
+                    //     if(err)throw err;
+                    //     else if (res) {
+                    //         let client = JSON.parse(client);
+                            if (_current_system + '_msg_' +element.client.username === key) {
+                                // r_client.get(_current_system + '_msg_' + element.client.username, function (err, res) {
+                                //     if(err)throw err;
+                                //     else if(res){
+                                        console.log('msg-changed');
+                                        element.send(Buffer.from(JSON.stringify(js)), {
+                                            binary: true
+                                        });
+                                //     }
+                                // });
+                                
                                
-                            }
-                        }
-                    });
+                             }
+                    //     }
+                    // });
                 }
             });
         }
@@ -227,7 +239,9 @@ r_client.on("monitor", function (time, args, raw_reply) {
             gui: uuidV4()
         };
         errorLogging(l);
+        console.log(time + ": " + args);
         console.log(l);
+
     }
 
 
@@ -235,14 +249,14 @@ r_client.on("monitor", function (time, args, raw_reply) {
 
 function checkAuthorize(js) {
     let deferred = Q.defer();
-    deferred.resolve(js); // JUST BY PASS THIS TEMPORARY
-    if (0)
+    //deferred.resolve(js); // JUST BY PASS THIS TEMPORARY
+    //if (0)
         try {
             let except = ['ping', 'login', 'shake-hands', 'heart-beat', 'register',
                 'check-secret', 'get-secret', 'submit-forgot', 'check-forgot', 'reset-forgot',
                 'check-username', 'check-password', 'check-phone'
             ];
-            if (expt.indexOf(js.client.data.command) > -1) {
+            if (except.indexOf(js.client.data.command) > -1) {
                 js.client.data.message = 'OK';
                 deferred.resolve(js);
             } else {
@@ -251,11 +265,33 @@ function checkAuthorize(js) {
                         js.client.data.message = err;
                         deferred.reject(js);
                     } else {
-                        res = JSON.parse(res);
-                        if (res.client.logintoken) {
-                            js.client.data.message = 'OK';
-                            deferred.resolve(js);
-                        } else {
+                        if(res){
+                            res = JSON.parse(res);
+                            if (res.client.logintoken!==undefined) {
+                                js.client.data.message = 'OK';
+                                r_client.get(_current_system + '_usergui_' + js.client.logintoken, (err, res) => {
+                                    if (err) {
+                                        js.client.data.message = err;
+                                        deferred.reject(js);
+                                    } else {
+                                        res = JSON.parse(res);
+                                        if (res.gui) {                                            
+                                            js.client.data.message = 'OK authorized'
+                                            js.client.auth={};
+                                            js.client.auth.gui=res.gui;
+                                            deferred.resolve(js);
+                                        } else {
+                                            js.client.data.message = new Error('ERROR empty login');
+                                            deferred.resolve(js);
+                                        }
+                                    }
+                                });
+                            } else{
+                                js.client.data.message = new Error('ERROR empty login');
+                                deferred.resolve(js);
+                            }
+                        }
+                        else {
                             js.client.data.message = new Error('ERROR empty login');
                             deferred.resolve(js);
                         }
@@ -335,7 +371,7 @@ function commandReader(js) {
                     }
                     break;
                 case 'register-conversation':
-                    register_online_chat(js, js.client.data.user.gui).then(res => {
+                    register_online_chat(js, js.client.auth.gui).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
                         deferred.reject(err);
@@ -686,6 +722,8 @@ wss.on('connection', function connection(ws, req) {
             // js.client = data = JSON.parse(data);
             // console.log(data.type);
             //console.log(data);
+            ws.isAlive=true;
+            ws.lastupdate=convertTZ(new Date());
             js.ws = ws;
             ws.client = data;
             commandReader(js).then(res => {
@@ -712,6 +750,7 @@ wss.on('connection', function connection(ws, req) {
                 // else                     
                 //console.log(Buffer.from(JSON.stringify(js.client)));  
                 console.log('ws sending');
+                //console.log(js.client);
                 //console.log(Buffer.from(JSON.stringify(js.client)));
                 ws.send(Buffer.from(JSON.stringify(js.client)), {
                     binary: true
@@ -728,10 +767,10 @@ wss.on('connection', function connection(ws, req) {
                 //console.log(err);
                 errorLogging(l);
                 console.log('ws sending error 1');
-                // js.client.data.message = ;
+                js.client.data.message = js.client.data.message.message;
                 // ws.send(JSON.stringify(js.client));
                 //console.log(Buffer.from(JSON.stringify(js.client)));
-                console.log(JSON.stringify(err));
+                console.log(err);
                 ws.send(Buffer.from(JSON.stringify(js.client)), {
                     binary: true
                 });
@@ -943,8 +982,8 @@ function get_user_gui_ws(js) {
                 if (res) {
                     let gui = JSON.parse(res);
                     js.client.data.user = {};
-                    js.client.data.message = 'OK';
-                    js.client.data.user.gui = gui.gui;
+                    js.client.data.message = 'OK get GUI';
+                    js.client.auth.gui = gui.gui;
                     deferred.resolve(js);
                 } else {
                     js.client.data.message = new Error('ERROR gui not found')
@@ -1327,7 +1366,7 @@ data = {
     pendinginvited: [],
     refusedinvited: [],
     createdata: convertTZ(new Date()),
-    msg: [] /// 10 ms earlier
+    msg: [] /// 1ms earlier
 }
 
 var __design_targetmsg = {
@@ -1661,11 +1700,11 @@ function find_targetid_ws(js) {
     let deferred = Q.defer();
     getTargetId(js).then(res => {
         if (res.length) {
-            if (js.client.data.user.gui === res.usergui) {
+            if (js.client.auth.gui === res.usergui) {
                 js.client.data.targetid = res;
                 js.clinet.data.message = 'OK get targetid ';
                 deferred.resolve(js);
-            } else if (res.membergui.indexOf(js.client.data.user.gui) > -1) {
+            } else if (res.membergui.indexOf(js.client.auth.gui) > -1) {
                 js.client.data.targetid = [{
                     gui: res.gui,
                     memberusername: res.memberusername,
@@ -1698,7 +1737,7 @@ function getTargetId(js) {
     let deferred = Q.defer();
     let db = create_db('targetmsg');
     db.view(__design_view, 'findByUserGui', {
-        key: js.client.data.user.gui
+        key: js.client.auth.gui+''
     }, (err, res) => {
         if (err) deferred.reject(err);
         else {
@@ -1729,7 +1768,7 @@ function getPendingRequestByUserGui(js) {
     let deferred = Q.defer();
     let db = create_db('pendingrequest');
     db.view(__design_view, 'findByUserGui', {
-        key: js.client.data.user.gui
+        key: js.client.auth.gui+''
     }, (err, res) => {
         if (err) deferred.reject(err);
         else {
@@ -1756,7 +1795,7 @@ var pendingrequest = {
 
 function update_pending_request_ws(js) {
     let deferred = Q.defer();
-    js.client.data.pendingrequest.usergui = js.client.data.user.gui;
+    js.client.data.pendingrequest.usergui = js.client.auth.gui;
     updatePendingRequest(js.client.data.pendingrequest).then(res => {
         js.client.data.message = 'OK update request';
         deferred.resolve(js);
@@ -1798,10 +1837,10 @@ function subscribe_online_chat(js) {
                 let target = res[0];
                 if (target.pendingmemberapproval === undefined)
                     target.pendingmemberapproval = [];
-                if (target.blacklist.indexOf(js.client.user.gui) > -1) {
+                if (target.blacklist.indexOf(js.client.auth.gui) > -1) {
                     throw new Error('ERROR you have no permission');
                 } else {
-                    target.pendingmemberapproval.push(js.client.user.gui);
+                    target.pendingmemberapproval.push(js.client.auth.gui);
                     updateTarget(target).then(res => {
                         js.client.data.message = 'OK subscribe!';
                         let pendingrequest = {
@@ -1837,10 +1876,10 @@ function leave_online_chat(js) {
         findTagetByTargetId(msg.targetid).then(res => {
             if (res.length) {
                 let target = res[0];
-                if (target.usergui === js.client.data.user.gui)
+                if (target.usergui === js.client.auth.gui)
                     target._deleted = true;
                 if (target.membergui === undefined && !target._deleted) {
-                    target.membergui.splice(target.membergui.indexOf(js.client.data.user.gui), 1);
+                    target.membergui.splice(target.membergui.indexOf(js.client.auth.gui), 1);
                     target.memberusername.splice(target.memberusername.indexOf(js.client.username), 1);
                     target.exmember.push(js.client.data.user.username);
                     target.pendingmemberapproval.splice(target.pendingmemberapproval.indexOf(js.client.username), 1);
@@ -1883,10 +1922,10 @@ function invite_online_chat(js) {
                         if (s_target.blacklist.indexOf(u.username) > -1) {
                             throw new Error('ERROR blacklist');
                         }
-                        if (js.client.data.user.gui !== s_target.usergui)
+                        if (js.client.auth.gui !== s_target.usergui)
                             throw new Error('ERROR you have no permissiont to add blacklist');
                         s_target.pendinginvited.push(u.username);
-                        if (target.usergui === js.client.data.user.gui) {
+                        if (target.usergui === js.client.auth.gui) {
                             updateTarget(s_target).then(res => {
                                 js.client.data.message = 'OK update invited!';
                                 let pendingrequest = {
@@ -1934,7 +1973,7 @@ function approve_member_online_chat(js) {
                         if (s_target.membergui.indexOf(u.gui) > -1) {
                             throw new Error('ERROR exist member');
                         }
-                        if (js.client.data.user.gui !== s_target.usergui)
+                        if (js.client.auth.gui !== s_target.usergui)
                             throw new Error('ERROR you have no permission to add this user');
                         if (s_target.pendingmemberapproval.indexOf(u.username) > -1) {
                             s_target.membergui.push(u.gui);
@@ -2041,7 +2080,7 @@ function black_list_online_chat(js) {
                             s_target.membergui.splice(s_target.membergui.indexOf(u.gui), 1);
                             s_target.memberusername.splice(s_target.memberusername.indexOf(u.username), 1);
                         }
-                        if (js.client.data.user.gui !== s_target.usergui)
+                        if (js.client.auth.gui !== s_target.usergui)
                             throw new Error('ERROR you have no permissiont to add blacklist');
                         if (s_target.blacklist.indexOf(u.username) < 0) {
                             s_target.blacklist.push(u.username);
@@ -2115,15 +2154,16 @@ function register_online_chat(js, gui) {
         findTagetByTargetId(js.client.data.msg.targetid).then(res => {
             if (res.length) {
                 let data = res[0];
-                if (data.usergui === js.client.data.user.gui) {
-                    if (data.membergui.indexOf(js.client.data.user.gui) < 0) {
-                        data.membergui.push(js.client.data.user.gui);
+                //console.log(data);
+                if (data.usergui === gui) {
+                    if (data.membergui.indexOf(gui) < 0) {
+                        data.membergui.push(gui);
                         data.memberusername.push(js.client.username);
                     }
                     let msg = {
                         gui: uuidV4(),
                         // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
-                        // sendergui: js.client.data.user.gui,
+                        // sendergui: js.client.auth.gui,
                         sender: js.client.username,
                         content: '@hello@',
                         msgtype: 'text', // photo , sound, video, text, typing, misc
@@ -2142,23 +2182,18 @@ function register_online_chat(js, gui) {
                             read: convertTZ(new Date())
                         }] // 
                     }
-                    if (data.msg.length > 10) {
+                    if (data.msg.length > 1) {
                         data.msg.shift();
                     }
                     data.msg.push(msg);
                     let client = JSON.parse(JSON.stringify(js.client));
-                    for (let index = 0; index < data.membergui.length; index++) {
-                        const element = data.membergui[index];
+                    for (let index = 0; index < data.memberusername.length; index++) {
+                        const element = data.memberusername[index];
                         client.data.msg = data.msg;
                         r_client.set(_current_system + '_msg_' + element, JSON.stringify({
                             command: 'msg-changed',
                             msg: msg
-                        }), (err, res) => {
-                            if (err) {
-                                js.client.data.message = err;
-                                deferred.reject(js);
-                            }
-                        });
+                        }), 'EX', 60 * 3);
                     }
                     updateTarget(data).then(res => {
                         js.client.data.message = 'OK register exist online chat';
@@ -2177,9 +2212,9 @@ function register_online_chat(js, gui) {
                             // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:..... // default is 0
                             targetid: js.client.data.msg.targetid,
                             username: js.client.data.username,
-                            usergui: js.client.data.user.gui,
+                            usergui: js.client.auth.gui,
                             memberusername: [js.client.username],
-                            membergui: [js.client.data.user.gui],
+                            membergui: [js.client.auth.gui],
                             exmember: [],
                             pendingmemberapproval: [],
                             deniedapprovlalist: [],
@@ -2192,7 +2227,7 @@ function register_online_chat(js, gui) {
                         let msg = {
                             gui: uuidV4(),
                             targetid: '',
-                            // sendergui: js.client.data.user.gui,
+                            // sendergui: js.client.auth.gui,
                             sender: js.client.username,
                             content: '@hello@',
                             msgtype: 'text', // photo , sound, video, text, typing, misc
@@ -2211,23 +2246,18 @@ function register_online_chat(js, gui) {
                                 read: convertTZ(new Date())
                             }] // 
                         }
-                        if (data.msg.length > 10) {
+                        if (data.msg.length > 1) {
                             data.msg.shift();
                         }
                         data.msg.push(msg);
                         //let client = JSON.parse(JSON.stringify(js.client));
-                        for (let index = 0; index < data.membergui.length; index++) {
-                            const element = data.membergui[index];
+                        for (let index = 0; index < data.memberusername.length; index++) {
+                            const element = data.memberusername[index];
                             // client.data.msg = data.msg;
                             r_client.set(_current_system + '_msg_' + element, JSON.stringify({
                                 command: 'msg-changed',
                                 msg: msg
-                            }), (err, res) => {
-                                if (err) {
-                                    js.client.data.message = err;
-                                    deferred.reject(js);
-                                }
-                            });
+                            }), 'EX', 60 * 3);
                         }
 
                         updateTarget(data).then(res => {
@@ -2257,13 +2287,13 @@ function send_message(js) {
         findTagetByTargetId(js.client.data.msg.targetid).then(res => {
             if (res.length) {
                 let data = res[0];
-                if (res.membergui.indexOf(js.client.data.user.gui) < 0) {
+                if (res.membergui.indexOf(js.client.auth.gui) < 0) {
                     throw new Error('ERROR you are not a memember')
                 }
                 let msg = {
                     gui: uuidV4(),
                     // target: 0, // 0= @user:.... , 1=@group:.... , 2= @chanel:.... ,3= @room:.....
-                    // sendergui: js.client.data.user.gui,
+                    // sendergui: js.client.auth.gui,
                     targetid: js.client.data.msg.targetid,
                     sender: js.client.username,
                     content: js.client.data.msg.content,
@@ -2279,29 +2309,25 @@ function send_message(js) {
                         read: convertTZ(new Date())
                     }] // 
                 }
-                if (data.msg.length > 10) {
+                if (data.msg.length > 1) {
                     data.msg.shift();
                 }
                 data.msg.push(msg);
                 //let client = JSON.parse(JSON.stringify(js.client));
-                for (let index = 0; index < data.membergui.length; index++) {
-                    const element = data.membergui[index];
+                for (let index = 0; index < data.memberusername.length; index++) {
+                    const element = data.memberusername[index];
                     // client.data.msg = data.msg;
                     r_client.set(_current_system + '_msg_' + element, JSON.stringify({
                         command: 'msg-changed',
                         msg: msg
-                    }), (err, res) => {
-                        if (err) {
-                            js.client.data.message = err;
-                            deferred.reject(js);
-                        } else {
-                            updateTarget(data).then(res => {
-                                js.client.data.message = 'OK updated a msg';
-                                deferred.resolve(js);
-                            });
-                        }
-                    });
+                    }), 'EX', 60 * 3);
+                    
                 }
+                updateTarget(data).then(res => {
+                    js.client.data.message = 'OK updated a msg';
+                    
+                    deferred.resolve(js);
+                });
             } else {
                 throw new Error('ERROR target not found');
             }
@@ -2316,8 +2342,11 @@ function send_message(js) {
 
 function get_client_ws(js) {
     let deferred = Q.defer();
+    console.log('check client');
     checkCurrentClient(js.client).then(res => {
         if (res) {
+            console.log('got client');
+            console.log(res);
             js.client.clientip = js.ws._socket.remoteAddress;
             js.client.lastupdate = convertTZ(new Date());
             js.client.timeout = 60 * 60 * 24;
@@ -2340,6 +2369,7 @@ function get_client_ws(js) {
                     js.client.prefix = 'GUEST-' + uuidV4();
                 //_client_prefix.push(js.client.prefix);
                 //console.log('before send '+JSON.stringify(js.client));
+                console.log('new client');
                 setClientStatus(js.client);
                 deferred.resolve(js);
 
@@ -2475,6 +2505,8 @@ function login_ws(js) {
                         //js.resp.send(js.client);
                         //_arrUsers.push(js.client);
                         js.client.data.user = {};
+                        js.client.auth={};
+                        js.client.auth.gui=user.gui;
                         register_online_chat(js, user.gui);
                         setLoginStatus(js.client);
                         setUserGUIStatus(js.client, user.gui);
@@ -3151,7 +3183,7 @@ function findUserListByParentName(username) {
 
 function get_user_info_ws(js) {
     let deferred = Q.defer();
-    findUserByGUI(js.client.data.user.gui).then(function (res) {
+    findUserByGUI(js.client.auth.gui).then(function (res) {
         js.client.data.user = res;
         js.client.data.message = 'OK';
         deferred.resolve(js);
@@ -3509,14 +3541,14 @@ function setOnlineStatus(client) {
 }
 
 function setErrorStatus(client) {
-    r_client.set(_current_system + '_error_' + client.logintoken, JSON.stringify({
+    r_client.set(_current_system + '_error_' + client.gui, JSON.stringify({
         command: 'error-changed',
         client: client
     }), 'EX', 60 * 5);
 }
 
 function setNotificationStatus(client) {
-    r_client.set(_current_system + '_notification_' + client.logintoken, JSON.stringify({
+    r_client.set(_current_system + '_notification_' + client.gui, JSON.stringify({
         command: 'notification-changed',
         client: client
     }), 'EX', 60 * 30); // client side could not see this , the other server as a client can see this .
@@ -3563,7 +3595,7 @@ function LTCserviceSMS(c) {
             setErrorStatus(client);
         });
     } catch (error) {
-        client.data.message = err;
+        client.data.message = error;
         setErrorStatus(client);
     }
 
