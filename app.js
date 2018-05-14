@@ -733,10 +733,10 @@ wss.on('connection', function connection(ws, req) {
                 //data.client.gui=uuidV4();
                 if (res.client.data.command === 'logout') {
                     ws.gui = '';
-                    ws.lastupdate = 0;
+                    ws.lastupdate ='';
                 } else {
                     ws.gui = res.client.gui;
-                    ws.lastupdate = res.client.lastupdate;
+                    ws.lastupdate = convertTZ(new Date());
                 }
                 //}   
                 // data.client.clientip=ip;// need to handle when IP changed
