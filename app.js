@@ -3070,18 +3070,23 @@ app.all('/show_user_list', function (req, res) {
 
 function show_user_list_ws(js) {
     let deferred = Q.defer();
-    findUserByGUI(js.client.data.usergui).then(res => {
-        findUserListByParentName(res.username).then(function (res) {
-            deferred.resolve(res)
+    try {
+        findUserByGUI(js.client.data.usergui).then(res => {
+            findUserListByParentName(res.username).then(function (res) {
+                js.client.data.userinfo=res;
+                js.client.data.message='OK userlist';
+                deferred.resolve(js)
+            });
+        }).catch(err => {
+            throw err;
         });
-    }).catch(err => {
-        deferred.reject(err);
-    });
+    } catch (error) {
+        js.client.data.message=error;
+            deferred.reject(js);
+    }
+    
     return deferred.promise;
 }
-
-
-
 function showUserList(gui) {
     let deferred = Q.defer();
     findUserByGUI(gui).then(res => {
