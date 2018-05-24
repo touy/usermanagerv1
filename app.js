@@ -459,7 +459,7 @@ function commandReader(js) {
                         deferred.reject(err);
                     });
                     break;
-                case 'add-user-manual':
+                case 'add-sub-user':
                     addNewUserManual_WS(js).then(res => {
                         deferred.resolve(res);
                     }).catch(err => {
@@ -646,6 +646,7 @@ function commandReader(js) {
                     break;
             }
         }).catch(err => {
+            console.log(err);
             throw new Error('ERROR no authorize');
         });
     } catch (error) {
@@ -750,7 +751,7 @@ wss.on('connection', function connection(ws, req) {
                 // else                     
                 //console.log(Buffer.from(JSON.stringify(js.client)));  
                 console.log('ws sending');
-                //console.log(js.client);
+                console.log(js.client);
                 //console.log(Buffer.from(JSON.stringify(js.client)));
                 ws.send(Buffer.from(JSON.stringify(js.client)), {
                     binary: true
@@ -973,7 +974,7 @@ function get_user_gui_ws(js) {
     // console.log(_system_prefix);
     console.log(_system_prefix.indexOf(js.client['prefix']));
     if (_system_prefix.indexOf(js.client['prefix']) > -1) {
-        console.log('exist');
+        console.log('prefix exist');
         r_client.get(_current_system + '_usergui_' + js.client.logintoken, function (err, res) {
             if (err) {
                 js.client.data.message = err;
@@ -1027,11 +1028,12 @@ function heartbeat_ws(js) {
                         deferred.reject(js);
                     }
                 }
+                setLoginStatus(js.client);
+                setClientStatus(js.client);
+                setOnlineStatus(js.client);
+                deferred.resolve(js);
             });
-            setLoginStatus(js.client);
-            setClientStatus(js.client);
-            setOnlineStatus(js.client);
-            deferred.resolve(js);
+
         } else {
             js.client.data.message = 'heart beat no login';
             setClientStatus(js.client);
@@ -1042,26 +1044,27 @@ function heartbeat_ws(js) {
 }
 
 function heartbeat() {
-    if (!this.lastupdate && !this.gui) {
-        console.log('HEART BEAT:' + this.gui + " is alive:" + this.isAlive + " " + this.lastupdate + " logout");
-        this.isAlive = false;
-    }
-    let startDate = moment(this.lastupdate)
-    let endDate = moment(convertTZ(new Date()));
-
-    const timeout = endDate.diff(startDate, 'seconds');
-    // if(this.gui!=this.gui){
-    //     this.isAlive=false;
-    //     console.log('HEART BEAT:'+this.gui+" is alive:"+this.isAlive+" "+this.lastupdate+" timeout"+timeout);
-    //     return;
+    this['isAlive'] = true;
+    // if (!this.lastupdate && !this.gui) {
+    //     console.log('HEART BEAT:' + this.gui + " is alive:" + this.isAlive + " " + this.lastupdate + " logout");
+    //     this.isAlive = false;
     // }
-    if (timeout > 60 * 3)
-        this.isAlive = false;
-    else
-        this.isAlive = true;
+    // let startDate = moment(this.lastupdate)
+    // let endDate = moment(convertTZ(new Date()));
 
-    console.log('HEART BEAT:' + this.gui + " is alive:" + this.isAlive + " " + this.lastupdate + " timeout" + timeout);
-    //this.send(this.client);
+    // const timeout = endDate.diff(startDate, 'seconds');
+    // // if(this.gui!=this.gui){
+    // //     this.isAlive=false;
+    // //     console.log('HEART BEAT:'+this.gui+" is alive:"+this.isAlive+" "+this.lastupdate+" timeout"+timeout);
+    // //     return;
+    // // }
+    // if (timeout > 60 * 10)
+    //     this.isAlive = false;
+    // else
+    //     this.isAlive = true;
+
+    // console.log('HEART BEAT:' + this.gui + " is alive:" + this.isAlive + " " + this.lastupdate + " timeout" + timeout);
+    // //this.send(this.client);
 }
 const interval = setInterval(function ping() {
     wss.clients.forEach(function each(ws) {
@@ -2649,10 +2652,13 @@ function addNewUserManual_WS(js) {
     let deferred = Q.defer();
     js.client.data.user.system.push('default');
     js.client.data.user.system.push('gij');
+    console.log('adding sub user');
     addNewUser(js.client.data.user).then(function (res) {
+        console.log('added sub user');
         js.client.data.message = 'OK added a new user';
         deferred.resolve(js);
     }).catch(function (err) {
+        console.log(err);
         js.client.data.message = err;
         deferred.reject(js);
     });
@@ -3518,7 +3524,7 @@ function setOnlineStatus(client) {
                             const element = res.client.login[index];
                             if (element.gui === client.gui && element.clientip === client.clientip && element.loginip === client.loginip) {
                                 exist = true;
-                                console.log('exist');
+                                console.log(' set online exist');
                                 break;
                             }
                         }
@@ -3837,8 +3843,10 @@ function searchUserByUsername(username) {
 
 function find_username_ws(js) {
     let deferred = Q.defer();
+    console.log(js.client.data);
     let name = js.client.data.user.username;
-    findUserByUsername(name).then(res => {
+    console.log('FIND BY USERNAME WS '+name);
+    findUserByUsername(name).then(res => {        
         js.client.data.message = 'OK find  username';
         js.client.data.user = res;
         deferred.resolve(js);
@@ -3866,6 +3874,7 @@ function find_many_username_ws(js) {
 function findUserByUsername(username) {
     let deferred = Q.defer();
     let db = create_db('gijusers');
+    console.log('find username : '+username);
     if (username === undefined)
         username = '';
     else if (typeof (username) === 'string') {
@@ -3877,17 +3886,20 @@ function findUserByUsername(username) {
         if (err) deferred.reject(err);
         else {
             //console.log(res);
+            console.log('find users');
+           // console.log(res.rows[0].value);
             if (res.rows.length == 1) {
-                deferred.resolve(res.rows[0].value);
+                deferred.resolve([res.rows[0].value]);
             } else if (res.rows.length > 1) {
                 let arr = [];
                 for (let index = 0; index < res.rows.length; index++) {
                     const element = res.rows[index].value;
                     arr.push(element);
                 }
+
                 deferred.resolve(arr);
             } else {
-                deferred.resolve('');
+                deferred.resolve([]);
             }
         }
     })
