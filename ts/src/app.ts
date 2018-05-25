@@ -1,3 +1,4 @@
+'use strict';
 import * as moment from 'moment-timezone';
 import * as express from "express";
 import * as crypto from 'crypto';
@@ -903,13 +904,13 @@ class App {
                             deferred.reject(err);
                         });
                         break;
-                    case 'heart-beat':
-                        this.heartbeat_ws(js).then(res => {
-                            deferred.resolve(res);
-                        }).catch(err => {
-                            deferred.reject(err);
-                        });
-                        break;
+                    // case 'heart-beat':
+                    //     this.heartbeat_ws(js).then(res => {
+                    //         deferred.resolve(res);
+                    //     }).catch(err => {
+                    //         deferred.reject(err);
+                    //     });
+                    //     break;
                     case 'check-username':
                         this.check_username_ws(js).then(res => {
                             deferred.resolve(res);
@@ -1021,6 +1022,8 @@ class App {
                     //     deferred.resolve(get_system_prefix());
                     // break;
                     default:
+                    js.client.data.message = 'ERROR no command';
+                    deferred.resolve(js);
                         break;
                 }
             }).catch(err => {
@@ -3609,8 +3612,8 @@ class App {
         //this.r_client.del('_client_'+client.gui);    
         this.r_client.del(this._current_system + '_login_' + js.client.logintoken);
         this.r_client.del(this._current_system + '_usergui_' + js.client.logintoken);
-        js.client.data = {};
-        js.client.data.user = {};
+        //js.client.data = {};
+        //js.client.data.user = {};
         js.client.data.command = 'logout';
         js.client.accessedtime = this.convertTZ(new Date());
         js.client.data.message = 'OK';
