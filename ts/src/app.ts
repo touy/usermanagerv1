@@ -173,13 +173,13 @@ class App {
                 // if (!ws['lastupdate'] && !ws['gui']) {
                 //     ws['isAlive'] = false;
                 // }
-                // let startDate = moment(ws['lastupdate'])
-                // let endDate = moment(parent.this.convertTZ(new Date()));
-                // const timeout = endDate.diff(startDate, 'seconds');
-                // if (timeout > 60 * 3)
-                //     ws['isAlive'] = false;
-                // else
-                //     ws['isAlive'] = true;
+                let startDate = moment(ws['lastupdate'])
+                let endDate = moment(parent.convertTZ(new Date()));
+                const timeout = endDate.diff(startDate, 'seconds');
+                if (timeout > 60 * 15)
+                    ws['isAlive'] = false;
+                else
+                    ws['isAlive'] = true;
 
                 // console.log('HEART BEAT:' + ws['gui'] + " is alive:" + ws['isAlive'] + " " + ws['lastupdate'] + " timeout" + timeout);
                 // //this.send(this.client);
@@ -1509,7 +1509,7 @@ class App {
     loadAdmin(js) {
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findAdmin', {
-            key: 'user-management'
+            include_docs:true,key: 'user-management'
         }, (err, res) => {
             if (err) {
                 js.client.data.message = err;
@@ -1623,10 +1623,10 @@ class App {
         "_id": "_design/objectList",
         "views": {
             "findByUserGui": {
-                "map": "function(doc) {\r\n    if(doc.usergui) {\r\n        emit(doc.usergui,doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.usergui) {\r\n        emit(doc.usergui,null);\r\n    }\r\n}"
             },
             "findByTargetId": {
-                "map": "function(doc) {\r\n    if(doc.targetid) {\r\n        emit(doc.targetid,doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.targetid) {\r\n        emit(doc.targetid,null);\r\n    }\r\n}"
             }
         },
         "language": "javascript"
@@ -1635,7 +1635,7 @@ class App {
         "_id": "_design/objectList",
         "views": {
             "findByUserGui": {
-                "map": "function(doc) {\r\n    if(doc.usergui) {\r\n        emit(doc.usergui,doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.usergui) {\r\n        emit(doc.usergui,null);\r\n    }\r\n}"
             }
         },
         "language": "javascript"
@@ -1646,56 +1646,56 @@ class App {
         "_id": "_design/objectList",
         "views": {
             "authentication": {
-                "map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.username.toLowerCase()&&doc.password) {\r\n        emit([doc.username.toLowerCase(),doc.password],null);\r\n    }\r\n}"
             },
             "findByPhone": {
-                "map": "function(doc) {\r\n    if(doc.phonenumber) {\r\n        emit(doc.phonenumber,doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.phonenumber) {\r\n        emit(doc.phonenumber,null);\r\n    }\r\n}"
             },
             "findByUsernameAndPhone": {
-                "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit([doc.username.toLowerCase(),doc.phonenumber],doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit([doc.username.toLowerCase(),doc.phonenumber],null);\r\n    }\r\n}"
             },
             "findByUsername": {
-                "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit(doc.username.toLowerCase(),doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.username.toLowerCase()) {\r\n        emit(doc.username.toLowerCase(),null);\r\n    }\r\n}"
             },
             "searchByUsername": {
                 "map": `function (doc) {
                 if(doc.username)
-                emit(doc.username, doc);
+                emit(doc.username, null);
                 //startkey="abc"&endkey="abc\ufff0"
                 }`
             },
             "findByUserGui": {
-                "map": "function(doc) {\r\n    if(doc.gui) {\r\n        emit(doc.gui,doc);\r\n    }\r\n}"
+                "map": "function(doc) {\r\n    if(doc.gui) {\r\n        emit(doc.gui,null);\r\n    }\r\n}"
             },
             "findExist": {
-                "map": "function(doc) {\n if(doc.username.toLowerCase()) \n emit(doc.username.toLowerCase(), doc);\n}"
+                "map": "function(doc) {\n if(doc.username.toLowerCase()) \n emit(doc.username.toLowerCase(), null);\n}"
             },
             "changePassword": {
-                "map": "function(doc) {\n    emit([doc.username.toLowerCase(),doc.password,doc.phonenumber], doc);\n}"
+                "map": "function(doc) {\n    emit([doc.username.toLowerCase(),doc.password,doc.phonenumber], null);\n}"
             },
             "findByRole": {
-                "map": "function(doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], doc);\n}"
+                "map": "function(doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], null);\n}"
             },
             "countByRole": {
                 "reduce": "_count",
-                "map": "function(doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], doc);\n}"
+                "map": "function(doc) {\n   for(var i=0;i<doc.roles.length;i++) emit([doc.roles[i]], null);\n}"
             },
             "findByParent": {
-                "map": "function(doc) {\n   for(var i=0;i<doc.parents.length;i++) emit([doc.parents[i]], doc);\n}"
+                "map": "function(doc) {\n   for(var i=0;i<doc.parents.length;i++) emit([doc.parents[i]], null);\n}"
             },
             "searchByParent": {
-                "map": "function(doc) {\n   for(var i=0;i<doc.parents.length;i++) if(doc.username)emit([doc.parents[i],doc.username], doc);\n}"
+                "map": "function(doc) {\n   for(var i=0;i<doc.parents.length;i++) if(doc.username)emit([doc.parents[i],doc.username], null);\n}"
             },
             "countByParent": {
                 "reduce": "_count",
-                "map": "function(doc) {\n   for(var i=0;i<doc.parents.length;i++) emit([doc.parents[i]], doc);\n}"
+                "map": "function(doc) {\n   for(var i=0;i<doc.parents.length;i++) emit([doc.parents[i]], null);\n}"
             },
             "findAdmin": {
-                "map": "function(doc) {\n   for(var i=0;i<doc.system.length;i++) emit([doc.system[i]], doc);\n}"
+                "map": "function(doc) {\n   for(var i=0;i<doc.system.length;i++) emit([doc.system[i]], null);\n}"
             },
             "countAdmin": {
                 "reduce": "_count",
-                "map": "function(doc) {\n   for(var i=0;i<doc.system.length;i++) emit([doc.system[i]], doc);\n}"
+                "map": "function(doc) {\n   for(var i=0;i<doc.system.length;i++) emit([doc.system[i]], null);\n}"
             }
 
         },
@@ -1818,13 +1818,15 @@ class App {
         try {
             let db = this.create_db('targetmsg');
             db.view(this.__design_view, 'findByTargetId', {
+                
+                include_docs:true,
                 key: targetid
             }, (err, res) => {
                 if (err) throw err;
                 else {
                     let arr = [];
                     for (let index = 0; index < res.rows.length; index++) {
-                        const element = res.rows[index].value;
+                        const element = res.rows[index].doc;
                         arr.push(element);
                     }
                     deferred.resolve(arr);
@@ -1843,13 +1845,13 @@ class App {
         try {
             let db = this.create_db('targetmsg');
             db.view(this.__design_view, 'findByUserGui', {
-                key: usergui
+                include_docs:true,key: usergui
             }, (err, res) => {
                 if (err) throw err;
                 else {
                     let arr = [];
                     for (let index = 0; index < res.rows.length; index++) {
-                        const element = res.rows[index].value;
+                        const element = res.rows[index].doc;
                         arr.push(element);
                     }
                     deferred.resolve(arr);
@@ -1924,13 +1926,13 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('targetmsg');
         db.view(this.__design_view, 'findByUserGui', {
-            key: js.client.auth.gui + ''
+            include_docs:true,key: js.client.auth.gui + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
                 let arr = [];
                 for (let index = 0; index < res.rows.length; index++) {
-                    const element = res.rows[index].value;
+                    const element = res.rows[index].doc;
                     arr.push(arr);
                 }
                 deferred.resolve(arr);
@@ -1955,13 +1957,13 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('pendingrequest');
         db.view(this.__design_view, 'findByUserGui', {
-            key: js.client.auth.gui + ''
+            include_docs:true,key: js.client.auth.gui + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
                 let arr = [];
                 for (let index = 0; index < res.rows.length; index++) {
-                    const element = res.rows[index].value;
+                    const element = res.rows[index].doc;
                     arr.push(arr);
                 }
                 deferred.resolve(arr);
@@ -2005,7 +2007,7 @@ class App {
             else {
                 let arr = [];
                 for (let index = 0; index < res.rows.length; index++) {
-                    const element = res.rows[index].value;
+                    const element = res.rows[index].doc;
                     arr.push(arr);
                 }
                 deferred.resolve(arr);
@@ -2714,7 +2716,7 @@ class App {
         console.log('check authen');
         try {
             db.view(this.__design_view, 'authentication', {
-                key: [userinfo.username + '', userinfo.password + '']
+                include_docs:true,key: [userinfo.username + '', userinfo.password + '']
             }, (err, res) => {
                 console.log('checking login')
                 // console.log("res:"+res);
@@ -2724,7 +2726,7 @@ class App {
                     //console.log('login ok')
                     if (res) {
                         if (res.rows.length) {
-                            deferred.resolve(res.rows[0].value);
+                            deferred.resolve(res.rows[0].doc);
                         }
                     }
                     deferred.reject(new Error('ERROR wrong username or password'));
@@ -3250,7 +3252,7 @@ class App {
         let db = this.create_db('gijusers');
         console.log('count User list by parent: ' + username)
         db.view(this.__design_view, 'countByParent', {
-            key: [username + '']
+            include_docs:true,key: [username + '']
         },
             (err, res) => {
                 if (err) deferred.reject(err);
@@ -3258,7 +3260,7 @@ class App {
                     if (res) {
                         console.log(res);
                         if (res.rows.length) {
-                            deferred.resolve(res.rows[0].value);
+                            deferred.resolve(res.rows[0].doc);
                         } else {
                             deferred.resolve(0);
                         }
@@ -3276,6 +3278,7 @@ class App {
         this.countUserListByParentName(username).then(res => {
             let count = res;
             db.view(this.__design_view, 'searchByParent', {
+                include_docs:true,
                 startkey: [parent + '', username + ''],
                 endkey: [parent + '', username + '\ufff0'],
                 descending: true,
@@ -3287,7 +3290,7 @@ class App {
                     if (res.rows.length) {
                         let arr = [];
                         for (let index = 0; index < res.rows.length; index++) {
-                            const element = res.rows[index].value;
+                            const element = res.rows[index].doc;
                             let e: any = {};
                             e.gui = element.gui;
                             e.username = element.username;
@@ -3316,14 +3319,14 @@ class App {
             console.log('count user list ' + count);
             if (res) {
                 db.view(this.__design_view, 'findByParent', {
-                    key: [username + ''], limit: maxpage, skip: page
+                    include_docs:true,key: [username + ''], limit: maxpage, skip: page
                 }, (err, res) => {
                     if (err) deferred.reject(err);
                     else {
                         if (res.rows.length) {
                             let arr = [];
                             for (let index = 0; index < res.rows.length; index++) {
-                                const element = res.rows[index].value as gijuser;
+                                const element = res.rows[index].doc as gijuser;
                                 let e: any = {};
                                 e.gui = element.gui;
                                 e.username = element.username;
@@ -3569,13 +3572,13 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findByUserGui', {
-            key: gui + ''
+            include_docs:true,key: gui + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
                 let arr = [];
                 for (let index = 0; index < res.rows.length; index++) {
-                    const element = res.rows[index].value;
+                    const element = res.rows[index].doc;
                     //cleanUserInfo(element);
                     arr.push(element);
                 }
@@ -3920,13 +3923,13 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findByPhone', {
-            key: phone + ''
+            include_docs:true,key: phone + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
                 let arr = [];
                 if (res.rows.length) {
-                    arr.push(res.rows[0].value);
+                    arr.push(res.rows[0].doc);
                 }
                 deferred.resolve(arr);
             }
@@ -3938,13 +3941,13 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findByPhone', {
-            key: phone + ''
+            include_docs:true,key: phone + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
                 if (res.rows.length) {
                     //console.log(res);
-                    deferred.resolve(res.rows[0].value);
+                    deferred.resolve(res.rows[0].doc);
                 } else
                     deferred.resolve('');
             }
@@ -4037,6 +4040,7 @@ class App {
         try {
             let db = this.create_db('gijusers');
             db.view(this.__design_view, 'searchByUsername', {
+                include_docs:true,
                 startkey: username + '',
                 endkey: username + '\ufff0"',
                 limit: 30,
@@ -4047,7 +4051,7 @@ class App {
                     //console.log(res);
                     let arr = [];
                     for (let index = 0; index < res.rows.length; index++) {
-                        const element = res.rows[index].value;
+                        const element = res.rows[index].doc;
                         arr.push(element);
                     }
                     deferred.resolve(arr);
@@ -4107,13 +4111,13 @@ class App {
                 else {
                     //console.log(res);
                     console.log('find users');
-                    // console.log(res.rows[0].value);
+                    // console.log(res.rows[0].doc);
                     if (res.rows.length == 1) {
-                        deferred.resolve([res.rows[0].value]);
+                        deferred.resolve([res.rows[0].doc]);
                     } else if (res.rows.length > 1) {
                         let arr = [];
                         for (let index = 0; index < res.rows.length; index++) {
-                            const element = res.rows[index].value;
+                            const element = res.rows[index].doc;
                             arr.push(element);
                         }
 
@@ -4252,13 +4256,13 @@ class App {
         let db = this.create_db('gijusers');
         console.log("finding : " + username + " phone:" + phone);
         db.view(this.__design_view, 'findByUsernameAndPhone', {
-            key: [username + '', phone + '']
+            include_docs:true,key: [username + '', phone + '']
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
                 if (res.rows.length) {
                     //let arr=[];
-                    deferred.resolve(res.rows[0].value);
+                    deferred.resolve(res.rows[0].doc);
                 } else {
                     deferred.reject(new Error('ERROR Username and phone not found'));
                 }
