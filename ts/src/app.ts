@@ -170,13 +170,13 @@ class App {
             ws['lastupdate']
             ws.on('pong', () => {
                 ws['isAlive'] = true;
-                // if (!ws['lastupdate'] && !ws['gui']) {
-                //     ws['isAlive'] = false;
-                // }
+                if (!ws['lastupdate'] && !ws['gui']) {
+                    ws['isAlive'] = false;
+                }
                 let startDate = moment(ws['lastupdate'])
                 let endDate = moment(parent.convertTZ(new Date()));
                 const timeout = endDate.diff(startDate, 'seconds');
-                if (timeout > 60 * 15)
+                if (timeout > 60 * 30)
                     ws['isAlive'] = false;
                 else
                     ws['isAlive'] = true;
@@ -288,7 +288,7 @@ class App {
                     console.log(error);
                 }
             });
-        }, 60000); // set 60 seconds 
+        }, 360000); // set 60 seconds 
 
     }
 
@@ -2862,7 +2862,6 @@ class App {
                             userinfo.gijvalue = 0;
                             userinfo.totalgij = 0;
                             userinfo.totalgijspent = 0;
-
                             db.insert(userinfo, userinfo.gui, (err, res) => {
                                 if (err) deferred.reject(err);
                                 else {
@@ -3252,22 +3251,32 @@ class App {
         let db = this.create_db('gijusers');
         console.log('count User list by parent: ' + username)
         db.view(this.__design_view, 'countByParent', {
-            include_docs:true,key: [username + '']
+            key: [username + '']
         },
             (err, res) => {
-                if (err) deferred.reject(err);
-                else {
-                    if (res) {
-                        console.log(res);
-                        if (res.rows.length) {
-                            deferred.resolve(res.rows[0].doc);
-                        } else {
+                try {
+                    if (err) {
+                        console.log(err);
+                        deferred.reject(err);}
+                    else {
+                        if (res) {
+                            console.log(`res: ${res}`);
+                            if (res.rows.length) {
+                                deferred.resolve(res.rows[0].value);
+                            } else {
+                                deferred.resolve(0);
+                            }
+                        }
+                        else{
+    
                             deferred.resolve(0);
                         }
                     }
-                    else
-                        deferred.resolve(0);
+                } catch (error) {
+                    console.log(error);
+                    deferred.reject(error);
                 }
+                
             });
         return deferred.promise;
     }
@@ -3353,6 +3362,8 @@ class App {
                         }
                     }
                 });
+            }else{
+                deferred.reject(new Error('ERROR no user list'))
             }
         }).catch((err) => {
             deferred.reject(new Error('ERROR not found by this parent'));
