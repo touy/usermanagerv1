@@ -2,7 +2,7 @@
 import * as moment from 'moment-timezone';
 import * as express from "express";
 import * as crypto from 'crypto';
-import * as request from 'request';
+// import * as request from 'request';
 import * as Nano from 'nano';
 import * as async from 'async';
 import * as uuidV4 from 'uuid';
@@ -10,18 +10,19 @@ import * as cors from 'cors';
 import * as fs from 'fs';
 import * as http from 'http';
 import * as redis from 'redis';
-import * as __browser from 'detect-browser';
+// import * as __browser from 'detect-browser';
 import * as path from 'path'
-import * as passwordValidator from 'password-validator';
-import * as util from 'util';
-import * as Q from 'q';
+// import * as passwordValidator from 'password-validator';
+var passwordValidator = require('password-validator');
+// import * as util from 'util';
+import Q from 'q';
 import * as bodyParser from 'body-parser';
 import * as methodOverride from 'method-override';
 import * as WebSocket from 'ws';
-import { RequestHandlerParams } from 'express-serve-static-core';
+// import { RequestHandlerParams } from 'express-serve-static-core';
 import { Request, NextFunction, ErrorRequestHandler, Response } from "express";
-import { NextHandleFunction } from 'connect';
-import { POINT_CONVERSION_COMPRESSED } from 'constants';
+// import { NextHandleFunction } from 'connect';
+// import { POINT_CONVERSION_COMPRESSED } from 'constants';
 // import { Module } from 'module';//
 declare global {
     interface Array<T> {
@@ -135,7 +136,16 @@ export interface msgObj {
 
 
 class App {
-
+    get_current_online_client(): any {        
+        this._current_online_client.length=0;
+        this.wss.clients.forEach(ws => {
+            //client.push();
+            if (ws.readyState === WebSocket.OPEN) {
+                this._current_online_client.push({ logintoken:ws['client'].logintoken,isalive:ws['isAlive'],lastupdate:ws['lastupdate'],gui:ws['gui'] })
+              }            
+        });        
+    }
+    private _current_online_client:any[]=[];
     private _current_system = 'user-management';
 
     private _client_prefix = ['ice-maker', 'gij', 'web-post', 'user-management', 'default'];
@@ -152,6 +162,7 @@ class App {
     private passValidator: any;
     private userValidator: any;
     private phoneValidator: any;
+    private _allClient: any[] = [];
     // private _current_system: string;
     // private __design_view: string = "objectList";
     initWebsocket(): any {
@@ -176,11 +187,37 @@ class App {
                 let startDate = moment(ws['lastupdate'])
                 let endDate = moment(parent.convertTZ(new Date()));
                 const timeout = endDate.diff(startDate, 'seconds');
-                if (timeout > 60 * 30)
+                // console.log('time out');
+                // console.log(timeout);
+                if (timeout > 60 * 3)
                     ws['isAlive'] = false;
                 else
                     ws['isAlive'] = true;
+                parent.wss.clients.forEach(element => {
 
+                    let client = element['client'];
+
+                    if (parent._allClient.indexOf(client.gui)) {
+                        element.close();
+                        parent.wss.clients.delete(element);
+                        return;
+                    } else {
+                        parent._allClient.push(element);
+                    }
+                    parent.r_client.get(parent._current_system + '_usergui_' + client.logintoken, (err, r) => {
+
+                        let res: guiObj = JSON.parse(r) as guiObj;
+                        if (res) {
+                            if (res.gui) {
+                                parent.setUserGUIStatus(client, res.gui);
+                            }
+                        }
+
+                        parent.setLoginStatus(client);
+                        parent.setClientStatus(client);
+                        parent.setOnlineStatus(client);
+                    });
+                });
                 // console.log('HEART BEAT:' + ws['gui'] + " is alive:" + ws['isAlive'] + " " + ws['lastupdate'] + " timeout" + timeout);
                 // //this.send(this.client);
             });
@@ -197,14 +234,15 @@ class App {
             ws.on('message', (data) => {
                 let js = {};
                 try {
-                    let b = parent.ab2str(data);                    
-                    let s = Buffer.from(b, 'base64').toString();                    
+                    let b = parent.ab2str(data);
+                    let s = Buffer.from(b, 'base64').toString();
                     js['client'] = JSON.parse(s);
                     //console.log(js.client)                    
                     js['ws'] = ws;
                     ws['lastupdate'] = parent.convertTZ(new Date());
                     ws['isAlive'] = true;
                     ws['gui'] = js['client'].gui;
+                    this.checkConnection(ws['gui']);
                     js['client'].auth = {};
                     ws['client'] = js['client'];
                     //console.log(ws['client']);
@@ -277,7 +315,7 @@ class App {
         const interval = setInterval(() => {
             this.wss.clients.forEach((ws) => {
                 try {
-                    if (ws['isAlive'] === false) {
+                    if (ws['isAlive'] === false || !ws['isAlive']) {
                         console.log(ws['gui'] + 'ws terminated')
                         return ws.terminate();
                     }
@@ -288,12 +326,31 @@ class App {
                     console.log(error);
                 }
             });
-        }, 360000); // set 60 seconds 
+        }, 60000); // set 60 seconds 
+        setInterval(() => {
+            for (let index = 0; index < parent._allClient.length; index++) {
+                const element = parent._allClient[index];
+                if (this.wss.clients.has(element)) {
+                    parent._allClient.splice(index, 1);
+                }
+            }
 
+        }, 60000); // set 60 seconds 
     }
-
+    checkConnection(gui) {
+        this.wss.clients.forEach((ws) => {
+            try {
+                if (ws['gui'] === gui) {
+                    ws['isAlive'] = true;
+                    ws['lastupdate'] = this.convertTZ(new Date());
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
     convertTZ(fromTZ) {
-        return moment.tz(fromTZ, "Asia/Vientiane").toDate();
+        return new Date(moment.tz(fromTZ, "Asia/Vientiane").format());
     }
 
 
@@ -775,7 +832,7 @@ class App {
                             deferred.reject(err);
                         });
                         break;
-                    case 'shake-hands':                        
+                    case 'shake-hands':
                         this.get_client_ws(js).then(res => {
                             deferred.resolve(res);
                         }).catch(err => {
@@ -787,7 +844,7 @@ class App {
                         this.login_ws(js).then(res => {
                             deferred.resolve(res);
                             //console.log(res);
-                            js.ws.lastupdate = this.convertTZ(new Date());
+                            //js.ws.lastupdate = this.convertTZ(new Date());
                         }).catch(err => {
                             //console.log(err);
                             deferred.reject(err);
@@ -900,6 +957,46 @@ class App {
                     case 'get-user-gui':
                         this.get_user_gui_ws(js).then(res => {
                             deferred.resolve(res);
+                        }).catch(err => {
+                            deferred.reject(err);
+                        });
+                        break;
+                    case 'validate-login-token':
+                        this.get_user_gui_ws(js).then(res => {
+                            if (js.client.auth.gui) {
+                                delete js.client.auth;
+                                js.client.data.message = 'OK valid login token';
+                                deferred.resolve(js);
+                            } else {
+                                js.client.data.message = new Error('ERROR invalid Login Token');
+                                deferred.reject(js);
+                            }
+                        }).catch(err => {
+                            deferred.reject(err);
+                        });
+                        break;
+                    case 'get-current-online-client':
+                        this.get_user_gui_ws(js).then(res => {
+                            this.findUserByGUI(res['client'].auth.gui).then(res => {
+                                if (res) {
+                                    let u = res['client'].data.user;
+                                    if (u.roles.indexOf('admin') > -1 && u.system.indexOf(this._current_system) > -1) {
+                                        this.get_current_online_client().then(res => {
+                                            deferred.resolve(res);
+                                        }).catch(err => {
+                                            deferred.reject(err);
+                                        });
+                                    } else {
+                                        js.client.data.message = ('ERROR there is no permission for this user');
+                                        deferred.reject(js);
+                                    };
+
+                                } else {
+                                    js.client.data.message = ('ERROR there is no this user');
+                                    deferred.reject(js);
+                                }
+                            });
+
                         }).catch(err => {
                             deferred.reject(err);
                         });
@@ -1022,8 +1119,8 @@ class App {
                     //     deferred.resolve(get_system_prefix());
                     // break;
                     default:
-                    js.client.data.message = 'ERROR no command';
-                    deferred.resolve(js);
+                        js.client.data.message = 'ERROR no command';
+                        deferred.resolve(js);
                         break;
                 }
             }).catch(err => {
@@ -1509,7 +1606,7 @@ class App {
     loadAdmin(js) {
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findAdmin', {
-            include_docs:true,key: 'user-management'
+            include_docs: true, key: 'user-management'
         }, (err, res) => {
             if (err) {
                 js.client.data.message = err;
@@ -1818,8 +1915,8 @@ class App {
         try {
             let db = this.create_db('targetmsg');
             db.view(this.__design_view, 'findByTargetId', {
-                
-                include_docs:true,
+
+                include_docs: true,
                 key: targetid
             }, (err, res) => {
                 if (err) throw err;
@@ -1845,7 +1942,7 @@ class App {
         try {
             let db = this.create_db('targetmsg');
             db.view(this.__design_view, 'findByUserGui', {
-                include_docs:true,key: usergui
+                include_docs: true, key: usergui
             }, (err, res) => {
                 if (err) throw err;
                 else {
@@ -1926,7 +2023,7 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('targetmsg');
         db.view(this.__design_view, 'findByUserGui', {
-            include_docs:true,key: js.client.auth.gui + ''
+            include_docs: true, key: js.client.auth.gui + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
@@ -1957,7 +2054,7 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('pendingrequest');
         db.view(this.__design_view, 'findByUserGui', {
-            include_docs:true,key: js.client.auth.gui + ''
+            include_docs: true, key: js.client.auth.gui + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
@@ -2716,7 +2813,7 @@ class App {
         console.log('check authen');
         try {
             db.view(this.__design_view, 'authentication', {
-                include_docs:true,key: [userinfo.username + '', userinfo.password + '']
+                include_docs: true, key: [userinfo.username + '', userinfo.password + '']
             }, (err, res) => {
                 console.log('checking login')
                 // console.log("res:"+res);
@@ -3257,7 +3354,8 @@ class App {
                 try {
                     if (err) {
                         console.log(err);
-                        deferred.reject(err);}
+                        deferred.reject(err);
+                    }
                     else {
                         if (res) {
                             console.log(`res: ${res}`);
@@ -3267,8 +3365,8 @@ class App {
                                 deferred.resolve(0);
                             }
                         }
-                        else{
-    
+                        else {
+
                             deferred.resolve(0);
                         }
                     }
@@ -3276,7 +3374,7 @@ class App {
                     console.log(error);
                     deferred.reject(error);
                 }
-                
+
             });
         return deferred.promise;
     }
@@ -3287,7 +3385,7 @@ class App {
         this.countUserListByParentName(username).then(res => {
             let count = res;
             db.view(this.__design_view, 'searchByParent', {
-                include_docs:true,
+                include_docs: true,
                 startkey: [parent + '', username + ''],
                 endkey: [parent + '', username + '\ufff0'],
                 descending: true,
@@ -3328,7 +3426,7 @@ class App {
             console.log('count user list ' + count);
             if (res) {
                 db.view(this.__design_view, 'findByParent', {
-                    include_docs:true,key: [username + ''], limit: maxpage, skip: page
+                    include_docs: true, key: [username + ''], limit: maxpage, skip: page
                 }, (err, res) => {
                     if (err) deferred.reject(err);
                     else {
@@ -3362,7 +3460,7 @@ class App {
                         }
                     }
                 });
-            }else{
+            } else {
                 deferred.reject(new Error('ERROR no user list'))
             }
         }).catch((err) => {
@@ -3583,7 +3681,7 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findByUserGui', {
-            include_docs:true,key: gui + ''
+            include_docs: true, key: gui + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
@@ -3722,7 +3820,7 @@ class App {
         this.r_client.set(this._current_system + '_login_' + client.logintoken, JSON.stringify({
             command: 'login-changed',
             client: client
-        }), 'EX', 60 * 5);
+        }), 'EX', 60 * 30);
     }
 
     setForgotStatus(client, keys) {
@@ -3782,7 +3880,7 @@ class App {
                             system: this._current_system,
                             login: arr,
                         }
-                    }), 'EX', 60 * 5);
+                    }), 'EX', 60 * 10);
                 }
             });
         } catch (error) {
@@ -3816,7 +3914,7 @@ class App {
             ws_client.binaryType = 'arraybuffer';
             let parent = this;
             ws_client.on('open', () => {
-                let b = Buffer.from(JSON.stringify(client)).toString('base64');                
+                let b = Buffer.from(JSON.stringify(client)).toString('base64');
                 let a = Buffer.from(b);
                 ws_client.send(JSON.stringify(b), { binary: true }, (err) => {
                     if (err) {
@@ -3834,7 +3932,7 @@ class App {
             });
             ws_client.on('message', (data) => {
                 console.log("received  FROM SMS : ");
-                let b = parent.ab2str(data);                    
+                let b = parent.ab2str(data);
                 let s = Buffer.from(b, 'base64').toString();
                 client = JSON.parse(s);
                 //console.log(client);
@@ -3934,7 +4032,7 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findByPhone', {
-            include_docs:true,key: phone + ''
+            include_docs: true, key: phone + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
@@ -3952,7 +4050,7 @@ class App {
         let deferred = Q.defer();
         let db = this.create_db('gijusers');
         db.view(this.__design_view, 'findByPhone', {
-            include_docs:true,key: phone + ''
+            include_docs: true, key: phone + ''
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {
@@ -4051,7 +4149,7 @@ class App {
         try {
             let db = this.create_db('gijusers');
             db.view(this.__design_view, 'searchByUsername', {
-                include_docs:true,
+                include_docs: true,
                 startkey: username + '',
                 endkey: username + '\ufff0"',
                 limit: 30,
@@ -4267,7 +4365,7 @@ class App {
         let db = this.create_db('gijusers');
         console.log("finding : " + username + " phone:" + phone);
         db.view(this.__design_view, 'findByUsernameAndPhone', {
-            include_docs:true,key: [username + '', phone + '']
+            include_docs: true, key: [username + '', phone + '']
         }, (err, res) => {
             if (err) deferred.reject(err);
             else {

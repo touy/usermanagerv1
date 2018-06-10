@@ -1,0 +1,8 @@
+1. ice maker server , process raw data by interval 5m , 1h , 24h,
+2. allow admin to manual refresh reports from process 
+3. report and bills , user just view the result of process only avoiding memory leak for many user access 
+4. missing imei feild for Jan, Feb, March , need to restore from raws by server time and gps time
+5. fix data handle when there are array data come in currently it would return wition for loop 
+6. make payment (invoice)
+7. view payment list by owner  (invoice)
+8. check if connection to the user management server lost
