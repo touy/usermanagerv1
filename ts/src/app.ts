@@ -185,7 +185,7 @@ class App {
                     ws['isAlive'] = false;
                 }
                 let startDate = moment(ws['lastupdate'])
-                let endDate = moment(parent.convertTZ(Date()));
+                let endDate = moment(parent.convertTZ(moment.now()));
                 const timeout = endDate.diff(startDate, 'seconds');
                 // console.log('time out');
                 // console.log(timeout);
@@ -225,7 +225,7 @@ class App {
                 //js.client.data.message=JSON.stringify(err);
                 var l = {
                     log: err,
-                    logdate: parent.convertTZ(Date()),
+                    logdate: parent.convertTZ(moment.now()),
                     type: "error",
                     gui: uuidV4()
                 };
@@ -239,7 +239,7 @@ class App {
                     js['client'] = JSON.parse(s);
                     //console.log(js.client)                    
                     js['ws'] = ws;
-                    ws['lastupdate'] = parent.convertTZ(Date());
+                    ws['lastupdate'] = parent.convertTZ(moment.now());
                     ws['isAlive'] = true;
                     ws['gui'] = js['client'].gui;
                     this.checkConnection(ws['gui']);
@@ -250,7 +250,7 @@ class App {
                         js = res;
                         ws['gui'] = js['client'].gui;
                         ws['client'] = js['client'];
-                        ws['lastupdate'] = parent.convertTZ(Date());
+                        ws['lastupdate'] = parent.convertTZ(moment.now());
 
                         if (res['client'].data.command === 'logout') {
                             ws['gui'] = '';
@@ -275,7 +275,7 @@ class App {
                         js = err;
                         var l = {
                             log: js['client'].data.message,
-                            logdate: parent.convertTZ(Date()),
+                            logdate: parent.convertTZ(moment.now()),
                             type: "error",
                             gui: uuidV4()
                         };
@@ -283,7 +283,7 @@ class App {
                         parent.errorLogging(l);
                         console.log('ws sending');
                         ws['client'] = js['client'];
-                        ws['lastupdate'] = parent.convertTZ(Date());
+                        ws['lastupdate'] = parent.convertTZ(moment.now());
                         js['client'].data.message = js['client'].data.message.message;
                         parent.filterObject(js['client'].auth);
                         let b = Buffer.from(JSON.stringify(js['client'])).toString('base64');
@@ -298,7 +298,7 @@ class App {
                     console.log(error);
                     js['client'].data.message = error.message;
                     ws['client'] = js['client'];
-                    ws['lastupdate'] = parent.convertTZ(Date());
+                    ws['lastupdate'] = parent.convertTZ(moment.now());
                     parent.filterObject(js['client'].auth);
                     let b = Buffer.from(JSON.stringify(js['client'])).toString('base64');
                     //console.log(b);
@@ -342,7 +342,7 @@ class App {
             try {
                 if (ws['gui'] === gui) {
                     ws['isAlive'] = true;
-                    ws['lastupdate'] = this.convertTZ(Date());
+                    ws['lastupdate'] = this.convertTZ(moment().format());
                 }
             } catch (error) {
                 console.log(error);
@@ -420,7 +420,7 @@ class App {
 
                         var l = {
                             log: JSON.stringify(js),
-                            logdate: this.convertTZ(Date()),
+                            logdate: this.convertTZ(moment().format()),
                             type: "error",
                             gui: uuidV4()
                         };
@@ -522,7 +522,7 @@ class App {
         } catch (error) {
             var l = {
                 log: error,
-                logdate: this.convertTZ(Date()),
+                logdate: this.convertTZ(moment().format()),
                 type: "error",
                 gui: uuidV4()
             };
@@ -844,7 +844,7 @@ class App {
                         this.login_ws(js).then(res => {
                             deferred.resolve(res);
                             //console.log(res);
-                            //js.ws.lastupdate = this.convertTZ(Date());
+                            //js.ws.lastupdate = this.convertTZ(moment().format());
                         }).catch(err => {
                             //console.log(err);
                             deferred.reject(err);
@@ -1226,7 +1226,7 @@ class App {
         let deferred = Q.defer();
         let t: any = {};
         t.transactionid = uuidV4();
-        t.transactiontime = this.convertTZ(Date());
+        t.transactiontime = this.convertTZ(moment().format());
         js.client.data.transaction = t;
         this.r_client.set(this._current_system + '_transaction_' + js.client.gui + js.client.data.transactionid, JSON.stringify({
             command: 'transaction-changed',
@@ -1385,7 +1385,7 @@ class App {
 
     heartbeat_ws(js) {
         let deferred = Q.defer();
-        js.client.lastupdate = this.convertTZ(Date());
+        js.client.lastupdate = this.convertTZ(moment().format());
         js.client.clientip = js.ws._socket.remoteAddress;
         js.client.data.message = 'heart beat';
         this.r_client.get(this._current_system + '_login_' + js.client.logintoken, (err, res) => {
@@ -1433,7 +1433,7 @@ class App {
         //     this.isAlive = false;
         // }
         // let startDate = moment(this.lastupdate)
-        // let endDate = moment(this.convertTZ(Date()));
+        // let endDate = moment(this.convertTZ(moment().format()));
 
         // const timeout = endDate.diff(startDate, 'seconds');
         // // if(this.gui!=this.gui){
@@ -1490,8 +1490,8 @@ class App {
         confirmpassword: '',
         phonenumber: '2054445447',
         gui: uuidV4(),
-        createddate: this.convertTZ(Date()),
-        lastupdate: this.convertTZ(Date()),
+        createddate: this.convertTZ(moment().format()),
+        lastupdate: this.convertTZ(moment().format()),
         isactive: true,
         parents: ["default"],
         roles: ['admin', 'user'],
@@ -1512,8 +1512,8 @@ class App {
         confirmpassword: '',
         phonenumber: '2055516321',
         gui: uuidV4(),
-        createddate: this.convertTZ(Date()),
-        lastupdate: this.convertTZ(Date()),
+        createddate: this.convertTZ(moment().format()),
+        lastupdate: this.convertTZ(moment().format()),
         isactive: true,
         parents: ["default"],
         roles: ['admin', 'user'],
@@ -1534,8 +1534,8 @@ class App {
         confirmpassword: '',
         phonenumber: '2055516321',
         gui: uuidV4(),
-        createddate: this.convertTZ(Date()),
-        lastupdate: this.convertTZ(Date()),
+        createddate: this.convertTZ(moment().format()),
+        lastupdate: this.convertTZ(moment().format()),
         isactive: true,
         parents: ["default"],
         roles: ['admin', 'user'],
@@ -1556,8 +1556,8 @@ class App {
         confirmpassword: '',
         phonenumber: '2055516321',
         gui: uuidV4(),
-        createddate: this.convertTZ(Date()),
-        lastupdate: this.convertTZ(Date()),
+        createddate: this.convertTZ(moment().format()),
+        lastupdate: this.convertTZ(moment().format()),
         isactive: true,
         parents: ["default"],
         roles: ['admin', 'user'],
@@ -1578,8 +1578,8 @@ class App {
         confirmpassword: '',
         phonenumber: '2055516321',
         gui: uuidV4(),
-        createddate: this.convertTZ(Date()),
-        lastupdate: this.convertTZ(Date()),
+        createddate: this.convertTZ(moment().format()),
+        lastupdate: this.convertTZ(moment().format()),
         isactive: true,
         parents: ["default"],
         roles: ['admin', 'user'],
@@ -1712,7 +1712,7 @@ class App {
         deniedapprovlalist: [],
         pendinginvited: [],
         refusedinvited: [],
-        createdata: this.convertTZ(Date()),
+        createdata: this.convertTZ(moment().format()),
         msg: [] /// 1ms earlier
     }
 
@@ -2134,7 +2134,7 @@ class App {
                             let pendingrequest = {
                                 gui: uuidV4(),
                                 usergui: target.usergui,
-                                createdtime: this.convertTZ(Date()),
+                                createdtime: this.convertTZ(moment().format()),
                                 requesttype: 'subscribe',
                                 requestto: target.targetid,
                                 isdone: false,
@@ -2222,7 +2222,7 @@ class App {
                                     let pendingrequest = {
                                         gui: uuidV4(),
                                         usergui: s_target.usergui,
-                                        createdtime: this.convertTZ(Date()),
+                                        createdtime: this.convertTZ(moment().format()),
                                         requesttype: 'invite',
                                         requestto: s_target.targetid,
                                         isdone: false,
@@ -2286,7 +2286,7 @@ class App {
                                     let pendingrequest = {
                                         gui: uuidV4(),
                                         usergui: s_target.usergui,
-                                        createdtime: this.convertTZ(Date()),
+                                        createdtime: this.convertTZ(moment().format()),
                                         requesttype: 'arppove',
                                         requestto: u.username,
                                         isdone: true,
@@ -2466,18 +2466,18 @@ class App {
                             content: '@hello@',
                             msgtype: 'text', // photo , sound, video, text, typing, misc
                             attached: [],
-                            sent: this.convertTZ(Date()),
+                            sent: this.convertTZ(moment().format()),
                             // sent: [{
                             //     username: '',
-                            //     sent: this.convertTZ(Date())
+                            //     sent: this.convertTZ(moment().format())
                             // }],
                             received: [{
                                 username: '',
-                                received: this.convertTZ(Date())
+                                received: this.convertTZ(moment().format())
                             }], //
                             read: [{
                                 username: '',
-                                read: this.convertTZ(Date())
+                                read: this.convertTZ(moment().format())
                             }] // 
                         }
                         if (data.msg.length > 1) {
@@ -2520,7 +2520,7 @@ class App {
                                 pendinginvited: [],
                                 refusedinvited: [],
                                 blacklist: [],
-                                createdata: this.convertTZ(Date()),
+                                createdata: this.convertTZ(moment().format()),
                                 msg: [] /// 10 ms earlier
                             }
                             let msg = {
@@ -2531,18 +2531,18 @@ class App {
                                 content: '@hello@',
                                 msgtype: 'text', // photo , sound, video, text, typing, misc
                                 attached: [],
-                                sent: this.convertTZ(Date()),
+                                sent: this.convertTZ(moment().format()),
                                 // sent: [{
                                 //     username: '',
-                                //     sent: this.convertTZ(Date())
+                                //     sent: this.convertTZ(moment().format())
                                 // }],
                                 received: [{
                                     username: '',
-                                    received: this.convertTZ(Date())
+                                    received: this.convertTZ(moment().format())
                                 }], //
                                 read: [{
                                     username: '',
-                                    read: this.convertTZ(Date())
+                                    read: this.convertTZ(moment().format())
                                 }] // 
                             }
                             if (data.msg.length > 1) {
@@ -2599,14 +2599,14 @@ class App {
                         content: js.client.data.msg.content,
                         msgtype: js.client.data.msg.msgtype, // photo , sound, video, text, typing, misc
                         attached: js.client.data.msg.attached,
-                        sent: this.convertTZ(Date()),
+                        sent: this.convertTZ(moment().format()),
                         received: [{
                             username: '',
-                            received: this.convertTZ(Date())
+                            received: this.convertTZ(moment().format())
                         }], //
                         read: [{
                             username: '',
-                            read: this.convertTZ(Date())
+                            read: this.convertTZ(moment().format())
                         }] // 
                     }
                     if (data.msg.length > 1) {
@@ -2648,7 +2648,7 @@ class App {
                 console.log('got client');
                 console.log(res);
                 js.client.clientip = js.ws._socket.remoteAddress;
-                js.client.lastupdate = this.convertTZ(Date());
+                js.client.lastupdate = this.convertTZ(moment().format());
                 js.client.timeout = 60 * 60 * 24;
                 this.setClientStatus(js.client);
                 deferred.resolve(js);
@@ -2658,8 +2658,8 @@ class App {
                     //js.client=res;
                     //console.log(js.ws._socket.remoteAddress);
                     js.client.clientip = js.ws._socket.remoteAddress;
-                    js.client.accessedtime = this.convertTZ(Date());
-                    js.client.lastupdate = this.convertTZ(Date());
+                    js.client.accessedtime = this.convertTZ(moment().format());
+                    js.client.lastupdate = this.convertTZ(moment().format());
                     js.client.timeout = 60 * 60 * 24;
                     js.client.logintoken = '';
                     js.client.logintime = '';
@@ -2712,7 +2712,7 @@ class App {
                     if (err) {
                         js.client.data.message = err;
                         js.client.data.user = {};
-                        js.client.accessedtime = this.convertTZ(Date());
+                        js.client.accessedtime = this.convertTZ(moment().format());
                         //js.resp.send(js.client);
                         deferred.reject(js);
                     } else {
@@ -2754,7 +2754,7 @@ class App {
                             js.client.loginip = js.ws._socket.remoteAddress;
                             js.client.data.message = 'OK Login';
                             js.client.logintoken = uuidV4();
-                            js.client.logintime = this.convertTZ(Date());
+                            js.client.logintime = this.convertTZ(moment().format());
                             //js.resp.send(js.client);
                             //_arrUsers.push(js.client);
                             js.client.data.user = {};
@@ -2777,14 +2777,14 @@ class App {
             }).catch((err) => {
                 js.client.data.message = err;
                 js.client.data.user = {};
-                js.client.accessedtime = this.convertTZ(Date());
+                js.client.accessedtime = this.convertTZ(moment().format());
                 //js.resp.send(js.client);
                 deferred.reject(js);
             });
         } catch (error) {
             js.client.data.message = error;
             js.client.data.user = {};
-            js.client.accessedtime = this.convertTZ(Date());
+            js.client.accessedtime = this.convertTZ(moment().format());
             //js.resp.send(js.client);
             deferred.reject(js);
         }
@@ -2798,7 +2798,7 @@ class App {
             js.client.data.user = {};
             js.client.data.message = 'OK';
             js.client.logintoken = uuidV4();
-            js.client.logintime = this.convertTZ(Date());
+            js.client.logintime = this.convertTZ(moment().format());
             js.resp.send(js.client);
             //_arrUsers.push(js.client);
         }).catch((err) => {
@@ -3019,8 +3019,8 @@ class App {
                                     deferred.reject(r);
                                 else {
                                     userinfo.gui = uuidV4();
-                                    userinfo.createddate = this.convertTZ(Date());
-                                    userinfo.lastupdate = this.convertTZ(Date());
+                                    userinfo.createddate = this.convertTZ(moment().format());
+                                    userinfo.lastupdate = this.convertTZ(moment().format());
                                     userinfo.isactive = true;
                                     userinfo.roles = ['user'];
                                     userinfo.description = "";
@@ -3095,7 +3095,7 @@ class App {
                             // console.log('TEST');
                             // console.log(res);
                             let res = r as gijuser;
-                            res.lastupdate = this.convertTZ(Date());
+                            res.lastupdate = this.convertTZ(moment().format());
                             res.photo = js.client.data.user.photo;
                             res.note = js.client.data.user.note;
                             res.description = js.client.data.user.description;
@@ -3708,7 +3708,7 @@ class App {
     // cleanLoginUsers() {
     //     for (let index = 0; index < _arrUsers.length; index++) {
     //         let startDate = moment(_arrUsers[index].logintime)
-    //         let endDate = moment(this.convertTZ(Date()));
+    //         let endDate = moment(this.convertTZ(moment().format()));
     //         const timeout = endDate.diff(startDate, 'seconds');
     //         if (timeout > 60 * 60 * 24 * 3)
     //             delete _arrUsers[index];
@@ -3727,7 +3727,7 @@ class App {
         //js.client.data = {};
         //js.client.data.user = {};
         js.client.data.command = 'logout';
-        js.client.accessedtime = this.convertTZ(Date());
+        js.client.accessedtime = this.convertTZ(moment().format());
         js.client.data.message = 'OK';
         js.client.logintoken = '';
         js.client.loginip = '';
@@ -3876,7 +3876,7 @@ class App {
                         command: 'online-changed',
                         client: {
                             username: client.username,
-                            onlinetime: this.convertTZ(Date()),
+                            onlinetime: this.convertTZ(moment().format()),
                             system: this._current_system,
                             login: arr,
                         }
@@ -3943,7 +3943,7 @@ class App {
 
                 parent.setNotificationStatus(client);
                 //setOnlineStatus(client);
-
+                ws_client.close();
             });
             ws_client.on("error", (err) => {
                 client.data.message = err;
@@ -4471,7 +4471,7 @@ class App {
         console.log(err);
         var l = {
             log: err,
-            logdate: this.convertTZ(Date()),
+            logdate: this.convertTZ(moment().format()),
             type: "error",
             gui: uuidV4()
         };
