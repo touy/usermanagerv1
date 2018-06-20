@@ -193,31 +193,29 @@ class App {
                     ws['isAlive'] = false;
                 else
                     ws['isAlive'] = true;
-                parent.wss.clients.forEach(element => {
+                // parent.wss.clients.forEach(element => {
+                //     let client = element['client'];
 
-                    let client = element['client'];
+                //     if (parent._allClient.indexOf(client.gui)) {
+                //         element.close();
+                //         parent.wss.clients.delete(element);
+                //         return;
+                //     } else {
+                //         parent._allClient.push(element);
+                //     }
+                //     parent.r_client.get(parent._current_system + '_usergui_' + client.logintoken, (err, r) => {
 
-                    if (parent._allClient.indexOf(client.gui)) {
-                        element.close();
-                        parent.wss.clients.delete(element);
-                        return;
-                    } else {
-                        parent._allClient.push(element);
-                    }
-                    parent.r_client.get(parent._current_system + '_usergui_' + client.logintoken, (err, r) => {
-
-                        let res: guiObj = JSON.parse(r) as guiObj;
-                        if (res) {
-                            if (res.gui) {
-                                parent.setUserGUIStatus(client, res.gui);
-                            }
-                        }
-
-                        parent.setLoginStatus(client);
-                        parent.setClientStatus(client);
-                        parent.setOnlineStatus(client);
-                    });
-                });
+                //         let res: guiObj = JSON.parse(r) as guiObj;
+                //         if (res) {
+                //             if (res.gui) {
+                //                 parent.setUserGUIStatus(client, res.gui);
+                //             }
+                //         }
+                //         parent.setLoginStatus(client);
+                //         parent.setClientStatus(client);
+                //         parent.setOnlineStatus(client);
+                //     });
+                // });
                 // console.log('HEART BEAT:' + ws['gui'] + " is alive:" + ws['isAlive'] + " " + ws['lastupdate'] + " timeout" + timeout);
                 // //this.send(this.client);
             });
@@ -327,10 +325,11 @@ class App {
                 }
             });
         }, 60000); // set 60 seconds 
-        setInterval(() => {
+        setTimeout(() => {
             for (let index = 0; index < parent._allClient.length; index++) {
                 const element = parent._allClient[index];
                 if (this.wss.clients.has(element)) {
+
                     parent._allClient.splice(index, 1);
                 }
             }
@@ -350,7 +349,7 @@ class App {
         });
     }
     convertTZ(fromTZ) {
-        return new Date(moment.tz(fromTZ, "Asia/Vientiane").format());
+        return new Date(moment.tz(fromTZ, "Asia/Vientiane").format().replace('+07:00',''));
     }
 
 
@@ -3313,8 +3312,10 @@ class App {
         try {
             this.findUserByGUI(js.client.auth.gui).then(r => {
                 let res: gijuser = r as gijuser;
-                let page = (js.client.data.page === undefined) ? 0 : js.client.data.page;
+                
                 let maxpage = js.client.data.maxpage === undefined ? 10 : js.client.data.maxpage;
+                let page = (js.client.data.page === undefined) ? 0 : js.client.data.page;
+                page=page*maxpage;
                 this.findUserListByParentName(res.username, page, maxpage).then((res) => {
                     js.client.data.userinfo = res;
                     js.client.data.message = 'OK userlist';
