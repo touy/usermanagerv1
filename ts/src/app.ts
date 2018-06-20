@@ -311,28 +311,28 @@ class App {
 
         });
         const interval = setInterval(() => {
-            this.wss.clients.forEach((ws) => {
-                try {
-                    if (ws['isAlive'] === false || !ws['isAlive']) {
-                        console.log(ws['gui'] + 'ws terminated')
-                        return ws.terminate();
-                    }
-                    console.log('TIME INTERVAL');
-                    ws['isAlive'] = false;
-                    ws.ping(() => { });
-                } catch (error) {
-                    console.log(error);
-                }
-            });
-        }, 60000); // set 60 seconds 
-        setTimeout(() => {
-            for (let index = 0; index < parent._allClient.length; index++) {
-                const element = parent._allClient[index];
-                if (this.wss.clients.has(element)) {
+        //     this.wss.clients.forEach((ws) => {
+        //         try {
+        //             if (ws['isAlive'] === false || !ws['isAlive']) {
+        //                 console.log(ws['gui'] + 'ws terminated')
+        //                 return ws.terminate();
+        //             }
+        //             console.log('TIME INTERVAL');
+        //             ws['isAlive'] = false;
+        //             ws.ping(() => { });
+        //         } catch (error) {
+        //             console.log(error);
+        //         }
+        //     });
+        // }, 60000); // set 60 seconds 
+        // setTimeout(() => {
+        //     for (let index = 0; index < parent._allClient.length; index++) {
+        //         const element = parent._allClient[index];
+        //         if (this.wss.clients.has(element)) {
 
-                    parent._allClient.splice(index, 1);
-                }
-            }
+        //             parent._allClient.splice(index, 1);
+        //         }
+        //     }
 
         }, 60000); // set 60 seconds 
     }
