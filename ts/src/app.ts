@@ -258,7 +258,7 @@ class App {
                         if (parent._system_prefix.indexOf(js['client'].prefix) < 0) {
                             console.log('clear auth')
                             delete js['client'].auth;
-                            //parent.filterObject(js['client'].data);
+                            parent.filterObject(js['client'].data);
                         }
                         console.log('sending');
                         //console.log(js['client']);
@@ -1091,7 +1091,19 @@ class App {
                         }).catch(err => {
                             deferred.reject(err);
                         });
-                        break;
+                    break;
+                    case 'find-user-by-logintoken':
+                    this.get_user_gui_ws(js).then(res => {
+                        this.get_user_ws(res).then(res => {
+                            deferred.resolve(res);
+                        }).catch(err => {
+                            deferred.reject(err);
+                        });
+                    }).catch(err => {
+                        deferred.reject(err);
+                    });
+                        
+                    break;
                     case 'get-user-info':
                         this.get_user_info_ws(js).then(res => {
                             deferred.resolve(res);
@@ -3646,7 +3658,7 @@ class App {
     }
 
     filterObject(obj) {
-        var need = ['gui', '_rev', '_id', 'password', 'oldphone', 'system', 'parents', 'roles', 'isActive'];
+        var need = ['_rev', 'password', 'oldphone', 'system', 'parents', 'roles', 'isActive'];
         //console.log(key);
         for (let i in obj) {
             //if(i==='password')
