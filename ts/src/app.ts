@@ -1136,7 +1136,11 @@ class App {
                 }
             }).catch(err => {
                 console.log(err);
-                throw new Error('ERROR no authorize');
+                js = {};
+                js.client = {};
+                js.client.data = {};
+                js.client.data.message = new Error('ERROR no authorize');
+                deferred.reject(js);
             });
         } catch (error) {
             js = {};
