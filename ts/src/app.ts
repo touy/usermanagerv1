@@ -55,7 +55,7 @@ export interface gijuser {
     description: string;
     photo: Array<photoObj>;
     note: string;
-    system: Array<string>;
+    system: Array<string>; /// ice-maker, gij, stock-manager....
     gijvalue: number;
     totalgij: number;
     totalgijspent: number;
@@ -148,8 +148,8 @@ class App {
     private _current_online_client:any[]=[];
     private _current_system = 'user-management';
 
-    private _client_prefix = ['ice-maker', 'gij', 'web-post', 'user-management', 'default'];
-    private _system_prefix = ['ice-maker', 'gij', 'web-post', 'user-management'];
+    private _client_prefix = ['ice-maker', 'gij', 'web-post', 'user-management', 'default','random-game','stock-manager'];
+    private _system_prefix = ['ice-maker', 'gij', 'web-post', 'user-management','random-game','stock-manager'];
     private ws_client: WebSocket;
     private wsoption: WebSocket.ServerOptions;
     private wss: WebSocket.Server;
@@ -236,13 +236,16 @@ class App {
                     let s = Buffer.from(b, 'base64').toString();
                     js['client'] = JSON.parse(s);
                     //console.log(js.client)                    
-                    js['ws'] = ws;
+                    //js['ws'] =JSON.parse(JSON.stringify(ws));
+                    js['ws']={};
+                    js['ws']._socket=ws['_socket'];
+                   // js['ws']._socket.remoteAddress=ws['_socket'].remoteAddress;
                     ws['lastupdate'] = parent.convertTZ(moment.now());
                     ws['isAlive'] = true;
                     ws['gui'] = js['client'].gui;
                     this.checkConnection(ws['gui']);
                     js['client'].auth = {};
-                    ws['client'] = js['client'];
+                    ws['client'] = JSON.parse(JSON.stringify(js['client']));
                     //console.log(ws['client']);
                     parent.commandReader(js).then(res => {
                         js = res;
@@ -277,13 +280,15 @@ class App {
                             type: "error",
                             gui: uuidV4()
                         };
-                        //console.log(err);
+                        //console.log('ERROR BEFORE SEND WS',err);
                         parent.errorLogging(l);
                         console.log('ws sending');
                         ws['client'] = js['client'];
                         ws['lastupdate'] = parent.convertTZ(moment.now());
                         js['client'].data.message = js['client'].data.message.message;
                         parent.filterObject(js['client'].auth);
+                        delete js['ws'];
+                        console.log('ERROR BEFORE SEND WS',js);
                         let b = Buffer.from(JSON.stringify(js['client'])).toString('base64');
                         //console.log(b);
                         let a = Buffer.from(b);
@@ -845,7 +850,7 @@ class App {
                             //console.log(res);
                             //js.ws.lastupdate = this.convertTZ(moment().format());
                         }).catch(err => {
-                            //console.log(err);
+                            //console.log('ERROR LOGIN command',err);
                             deferred.reject(err);
                         });
                         break;
@@ -1154,18 +1159,18 @@ class App {
         return deferred.promise;
     }
 
-    readBinaryStringFromArrayBuffer(arrayBuffer, onSuccess, onFail) {
-        var reader = new FileReader();
-        reader.onload = (event) => {
-            onSuccess(event.target.result);
-        };
-        reader.onerror = (event) => {
-            onFail(event.target.error);
-        };
-        reader.readAsBinaryString(new Blob([arrayBuffer], {
-            type: 'application/octet-stream'
-        }));
-    }
+    // readBinaryStringFromArrayBuffer(arrayBuffer, onSuccess, onFail) {
+    //     var reader = new FileReader();
+    //     reader.onload = (event) => {
+    //         onSuccess(event.target.result);
+    //     };
+    //     reader.onerror = (event) => {
+    //         onFail(event.target.error);
+    //     };
+    //     reader.readAsBinaryString(new Blob([arrayBuffer], {
+    //         type: 'application/octet-stream'
+    //     }));
+    // }
 
     ab2str(arrayBuffer): string {
         let
@@ -1604,6 +1609,28 @@ class App {
         photo: [],
         note: '',
         system: ['ice-maker', 'gij'],
+        gijvalue: 0,
+        totalgij: 0,
+        totalgijspent: 0,
+        oldphone: []
+    },
+    {
+        username: 'stock-manager-admin',
+        password: '123456',
+        confirmpassword: '',
+        phonenumber: '2055516321',
+        gui: uuidV4(),
+        createddate: this.convertTZ(moment().format()),
+        lastupdate: this.convertTZ(moment().format()),
+        isactive: true,
+        parents: ["default"],
+        roles: ['admin', 'user'],
+        logintoken: '',
+        expirelogintoken: '',
+        description: '',
+        photo: [],
+        note: '',
+        system: ['stock-manager', 'gij'],
         gijvalue: 0,
         totalgij: 0,
         totalgijspent: 0,
@@ -2745,15 +2772,15 @@ class App {
                             //     }
                             // }
                         }
-                        if (!this._client_prefix.match(user.system).length) {
-                            js.client.username = '';
-                            js.client.data.user = {};
-                            js.client.loginip = js.ws._socket.remoteAddress;
-                            js.client.logintoken = '';
-                            js.client.logintime = '';
-                            js.client.data.message = new Error('ERROR not allow this user');
-                            deferred.reject(js);
-                        }
+                        // if (!this._client_prefix.match(user.system).length) {
+                        //     js.client.username = '';
+                        //     js.client.data.user = {};
+                        //     js.client.loginip = js.ws._socket.remoteAddress;
+                        //     js.client.logintoken = '';
+                        //     js.client.logintime = '';
+                        //     js.client.data.message = new Error('ERROR not allow this user');
+                        //     deferred.reject(js);
+                        // }
                         // else if (!res.system.match(['user-management']).length) {
                         //     js.client.username = '';
                         //     js.client.data.user = {};
@@ -2763,7 +2790,7 @@ class App {
                         //     js.client.data.message = new Error('ERROR user has no an authorization');
                         //     deferred.reject(js);
                         // }
-                        else {
+                        // else {
                             js.client.username = js.client.data.user.username;
                             js.client.data.user = {};
                             js.client.loginip = js.ws._socket.remoteAddress;
@@ -2785,21 +2812,40 @@ class App {
                             deferred.resolve(js);
                             //}, 1000 * 3);
 
-                        }
+                        // }
 
                     }
                 });
             }).catch((err) => {
+                console.log('------ERROR LOGIN',js);
+                let command =js.client.data.command2;         
+                js.client.data={};
+                js.client.logintoken = '';
+                js.client.loginip = '';
+                js.client.logintime = '';
+                js.client.username = '';
+                js.client.data.command=command;
                 js.client.data.message = err;
                 js.client.data.user = {};
                 js.client.accessedtime = this.convertTZ(moment().format());
+                console.log(' ERROR LOGIN 2',js);
                 //js.resp.send(js.client);
+                //console.log(js);
+                
                 deferred.reject(js);
             });
         } catch (error) {
+            let command =js.client.data.command2;
+            js.client.logintoken = '';
+            js.client.loginip = '';
+            js.client.logintime = '';
+            js.client.username = '';
+            js.client.data={};            
             js.client.data.message = error;
+            js.client.data.command=command;
             js.client.data.user = {};
             js.client.accessedtime = this.convertTZ(moment().format());
+            console.log(' ERROR LOGIN 2',js);
             //js.resp.send(js.client);
             deferred.reject(js);
         }
@@ -3854,9 +3900,6 @@ class App {
             client: client
         }), 'EX', 60 * 5);
     }
-
-
-
     setOnlineStatus(client) {
         try {
             this.r_client.get(this._current_system + '_online_' + client.username, (err, r) => {
