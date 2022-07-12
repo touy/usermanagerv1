@@ -1,0 +1,27 @@
+version: "3.7"
+services:
+  usermanagerv1:
+    build: . 
+    container_name: usermanagerv1-api.laoapps.com
+    restart: on-failure:5
+    # image: touyara/orderbillingapi:v1
+    # command: npm start
+    environment:
+      - DATABASE_HOST=host.docker.internal
+      - PORT=6688
+    ports:
+      - 443:443
+      - 80:80
+      - 23323:23323
+    secrets:
+      - db-password
+    volumes:
+      - .:/app
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - back-notused:/opt/app/node_modules
+
+
+volumes:
+   back-notused:
+   db-data:

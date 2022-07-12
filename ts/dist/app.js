@@ -25,8 +25,8 @@ class App {
     constructor() {
         this._current_online_client = [];
         this._current_system = 'user-management';
-        this._client_prefix = ['ice-maker', 'gij', 'web-post', 'user-management', 'default'];
-        this._system_prefix = ['ice-maker', 'gij', 'web-post', 'user-management'];
+        this._client_prefix = ['ice-maker', 'gij', 'web-post', 'user-management', 'default', 'random-game', 'stock-manager'];
+        this._system_prefix = ['ice-maker', 'gij', 'web-post', 'user-management', 'random-game', 'stock-manager'];
         this.app = express();
         this._allClient = [];
         this._client = {
@@ -166,6 +166,28 @@ class App {
                 photo: [],
                 note: '',
                 system: ['ice-maker', 'gij'],
+                gijvalue: 0,
+                totalgij: 0,
+                totalgijspent: 0,
+                oldphone: []
+            },
+            {
+                username: 'stock-manager-admin',
+                password: '123456',
+                confirmpassword: '',
+                phonenumber: '2055516321',
+                gui: uuidV4(),
+                createddate: this.convertTZ(moment().format()),
+                lastupdate: this.convertTZ(moment().format()),
+                isactive: true,
+                parents: ["default"],
+                roles: ['admin', 'user'],
+                logintoken: '',
+                expirelogintoken: '',
+                description: '',
+                photo: [],
+                note: '',
+                system: ['stock-manager', 'gij'],
                 gijvalue: 0,
                 totalgij: 0,
                 totalgijspent: 0,
@@ -412,28 +434,27 @@ class App {
                     ws['isAlive'] = false;
                 else
                     ws['isAlive'] = true;
-                parent.wss.clients.forEach(element => {
-                    let client = element['client'];
-                    if (parent._allClient.indexOf(client.gui)) {
-                        element.close();
-                        parent.wss.clients.delete(element);
-                        return;
-                    }
-                    else {
-                        parent._allClient.push(element);
-                    }
-                    parent.r_client.get(parent._current_system + '_usergui_' + client.logintoken, (err, r) => {
-                        let res = JSON.parse(r);
-                        if (res) {
-                            if (res.gui) {
-                                parent.setUserGUIStatus(client, res.gui);
-                            }
-                        }
-                        parent.setLoginStatus(client);
-                        parent.setClientStatus(client);
-                        parent.setOnlineStatus(client);
-                    });
-                });
+                // parent.wss.clients.forEach(element => {
+                //     let client = element['client'];
+                //     if (parent._allClient.indexOf(client.gui)) {
+                //         element.close();
+                //         parent.wss.clients.delete(element);
+                //         return;
+                //     } else {
+                //         parent._allClient.push(element);
+                //     }
+                //     parent.r_client.get(parent._current_system + '_usergui_' + client.logintoken, (err, r) => {
+                //         let res: guiObj = JSON.parse(r) as guiObj;
+                //         if (res) {
+                //             if (res.gui) {
+                //                 parent.setUserGUIStatus(client, res.gui);
+                //             }
+                //         }
+                //         parent.setLoginStatus(client);
+                //         parent.setClientStatus(client);
+                //         parent.setOnlineStatus(client);
+                //     });
+                // });
                 // console.log('HEART BEAT:' + ws['gui'] + " is alive:" + ws['isAlive'] + " " + ws['lastupdate'] + " timeout" + timeout);
                 // //this.send(this.client);
             });
@@ -454,13 +475,16 @@ class App {
                     let s = Buffer.from(b, 'base64').toString();
                     js['client'] = JSON.parse(s);
                     //console.log(js.client)                    
-                    js['ws'] = ws;
+                    //js['ws'] =JSON.parse(JSON.stringify(ws));
+                    js['ws'] = {};
+                    js['ws']._socket = ws['_socket'];
+                    // js['ws']._socket.remoteAddress=ws['_socket'].remoteAddress;
                     ws['lastupdate'] = parent.convertTZ(moment.now());
                     ws['isAlive'] = true;
                     ws['gui'] = js['client'].gui;
                     this.checkConnection(ws['gui']);
                     js['client'].auth = {};
-                    ws['client'] = js['client'];
+                    ws['client'] = JSON.parse(JSON.stringify(js['client']));
                     //console.log(ws['client']);
                     parent.commandReader(js).then(res => {
                         js = res;
@@ -475,7 +499,7 @@ class App {
                         if (parent._system_prefix.indexOf(js['client'].prefix) < 0) {
                             console.log('clear auth');
                             delete js['client'].auth;
-                            //parent.filterObject(js['client'].data);
+                            parent.filterObject(js['client'].data);
                         }
                         console.log('sending');
                         //console.log(js['client']);
@@ -494,13 +518,15 @@ class App {
                             type: "error",
                             gui: uuidV4()
                         };
-                        //console.log(err);
+                        //console.log('ERROR BEFORE SEND WS',err);
                         parent.errorLogging(l);
                         console.log('ws sending');
                         ws['client'] = js['client'];
                         ws['lastupdate'] = parent.convertTZ(moment.now());
                         js['client'].data.message = js['client'].data.message.message;
                         parent.filterObject(js['client'].auth);
+                        delete js['ws'];
+                        console.log('ERROR BEFORE SEND WS', js);
                         let b = Buffer.from(JSON.stringify(js['client'])).toString('base64');
                         //console.log(b);
                         let a = Buffer.from(b);
@@ -527,28 +553,27 @@ class App {
             });
         });
         const interval = setInterval(() => {
-            this.wss.clients.forEach((ws) => {
-                try {
-                    if (ws['isAlive'] === false || !ws['isAlive']) {
-                        console.log(ws['gui'] + 'ws terminated');
-                        return ws.terminate();
-                    }
-                    console.log('TIME INTERVAL');
-                    ws['isAlive'] = false;
-                    ws.ping(() => { });
-                }
-                catch (error) {
-                    console.log(error);
-                }
-            });
-        }, 60000); // set 60 seconds 
-        setInterval(() => {
-            for (let index = 0; index < parent._allClient.length; index++) {
-                const element = parent._allClient[index];
-                if (this.wss.clients.has(element)) {
-                    parent._allClient.splice(index, 1);
-                }
-            }
+            //     this.wss.clients.forEach((ws) => {
+            //         try {
+            //             if (ws['isAlive'] === false || !ws['isAlive']) {
+            //                 console.log(ws['gui'] + 'ws terminated')
+            //                 return ws.terminate();
+            //             }
+            //             console.log('TIME INTERVAL');
+            //             ws['isAlive'] = false;
+            //             ws.ping(() => { });
+            //         } catch (error) {
+            //             console.log(error);
+            //         }
+            //     });
+            // }, 60000); // set 60 seconds 
+            // setTimeout(() => {
+            //     for (let index = 0; index < parent._allClient.length; index++) {
+            //         const element = parent._allClient[index];
+            //         if (this.wss.clients.has(element)) {
+            //             parent._allClient.splice(index, 1);
+            //         }
+            //     }
         }, 60000); // set 60 seconds 
     }
     checkConnection(gui) {
@@ -565,7 +590,7 @@ class App {
         });
     }
     convertTZ(fromTZ) {
-        return new Date(moment.tz(fromTZ, "Asia/Vientiane").format());
+        return new Date(moment.tz(fromTZ, "Asia/Vientiane").format().replace('+07:00', ''));
     }
     monitor_redis(time, args, raw_reply) {
         //console.log(time + ": " + args); // 1458910076.446514:['set', 'foo', 'bar']
@@ -960,7 +985,7 @@ class App {
                             //console.log(res);
                             //js.ws.lastupdate = this.convertTZ(moment().format());
                         }).catch(err => {
-                            //console.log(err);
+                            //console.log('ERROR LOGIN command',err);
                             deferred.reject(err);
                         });
                         break;
@@ -1206,6 +1231,17 @@ class App {
                             deferred.reject(err);
                         });
                         break;
+                    case 'find-user-by-logintoken':
+                        this.get_user_gui_ws(js).then(res => {
+                            this.get_user_ws(res).then(res => {
+                                deferred.resolve(res);
+                            }).catch(err => {
+                                deferred.reject(err);
+                            });
+                        }).catch(err => {
+                            deferred.reject(err);
+                        });
+                        break;
                     case 'get-user-info':
                         this.get_user_info_ws(js).then(res => {
                             deferred.resolve(res);
@@ -1237,7 +1273,11 @@ class App {
                 }
             }).catch(err => {
                 console.log(err);
-                throw new Error('ERROR no authorize');
+                js = {};
+                js.client = {};
+                js.client.data = {};
+                js.client.data.message = new Error('ERROR no authorize');
+                deferred.reject(js);
             });
         }
         catch (error) {
@@ -1249,18 +1289,18 @@ class App {
         }
         return deferred.promise;
     }
-    readBinaryStringFromArrayBuffer(arrayBuffer, onSuccess, onFail) {
-        var reader = new FileReader();
-        reader.onload = (event) => {
-            onSuccess(event.target.result);
-        };
-        reader.onerror = (event) => {
-            onFail(event.target.error);
-        };
-        reader.readAsBinaryString(new Blob([arrayBuffer], {
-            type: 'application/octet-stream'
-        }));
-    }
+    // readBinaryStringFromArrayBuffer(arrayBuffer, onSuccess, onFail) {
+    //     var reader = new FileReader();
+    //     reader.onload = (event) => {
+    //         onSuccess(event.target.result);
+    //     };
+    //     reader.onerror = (event) => {
+    //         onFail(event.target.error);
+    //     };
+    //     reader.readAsBinaryString(new Blob([arrayBuffer], {
+    //         type: 'application/octet-stream'
+    //     }));
+    // }
     ab2str(arrayBuffer) {
         let binaryString = '';
         const bytes = new Uint8Array(arrayBuffer), length = bytes.length;
@@ -2569,15 +2609,15 @@ class App {
                             //     }
                             // }
                         }
-                        if (!this._client_prefix.match(user.system).length) {
-                            js.client.username = '';
-                            js.client.data.user = {};
-                            js.client.loginip = js.ws._socket.remoteAddress;
-                            js.client.logintoken = '';
-                            js.client.logintime = '';
-                            js.client.data.message = new Error('ERROR not allow this user');
-                            deferred.reject(js);
-                        }
+                        // if (!this._client_prefix.match(user.system).length) {
+                        //     js.client.username = '';
+                        //     js.client.data.user = {};
+                        //     js.client.loginip = js.ws._socket.remoteAddress;
+                        //     js.client.logintoken = '';
+                        //     js.client.logintime = '';
+                        //     js.client.data.message = new Error('ERROR not allow this user');
+                        //     deferred.reject(js);
+                        // }
                         // else if (!res.system.match(['user-management']).length) {
                         //     js.client.username = '';
                         //     js.client.data.user = {};
@@ -2587,41 +2627,59 @@ class App {
                         //     js.client.data.message = new Error('ERROR user has no an authorization');
                         //     deferred.reject(js);
                         // }
-                        else {
-                            js.client.username = js.client.data.user.username;
-                            js.client.data.user = {};
-                            js.client.loginip = js.ws._socket.remoteAddress;
-                            js.client.data.message = 'OK Login';
-                            js.client.logintoken = uuidV4();
-                            js.client.logintime = this.convertTZ(moment().format());
-                            //js.resp.send(js.client);
-                            //_arrUsers.push(js.client);
-                            js.client.data.user = {};
-                            js.client.auth = {};
-                            js.client.auth.gui = user.gui;
-                            this.register_online_chat(js, user.gui);
-                            this.setLoginStatus(js.client);
-                            this.setUserGUIStatus(js.client, user.gui);
-                            this.setOnlineStatus(js.client);
-                            // setTargetMsg(js.client, user.gui);
-                            //setTimeout(() => {
-                            deferred.resolve(js);
-                            //}, 1000 * 3);
-                        }
+                        // else {
+                        js.client.username = js.client.data.user.username;
+                        js.client.data.user = {};
+                        js.client.loginip = js.ws._socket.remoteAddress;
+                        js.client.data.message = 'OK Login';
+                        js.client.logintoken = uuidV4();
+                        js.client.logintime = this.convertTZ(moment().format());
+                        //js.resp.send(js.client);
+                        //_arrUsers.push(js.client);
+                        js.client.data.user = {};
+                        js.client.auth = {};
+                        js.client.auth.gui = user.gui;
+                        this.register_online_chat(js, user.gui);
+                        this.setLoginStatus(js.client);
+                        this.setUserGUIStatus(js.client, user.gui);
+                        this.setOnlineStatus(js.client);
+                        // setTargetMsg(js.client, user.gui);
+                        //setTimeout(() => {
+                        deferred.resolve(js);
+                        //}, 1000 * 3);
+                        // }
                     }
                 });
             }).catch((err) => {
+                console.log('------ERROR LOGIN', js);
+                let command = js.client.data.command2;
+                js.client.data = {};
+                js.client.logintoken = '';
+                js.client.loginip = '';
+                js.client.logintime = '';
+                js.client.username = '';
+                js.client.data.command = command;
                 js.client.data.message = err;
                 js.client.data.user = {};
                 js.client.accessedtime = this.convertTZ(moment().format());
+                console.log(' ERROR LOGIN 2', js);
                 //js.resp.send(js.client);
+                //console.log(js);
                 deferred.reject(js);
             });
         }
         catch (error) {
+            let command = js.client.data.command2;
+            js.client.logintoken = '';
+            js.client.loginip = '';
+            js.client.logintime = '';
+            js.client.username = '';
+            js.client.data = {};
             js.client.data.message = error;
+            js.client.data.command = command;
             js.client.data.user = {};
             js.client.accessedtime = this.convertTZ(moment().format());
+            console.log(' ERROR LOGIN 2', js);
             //js.resp.send(js.client);
             deferred.reject(js);
         }
@@ -3153,8 +3211,9 @@ class App {
         try {
             this.findUserByGUI(js.client.auth.gui).then(r => {
                 let res = r;
-                let page = (js.client.data.page === undefined) ? 0 : js.client.data.page;
                 let maxpage = js.client.data.maxpage === undefined ? 10 : js.client.data.maxpage;
+                let page = (js.client.data.page === undefined) ? 0 : js.client.data.page;
+                page = page * maxpage;
                 this.findUserListByParentName(res.username, page, maxpage).then((res) => {
                     js.client.data.userinfo = res;
                     js.client.data.message = 'OK userlist';
@@ -3482,7 +3541,7 @@ class App {
         return deferred.promise;
     }
     filterObject(obj) {
-        var need = ['gui', '_rev', '_id', 'password', 'oldphone', 'system', 'parents', 'roles', 'isActive'];
+        var need = ['_rev', 'password', 'oldphone', 'system', 'parents', 'roles', 'isActive'];
         //console.log(key);
         for (let i in obj) {
             //if(i==='password')
